@@ -25,6 +25,12 @@ class ConversionTests(unittest.TestCase):
             '[Google](http://google.com)'
         )
 
+    def test_a_with_title(self):
+        self.assertEqual(
+            md('<a href="http://google.com" title="The &quot;Goog&quot;">Google</a>'),
+            r'[Google](http://google.com "The \"Goog\"")'
+        )
+
     def test_b(self):
         self.assertEqual(md('<b>Hello</b>'), '**Hello**')
 

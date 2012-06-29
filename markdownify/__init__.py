@@ -69,7 +69,9 @@ class MarkdownConverter(object):
 
     def convert_a(self, el):
         href = el.get('href')
-        return '[%s](%s)' % (el.text or '', href) if href else el.text or ''
+        title = el.get('title')
+        title_part = ' "%s"' % title.replace('"', r'\"') if title else ''
+        return '[%s](%s%s)' % (el.text or '', href, title_part) if href else el.text or ''
 
     def convert_b(self, el):
         return self.convert_strong(el)
