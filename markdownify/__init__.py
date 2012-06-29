@@ -43,8 +43,10 @@ class MarkdownConverter(object):
 
             text += tail
 
-        node.clear()
+        while len(node):
+            del node[0]
         node.text = text
+        node.tail = ''
 
     def __getattr__(self, attr):
         # Handle heading levels > 2
