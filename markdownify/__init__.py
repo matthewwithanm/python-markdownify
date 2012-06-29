@@ -91,6 +91,9 @@ class MarkdownConverter(object):
             bullet = '*'
         return '%s %s\n' % (bullet, el.text or '')
 
+    def convert_p(self, el):
+        return '%s\n\n' % el.text if el.text else ''
+
     def convert_strong(self, el):
         return '**%s**' % el.text if el.text else ''
 
