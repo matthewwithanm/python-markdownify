@@ -83,6 +83,14 @@ class MarkdownConverter(object):
     def convert_i(self, el):
         return self.convert_em(el)
 
+    def convert_li(self, el):
+        parent = el.getparent()
+        if parent is not None and parent.tag == 'ol':
+            bullet = '%s.' % (parent.index(el) + 1)
+        else:
+            bullet = '*'
+        return '%s %s\n' % (bullet, el.text or '')
+
     def convert_strong(self, el):
         return '**%s**' % el.text if el.text else ''
 

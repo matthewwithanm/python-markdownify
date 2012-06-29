@@ -35,5 +35,11 @@ class ConversionTests(unittest.TestCase):
     def test_i(self):
         self.assertEqual(md('<i>Hello</i>'), '*Hello*')
 
+    def test_ol(self):
+        self.assertEqual(md('<ol><li>a</li><li>b</li></ol>'), '1. a\n2. b\n')
+
     def test_strong(self):
         self.assertEqual(md('<strong>Hello</strong>'), '**Hello**')
+
+    def test_ul(self):
+        self.assertEqual(md('<ul><li>a</li><li>b</li></ul>'), '* a\n* b\n')
