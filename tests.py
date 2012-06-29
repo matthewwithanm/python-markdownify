@@ -19,6 +19,12 @@ class EscapeTests(unittest.TestCase):
 
 class ConversionTests(unittest.TestCase):
 
+    def test_a(self):
+        self.assertEqual(
+            md('<a href="http://google.com">Google</a>'),
+            '[Google](http://google.com)'
+        )
+
     def test_b(self):
         self.assertEqual(md('<b>Hello</b>'), '**Hello**')
 

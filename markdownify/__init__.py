@@ -67,6 +67,10 @@ class MarkdownConverter(object):
         text = (text or '').rstrip()
         return '%s\n%s\n\n' % (text, pad_char * len(text)) if text else ''
 
+    def convert_a(self, el):
+        href = el.get('href')
+        return '[%s](%s)' % (el.text or '', href) if href else el.text or ''
+
     def convert_b(self, el):
         return self.convert_strong(el)
 
