@@ -69,7 +69,7 @@ class MarkdownConverter(object):
         return self.convert_strong(el)
 
     def convert_em(self, el):
-        return '_%s_' % el.text if el.text else ''
+        return '*%s*' % el.text if el.text else ''
 
     def convert_h1(self, el):
         return self.underline(el.text, '=')

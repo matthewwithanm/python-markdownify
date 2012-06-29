@@ -20,7 +20,7 @@ class ConversionTests(unittest.TestCase):
         self.assertEqual(md('<b>Hello</b>'), '**Hello**')
 
     def test_em(self):
-        self.assertEqual(md('<em>Hello</em>'), '_Hello_')
+        self.assertEqual(md('<em>Hello</em>'), '*Hello*')
 
     def test_h1(self):
         self.assertEqual(md('<h1>Hello</h1>'), 'Hello\n=====\n\n')
@@ -33,7 +33,7 @@ class ConversionTests(unittest.TestCase):
         self.assertEqual(md('<h6>Hello</h6>'), '###### Hello\n\n')
 
     def test_i(self):
-        self.assertEqual(md('<i>Hello</i>'), '_Hello_')
+        self.assertEqual(md('<i>Hello</i>'), '*Hello*')
 
     def test_strong(self):
         self.assertEqual(md('<strong>Hello</strong>'), '**Hello**')
