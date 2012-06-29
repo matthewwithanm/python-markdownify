@@ -37,6 +37,9 @@ class ConversionTests(unittest.TestCase):
     def test_b(self):
         self.assertEqual(md('<b>Hello</b>'), '**Hello**')
 
+    def test_br(self):
+        self.assertEqual(md('a<br />b<br />c'), 'a  \nb  \nc')
+
     def test_em(self):
         self.assertEqual(md('<em>Hello</em>'), '*Hello*')
 

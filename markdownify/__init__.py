@@ -79,6 +79,9 @@ class MarkdownConverter(object):
     def convert_b(self, el):
         return self.convert_strong(el)
 
+    def convert_br(self, el):
+        return '  \n'
+
     def convert_em(self, el):
         return '*%s*' % el.text if el.text else ''
 
