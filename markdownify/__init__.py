@@ -22,15 +22,15 @@ class MarkdownConverter(object):
 
     def convert(self, html):
         soup = fromstring(html)
-        self.convert_tag(soup)
+        self.process_tag(soup)
         return soup.text
 
-    def convert_tag(self, node):
+    def process_tag(self, node):
         text = escape(node.text)
 
         # Convert the children first
         for el in node.findall('*'):
-            self.convert_tag(el)
+            self.process_tag(el)
 
             convert_fn = getattr(self, 'convert_%s' % el.tag, None)
             tail = escape(el.tail)
