@@ -55,6 +55,9 @@ class MarkdownConverter(object):
     def convert_h2(self, el):
         return self.underline(el.text, '-')
 
+    def convert_i(self, el):
+        return self.convert_em(el)
+
 
 def markdownify(html, strip=None, keep=None):
     converter = MarkdownConverter(strip, keep)
