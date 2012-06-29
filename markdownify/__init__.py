@@ -1,4 +1,3 @@
-from lxml.etree import tostring
 from lxml.html.soupparser import fromstring
 import re
 
