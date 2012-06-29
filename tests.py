@@ -16,6 +16,9 @@ class BasicTests(unittest.TestCase):
 
 class ConversionTests(unittest.TestCase):
 
+    def test_em(self):
+        self.assertEqual(md('<em>Hello</em>'), '_Hello_')
+
     def test_h1(self):
         self.assertEqual(md('<h1>Hello</h1>'), 'Hello\n=====\n\n')
 

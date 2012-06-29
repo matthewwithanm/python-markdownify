@@ -46,6 +46,9 @@ class MarkdownConverter(object):
         text = (text or '').rstrip()
         return '%s\n%s\n\n' % (text, pad_char * len(text)) if text else ''
 
+    def convert_em(self, el):
+        return '_%s_' % el.text if el.text else ''
+
     def convert_h1(self, el):
         return self.underline(el.text, '=')
 
