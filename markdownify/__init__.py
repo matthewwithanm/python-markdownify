@@ -2,6 +2,12 @@ from lxml.etree import tostring
 from lxml.html.soupparser import fromstring
 
 
+def escape(text):
+    if not text:
+        return ''
+    return text.replace('_', r'\_')
+
+
 class MarkdownConverter(object):
     def __init__(self, strip=None, keep=None):
         if strip is not None and keep is not None:
@@ -16,20 +22,20 @@ class MarkdownConverter(object):
         return soup.text
 
     def convert_tag(self, node):
-        text = node.text or ''
+        text = escape(node.text)
 
         # Convert the children first
         for el in node.findall('*'):
             self.convert_tag(el)
 
             convert_fn = getattr(self, 'convert_%s' % el.tag, None)
-            tail = el.tail or ''
+            tail = escape(el.tail)
             el.tail = ''
 
             if convert_fn:
                 text += convert_fn(el)
             else:
-                text += el.text or ''
+                text += el.text
 
             text += tail
 

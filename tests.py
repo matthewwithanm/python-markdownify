@@ -10,6 +10,9 @@ class BasicTests(unittest.TestCase):
     def test_soup(self):
         self.assertEqual(md('<div><span>Hello</div></span>'), 'Hello')
 
+    def test_escape(self):
+        self.assertEqual(md('_hey_dude_'), '\_hey\_dude\_')
+
 
 class ConversionTests(unittest.TestCase):
 
