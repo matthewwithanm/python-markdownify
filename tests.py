@@ -16,6 +16,9 @@ class BasicTests(unittest.TestCase):
 
 class ConversionTests(unittest.TestCase):
 
+    def test_b(self):
+        self.assertEqual(md('<b>Hello</b>'), '**Hello**')
+
     def test_em(self):
         self.assertEqual(md('<em>Hello</em>'), '_Hello_')
 
@@ -31,3 +34,6 @@ class ConversionTests(unittest.TestCase):
 
     def test_i(self):
         self.assertEqual(md('<i>Hello</i>'), '_Hello_')
+
+    def test_strong(self):
+        self.assertEqual(md('<strong>Hello</strong>'), '**Hello**')

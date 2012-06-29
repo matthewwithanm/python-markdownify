@@ -65,6 +65,9 @@ class MarkdownConverter(object):
         text = (text or '').rstrip()
         return '%s\n%s\n\n' % (text, pad_char * len(text)) if text else ''
 
+    def convert_b(self, el):
+        return self.convert_strong(el)
+
     def convert_em(self, el):
         return '_%s_' % el.text if el.text else ''
 
@@ -79,6 +82,9 @@ class MarkdownConverter(object):
 
     def convert_i(self, el):
         return self.convert_em(el)
+
+    def convert_strong(self, el):
+        return '**%s**' % el.text if el.text else ''
 
 
 def markdownify(html, strip=None, keep=None):
