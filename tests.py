@@ -10,7 +10,10 @@ class BasicTests(unittest.TestCase):
     def test_soup(self):
         self.assertEqual(md('<div><span>Hello</div></span>'), 'Hello')
 
-    def test_escape(self):
+
+class EscapeTests(unittest.TestCase):
+
+    def test_underscore(self):
         self.assertEqual(md('_hey_dude_'), '\_hey\_dude\_')
 
 
