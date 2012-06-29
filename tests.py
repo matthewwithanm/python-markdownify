@@ -55,3 +55,12 @@ class ConversionTests(unittest.TestCase):
 
     def test_ul(self):
         self.assertEqual(md('<ul><li>a</li><li>b</li></ul>'), '* a\n* b\n')
+
+
+class AdvancedTests(unittest.TestCase):
+
+    def test_nested(self):
+        self.assertEqual(
+            md('<p>This is an <a href="http://example.com/">example link</a>.</p>'),
+            'This is an [example link](http://example.com/).\n\n'
+        )
