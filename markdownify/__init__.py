@@ -36,6 +36,16 @@ class MarkdownConverter(object):
         node.clear()
         node.text = text
 
+    def underline(self, text, pad_char):
+        text = (text or '').rstrip()
+        return '%s\n%s\n\n' % (text, pad_char * len(text)) if text else ''
+
+    def convert_h1(self, el):
+        return self.underline(el.text, '=')
+
+    def convert_h2(self, el):
+        return self.underline(el.text, '-')
+
 
 def markdownify(html, strip=None, keep=None):
     converter = MarkdownConverter(strip, keep)
