@@ -4,6 +4,7 @@ import re
 
 
 convert_heading_re = re.compile(r'convert_h(\d+)')
+whitespace_re = re.compile(r'[\r\n\s\t ]+')
 
 
 def escape(text):
@@ -26,14 +27,14 @@ class MarkdownConverter(object):
         return soup.text
 
     def process_tag(self, node):
-        text = escape(node.text)
+        text = self.process_text(node.text)
 
         # Convert the children first
         for el in node.findall('*'):
             self.process_tag(el)
 
             convert_fn = getattr(self, 'convert_%s' % el.tag, None)
-            tail = escape(el.tail)
+            tail = self.process_text(el.tail)
             el.tail = ''
 
             if convert_fn:
@@ -47,6 +48,9 @@ class MarkdownConverter(object):
             del node[0]
 
         node.text = text
+
+    def process_text(self, text):
+        return escape(whitespace_re.sub(' ', text or ''))
 
     def __getattr__(self, attr):
         # Handle heading levels > 2

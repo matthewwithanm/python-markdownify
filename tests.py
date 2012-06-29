@@ -10,6 +10,9 @@ class BasicTests(unittest.TestCase):
     def test_soup(self):
         self.assertEqual(md('<div><span>Hello</div></span>'), 'Hello')
 
+    def test_whitespace(self):
+        self.assertEqual(md(' a  b \n\n c '), ' a b c ')
+
 
 class EscapeTests(unittest.TestCase):
 
