@@ -9,14 +9,14 @@ execfile(os.path.join(os.path.dirname(__file__), 'markdownify', 'version.py'))
 
 
 setup(
-    name='markdownify',
+    name='python-markdownify',
     description='Convert HTML to markdown.',
     long_description=read(os.path.join(os.path.dirname(__file__), 'README.rst')),
     version=__version__,
     author='Matthew Tretter',
     author_email='matthew@exanimo.com',
-    url='http://github.com/matthewwithanm/markdownify',
-    download_url='http://github.com/matthewwithanm/markdownify/tarball/master',
+    url='http://github.com/matthewwithanm/python-markdownify',
+    download_url='http://github.com/matthewwithanm/python-markdownify/tarball/master',
     packages=find_packages(),
     zip_safe=False,
     include_package_data=True,
