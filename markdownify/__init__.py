@@ -3,6 +3,7 @@ import re
 
 
 convert_heading_re = re.compile(r'convert_h(\d+)')
+line_beginning_re = re.compile(r'^', re.MULTILINE)
 whitespace_re = re.compile(r'[\r\n\s\t ]+')
 
 
@@ -78,6 +79,9 @@ class MarkdownConverter(object):
 
     def convert_b(self, el):
         return self.convert_strong(el)
+
+    def convert_blockquote(self, el):
+        return line_beginning_re.sub('> ', el.text) if el.text else ''
 
     def convert_br(self, el):
         return '  \n'
