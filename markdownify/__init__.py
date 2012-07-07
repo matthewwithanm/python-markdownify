@@ -81,7 +81,7 @@ class MarkdownConverter(object):
         return self.convert_strong(el)
 
     def convert_blockquote(self, el):
-        return line_beginning_re.sub('> ', el.text) if el.text else ''
+        return '\n' + line_beginning_re.sub('> ', el.text) if el.text else ''
 
     def convert_br(self, el):
         return '  \n'

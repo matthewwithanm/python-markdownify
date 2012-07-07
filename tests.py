@@ -38,7 +38,13 @@ class ConversionTests(unittest.TestCase):
         self.assertEqual(md('<b>Hello</b>'), '**Hello**')
 
     def test_blockquote(self):
-        self.assertEqual(md('<blockquote>Hello</blockquote>'), '> Hello')
+        self.assertEqual(md('<blockquote>Hello</blockquote>').strip(), '> Hello')
+
+    def test_nested_blockquote(self):
+        self.assertEqual(
+            md('<blockquote>And she was like <blockquote>Hello</blockquote></blockquote>').strip(),
+            '> And she was like \n> > Hello'
+        )
 
     def test_br(self):
         self.assertEqual(md('a<br />b<br />c'), 'a  \nb  \nc')
