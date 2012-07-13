@@ -14,12 +14,12 @@ def escape(text):
 
 
 class MarkdownConverter(object):
-    def __init__(self, strip=None, keep=None):
-        if strip is not None and keep is not None:
+    def __init__(self, tags_to_strip=None, tags_to_convert=None):
+        if tags_to_strip is not None and tags_to_convert is not None:
             raise ValueError('You may specify either tags to strip or tags to'
-                    ' keep, but not both.')
-        self.strip = strip
-        self.keep = keep
+                    ' convert, but not both.')
+        self.tags_to_strip = tags_to_strip
+        self.tags_to_convert = tags_to_convert
 
     def convert(self, html):
         soup = fromstring(html)
@@ -37,7 +37,7 @@ class MarkdownConverter(object):
             tail = self.process_text(el.tail)
             el.tail = ''
 
-            if convert_fn:
+            if self.should_convert_tag(el.tag) and convert_fn:
                 text += convert_fn(el)
             else:
                 text += el.text
@@ -58,14 +58,23 @@ class MarkdownConverter(object):
         if m:
             n = int(m.group(1))
 
-            def convert(el):
+            def convert_tag(el):
                 return self.convert_hn(n, el)
 
-            convert.__name__ = 'convert_h%s' % n
-            setattr(self, convert.__name__, convert)
-            return convert
+            convert_tag.__name__ = 'convert_h%s' % n
+            setattr(self, convert_tag.__name__, convert_tag)
+            return convert_tag
 
         raise AttributeError(attr)
+
+    def should_convert_tag(self, tag):
+        tag = tag.lower()
+        if self.tags_to_strip is not None:
+            return tag not in self.tags_to_strip
+        elif self.tags_to_convert is not None:
+            return tag in self.tags_to_convert
+        else:
+            return True
 
     def underline(self, text, pad_char):
         text = (text or '').rstrip()
@@ -116,6 +125,6 @@ class MarkdownConverter(object):
         return '**%s**' % el.text if el.text else ''
 
 
-def markdownify(html, strip=None, keep=None):
-    converter = MarkdownConverter(strip, keep)
+def markdownify(html, strip=None, convert=None):
+    converter = MarkdownConverter(strip, convert)
     return converter.convert(html)

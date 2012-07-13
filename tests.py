@@ -14,6 +14,29 @@ class BasicTests(unittest.TestCase):
         self.assertEqual(md(' a  b \n\n c '), ' a b c ')
 
 
+class ArgTests(unittest.TestCase):
+
+    def test_strip(self):
+        self.assertEqual(
+            md('<a href="https://github.com/matthewwithanm">Some Text</a>', strip=['a']),
+            'Some Text')
+
+    def test_do_not_strip(self):
+        self.assertEqual(
+            md('<a href="https://github.com/matthewwithanm">Some Text</a>', strip=[]),
+            '[Some Text](https://github.com/matthewwithanm)')
+
+    def test_convert(self):
+        self.assertEqual(
+            md('<a href="https://github.com/matthewwithanm">Some Text</a>', convert=['a']),
+            '[Some Text](https://github.com/matthewwithanm)')
+
+    def test_do_not_convert(self):
+        self.assertEqual(
+            md('<a href="https://github.com/matthewwithanm">Some Text</a>', convert=[]),
+            'Some Text')
+
+
 class EscapeTests(unittest.TestCase):
 
     def test_underscore(self):
