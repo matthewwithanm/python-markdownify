@@ -38,7 +38,7 @@ class MarkdownConverter(object):
             el.tail = ''
 
             if self.should_convert_tag(el.tag) and convert_fn:
-                text += convert_fn(el)
+                text += convert_fn(el, el.text)
             else:
                 text += el.text
 
@@ -58,8 +58,8 @@ class MarkdownConverter(object):
         if m:
             n = int(m.group(1))
 
-            def convert_tag(el):
-                return self.convert_hn(n, el)
+            def convert_tag(el, text):
+                return self.convert_hn(n, el, text)
 
             convert_tag.__name__ = 'convert_h%s' % n
             setattr(self, convert_tag.__name__, convert_tag)
@@ -80,49 +80,49 @@ class MarkdownConverter(object):
         text = (text or '').rstrip()
         return '%s\n%s\n\n' % (text, pad_char * len(text)) if text else ''
 
-    def convert_a(self, el):
+    def convert_a(self, el, text):
         href = el.get('href')
         title = el.get('title')
         title_part = ' "%s"' % title.replace('"', r'\"') if title else ''
-        return '[%s](%s%s)' % (el.text or '', href, title_part) if href else el.text or ''
+        return '[%s](%s%s)' % (text or '', href, title_part) if href else text or ''
 
-    def convert_b(self, el):
-        return self.convert_strong(el)
+    def convert_b(self, el, text):
+        return self.convert_strong(el, text)
 
-    def convert_blockquote(self, el):
-        return '\n' + line_beginning_re.sub('> ', el.text) if el.text else ''
+    def convert_blockquote(self, el, text):
+        return '\n' + line_beginning_re.sub('> ', text) if text else ''
 
-    def convert_br(self, el):
+    def convert_br(self, el, text):
         return '  \n'
 
-    def convert_em(self, el):
-        return '*%s*' % el.text if el.text else ''
+    def convert_em(self, el, text):
+        return '*%s*' % text if text else ''
 
-    def convert_h1(self, el):
-        return self.underline(el.text, '=')
+    def convert_h1(self, el, text):
+        return self.underline(text, '=')
 
-    def convert_h2(self, el):
-        return self.underline(el.text, '-')
+    def convert_h2(self, el, text):
+        return self.underline(text, '-')
 
-    def convert_hn(self, n, el):
-        return '%s %s\n\n' % ('#' * n, el.text.rstrip()) if el.text else ''
+    def convert_hn(self, n, el, text):
+        return '%s %s\n\n' % ('#' * n, text.rstrip()) if text else ''
 
-    def convert_i(self, el):
-        return self.convert_em(el)
+    def convert_i(self, el, text):
+        return self.convert_em(el, text)
 
-    def convert_li(self, el):
+    def convert_li(self, el, text):
         parent = el.getparent()
         if parent is not None and parent.tag == 'ol':
             bullet = '%s.' % (parent.index(el) + 1)
         else:
             bullet = '*'
-        return '%s %s\n' % (bullet, el.text or '')
+        return '%s %s\n' % (bullet, text or '')
 
-    def convert_p(self, el):
-        return '%s\n\n' % el.text if el.text else ''
+    def convert_p(self, el, text):
+        return '%s\n\n' % text if text else ''
 
-    def convert_strong(self, el):
-        return '**%s**' % el.text if el.text else ''
+    def convert_strong(self, el, text):
+        return '**%s**' % text if text else ''
 
 
 def markdownify(html, strip=None, convert=None):
