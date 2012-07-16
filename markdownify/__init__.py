@@ -23,31 +23,22 @@ class MarkdownConverter(object):
 
     def convert(self, html):
         soup = fromstring(html)
-        self.process_tag(soup)
-        return soup.text
+        return self.process_tag(soup)
 
     def process_tag(self, node):
         text = self.process_text(node.text)
 
         # Convert the children first
         for el in node.findall('*'):
-            self.process_tag(el)
+            text += self.process_tag(el)
 
-            convert_fn = getattr(self, 'convert_%s' % el.tag, None)
-            tail = self.process_text(el.tail)
-            el.tail = ''
+        convert_fn = getattr(self, 'convert_%s' % node.tag, None)
+        if convert_fn and self.should_convert_tag(node.tag):
+            text = convert_fn(node, text)
 
-            if self.should_convert_tag(el.tag) and convert_fn:
-                text += convert_fn(el, el.text)
-            else:
-                text += el.text
+        text += self.process_text(node.tail)
 
-            text += tail
-
-        while len(node):
-            del node[0]
-
-        node.text = text
+        return text
 
     def process_text(self, text):
         return escape(whitespace_re.sub(' ', text or ''))
