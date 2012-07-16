@@ -42,6 +42,19 @@ class EscapeTests(unittest.TestCase):
     def test_underscore(self):
         self.assertEqual(md('_hey_dude_'), '\_hey\_dude\_')
 
+    def test_xml_entities(self):
+        self.assertEqual(md('&amp;'), '&')
+
+    def test_named_entities(self):
+        self.assertEqual(md('&raquo;'), u'\xbb')
+
+    def test_hexadecimal_entities(self):
+        # This looks to be a bug in BeautifulSoup (fixed in bs4) that we have to work around.
+        self.assertEqual(md('&#x27;'), '\x27')
+
+    def test_single_escaping_entities(self):
+        self.assertEqual(md('&amp;amp;'), '&amp;')
+
 
 class ConversionTests(unittest.TestCase):
 
