@@ -62,3 +62,8 @@ def test_strong():
 
 def test_ul():
     assert md('<ul><li>a</li><li>b</li></ul>') == '* a\n* b\n'
+
+
+def test_img():
+    assert md('<img src="/path/to/img.jpg" alt="Alt text" title="Optional title" />') == '![Alt text](/path/to/img.jpg "Optional title")'
+    assert md('<img src="/path/to/img.jpg" alt="Alt text" />') == '![Alt text](/path/to/img.jpg)'
