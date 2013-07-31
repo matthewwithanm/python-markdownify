@@ -2,6 +2,7 @@
 import codecs
 import os
 from setuptools import setup, find_packages
+from setuptools.command.test import test as TestCommand
 
 
 read = lambda filepath: codecs.open(filepath, 'r', 'utf-8').read()
@@ -10,6 +11,18 @@ read = lambda filepath: codecs.open(filepath, 'r', 'utf-8').read()
 pkgmeta = {}
 execfile(os.path.join(os.path.dirname(__file__), 'markdownify', 'pkgmeta.py'),
          pkgmeta)
+
+
+class PyTest(TestCommand):
+    def finalize_options(self):
+        TestCommand.finalize_options(self)
+        self.test_args = ['tests', '-s']
+        self.test_suite = True
+
+    def run_tests(self):
+        import pytest
+        errno = pytest.main(self.test_args)
+        raise SystemExit(errno)
 
 
 setup(
@@ -25,8 +38,7 @@ setup(
     zip_safe=False,
     include_package_data=True,
     tests_require=[
-        'nose',
-        'unittest2',
+        'pytest',
     ],
     install_requires=[
         'lxml',
@@ -44,5 +56,7 @@ setup(
         'Topic :: Utilities'
     ],
     setup_requires=[],
-    test_suite='runtests.collector',
+    cmdclass={
+        'test': PyTest,
+    },
 )
