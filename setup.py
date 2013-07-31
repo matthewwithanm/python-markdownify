@@ -13,7 +13,7 @@ execfile(os.path.join(os.path.dirname(__file__), 'markdownify', 'pkgmeta.py'),
 
 
 setup(
-    name='python-markdownify',
+    name='markdownify',
     description='Convert HTML to markdown.',
     long_description=read(os.path.join(os.path.dirname(__file__), 'README.rst')),
     version=pkgmeta['__version__'],
