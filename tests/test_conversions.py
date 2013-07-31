@@ -10,6 +10,11 @@ def test_a_with_title():
     assert text == r'[Google](http://google.com "The \"Goog\"")'
 
 
+def test_a_shortcut():
+    text = md('<a href="http://google.com">http://google.com</a>')
+    assert text == r'<http://google.com>'
+
+
 def test_b():
     assert md('<b>Hello</b>') == '**Hello**'
 
