@@ -27,3 +27,15 @@ Specify tags to exclude (blacklist):
 
     from markdownify import markdownify as md
     md('<b>Yay</b> <a href="http://github.com">GitHub</a>', convert=['b'])  # > '**Yay** GitHub'
+
+
+Development
+===========
+
+To run tests:
+
+``python setup.py test``
+
+To lint:
+
+``python setup.py lint``
