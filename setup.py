@@ -5,16 +5,20 @@ from setuptools import setup, find_packages
 
 
 read = lambda filepath: codecs.open(filepath, 'r', 'utf-8').read()
-execfile(os.path.join(os.path.dirname(__file__), 'markdownify', 'version.py'))
+
+
+pkgmeta = {}
+execfile(os.path.join(os.path.dirname(__file__), 'markdownify', 'pkgmeta.py'),
+         pkgmeta)
 
 
 setup(
     name='python-markdownify',
     description='Convert HTML to markdown.',
     long_description=read(os.path.join(os.path.dirname(__file__), 'README.rst')),
-    version=__version__,
-    author='Matthew Tretter',
-    author_email='matthew@exanimo.com',
+    version=pkgmeta['__version__'],
+    author=pkgmeta['__author__'],
+    author_email='m@tthewwithanm.com',
     url='http://github.com/matthewwithanm/python-markdownify',
     download_url='http://github.com/matthewwithanm/python-markdownify/tarball/master',
     packages=find_packages(),
