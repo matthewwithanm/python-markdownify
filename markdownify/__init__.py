@@ -1,4 +1,4 @@
-from lxml.html.soupparser import fromstring
+from bs4 import BeautifulSoup, NavigableString
 import re
 
 
@@ -22,21 +22,22 @@ class MarkdownConverter(object):
         self.tags_to_convert = tags_to_convert
 
     def convert(self, html):
-        soup = fromstring(html)
+        soup = BeautifulSoup(html)
         return self.process_tag(soup)
 
     def process_tag(self, node):
-        text = self.process_text(node.text)
+        text = ''
 
         # Convert the children first
-        for el in node.findall('*'):
-            text += self.process_tag(el)
+        for el in node.children:
+            if isinstance(el, NavigableString):
+                text += self.process_text(unicode(el))
+            else:
+                text += self.process_tag(el)
 
-        convert_fn = getattr(self, 'convert_%s' % node.tag, None)
-        if convert_fn and self.should_convert_tag(node.tag):
+        convert_fn = getattr(self, 'convert_%s' % node.name, None)
+        if convert_fn and self.should_convert_tag(node.name):
             text = convert_fn(node, text)
-
-        text += self.process_text(node.tail)
 
         return text
 
@@ -102,8 +103,8 @@ class MarkdownConverter(object):
         return self.convert_em(el, text)
 
     def convert_li(self, el, text):
-        parent = el.getparent()
-        if parent is not None and parent.tag == 'ol':
+        parent = el.parent
+        if parent is not None and parent.name == 'ol':
             bullet = '%s.' % (parent.index(el) + 1)
         else:
             bullet = '*'

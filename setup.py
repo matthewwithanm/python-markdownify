@@ -75,8 +75,7 @@ setup(
         'pytest',
     ],
     install_requires=[
-        'lxml',
-        'BeautifulSoup',
+        'beautifulsoup4',
     ],
     classifiers=[
         'Environment :: Web Environment',
