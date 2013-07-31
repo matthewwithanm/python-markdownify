@@ -123,6 +123,13 @@ class MarkdownConverter(object):
     def convert_strong(self, el, text):
         return '**%s**' % text if text else ''
 
+    def convert_img(self, el, text):
+        alt = el.attrs.get('alt', None) or ''
+        src = el.attrs.get('src', None) or ''
+        title = el.attrs.get('title', None) or ''
+        title_part = ' "%s"' % title.replace('"', r'\"') if title else ''
+        return '![%s](%s%s)' % (alt, src, title_part)
+
 
 def markdownify(html, strip=None, convert=None):
     converter = MarkdownConverter(strip, convert)
