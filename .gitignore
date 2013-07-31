@@ -1,0 +1,7 @@
+*.pyc
+*.egg
+.DS_Store
+/.env
+/dist
+/MANIFEST
+/venv
