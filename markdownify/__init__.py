@@ -17,7 +17,7 @@ class MarkdownConverter(object):
     def __init__(self, tags_to_strip=None, tags_to_convert=None):
         if tags_to_strip is not None and tags_to_convert is not None:
             raise ValueError('You may specify either tags to strip or tags to'
-                    ' convert, but not both.')
+                             ' convert, but not both.')
         self.tags_to_strip = tags_to_strip
         self.tags_to_convert = tags_to_convert
 
