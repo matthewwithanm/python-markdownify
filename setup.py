@@ -2,7 +2,7 @@
 import codecs
 import os
 from setuptools import setup, find_packages
-from setuptools.command.test import test as TestCommand
+from setuptools.command.test import test as TestCommand, Command
 
 
 read = lambda filepath: codecs.open(filepath, 'r', 'utf-8').read()
@@ -25,6 +25,37 @@ class PyTest(TestCommand):
         raise SystemExit(errno)
 
 
+class LintCommand(Command):
+    """
+    A copy of flake8's Flake8Command
+
+    """
+    description = "Run flake8 on modules registered in setuptools"
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def distribution_files(self):
+        if self.distribution.packages:
+            for package in self.distribution.packages:
+                yield package.replace(".", os.path.sep)
+
+        if self.distribution.py_modules:
+            for filename in self.distribution.py_modules:
+                yield "%s.py" % filename
+
+    def run(self):
+        from flake8.engine import get_style_guide
+        flake8_style = get_style_guide(config_file='setup.cfg')
+        paths = self.distribution_files()
+        report = flake8_style.check_files(paths)
+        raise SystemExit(report.total_errors > 0)
+
+
 setup(
     name='markdownify',
     description='Convert HTML to markdown.',
@@ -37,6 +68,9 @@ setup(
     packages=find_packages(),
     zip_safe=False,
     include_package_data=True,
+    setup_requires=[
+        'flake8',
+    ],
     tests_require=[
         'pytest',
     ],
@@ -55,8 +89,8 @@ setup(
         'Programming Language :: Python :: 2.7',
         'Topic :: Utilities'
     ],
-    setup_requires=[],
     cmdclass={
         'test': PyTest,
+        'lint': LintCommand,
     },
 )
