@@ -23,6 +23,7 @@ class MarkdownConverter(object):
     class DefaultOptions:
         strip = None
         convert = None
+        autolinks = True
 
     class Options(DefaultOptions):
         pass
@@ -98,7 +99,7 @@ class MarkdownConverter(object):
     def convert_a(self, el, text):
         href = el.get('href')
         title = el.get('title')
-        if text == href and not title:
+        if self.options['autolinks'] and text == href and not title:
             # Shortcut syntax
             return '<%s>' % href
         title_part = ' "%s"' % title.replace('"', r'\"') if title else ''

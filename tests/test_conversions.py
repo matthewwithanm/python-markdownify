@@ -15,6 +15,11 @@ def test_a_shortcut():
     assert text == r'<http://google.com>'
 
 
+def test_a_no_autolinks():
+    text = md('<a href="http://google.com">http://google.com</a>', autolinks=False)
+    assert text == '[http://google.com](http://google.com)'
+
+
 def test_b():
     assert md('<b>Hello</b>') == '**Hello**'
 
