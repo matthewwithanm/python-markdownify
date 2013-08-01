@@ -1,4 +1,25 @@
 from markdownify import markdownify as md, ATX, ATX_CLOSED
+import re
+
+
+nested_uls = re.sub('\s+', '', """
+    <ul>
+        <li>1
+            <ul>
+                <li>a
+                    <ul>
+                        <li>I</li>
+                        <li>II</li>
+                        <li>III</li>
+                    </ul>
+                </li>
+                <li>b</li>
+                <li>c</li>
+            </ul>
+        </li>
+        <li>2</li>
+        <li>3</li>
+    </ul>""")
 
 
 def test_a():
@@ -82,6 +103,14 @@ def test_strong():
 
 def test_ul():
     assert md('<ul><li>a</li><li>b</li></ul>') == '* a\n* b\n'
+
+
+def test_nested_uls():
+    """
+    Nested ULs should alternate bullet characters.
+
+    """
+    assert md(nested_uls) == '* 1\n\t+ a\n\t\t- I\n\t\t- II\n\t\t- III\n\t\t\n\t+ b\n\t+ c\n\t\n* 2\n* 3\n'
 
 
 def test_img():
