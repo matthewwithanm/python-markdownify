@@ -1,4 +1,4 @@
-from markdownify import markdownify as md
+from markdownify import markdownify as md, ATX, ATX_CLOSED
 
 
 def test_a():
@@ -52,6 +52,16 @@ def test_h2():
 def test_hn():
     assert md('<h3>Hello</h3>') == '### Hello\n\n'
     assert md('<h6>Hello</h6>') == '###### Hello\n\n'
+
+
+def test_atx_headings():
+    assert md('<h1>Hello</h1>', heading_style=ATX) == '# Hello\n\n'
+    assert md('<h2>Hello</h2>', heading_style=ATX) == '## Hello\n\n'
+
+
+def test_atx_closed_headings():
+    assert md('<h1>Hello</h1>', heading_style=ATX_CLOSED) == '# Hello #\n\n'
+    assert md('<h2>Hello</h2>', heading_style=ATX_CLOSED) == '## Hello ##\n\n'
 
 
 def test_i():
