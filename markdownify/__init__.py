@@ -9,6 +9,13 @@ FRAGMENT_ID = '__MARKDOWNIFY_WRAPPER__'
 wrapped = '<div id="%s">%%s</div>' % FRAGMENT_ID
 
 
+# Heading styles
+ATX = 'atx'
+ATX_CLOSED = 'atx_closed'
+UNDERLINED = 'underlined'
+SETEXT = UNDERLINED
+
+
 def escape(text):
     if not text:
         return ''
@@ -24,6 +31,7 @@ class MarkdownConverter(object):
         strip = None
         convert = None
         autolinks = True
+        heading_style = UNDERLINED
 
     class Options(DefaultOptions):
         pass
@@ -67,7 +75,7 @@ class MarkdownConverter(object):
         return escape(whitespace_re.sub(' ', text or ''))
 
     def __getattr__(self, attr):
-        # Handle heading levels > 2
+        # Handle headings
         m = convert_heading_re.match(attr)
         if m:
             n = int(m.group(1))
@@ -117,14 +125,16 @@ class MarkdownConverter(object):
     def convert_em(self, el, text):
         return '*%s*' % text if text else ''
 
-    def convert_h1(self, el, text):
-        return self.underline(text, '=')
-
-    def convert_h2(self, el, text):
-        return self.underline(text, '-')
-
     def convert_hn(self, n, el, text):
-        return '%s %s\n\n' % ('#' * n, text.rstrip()) if text else ''
+        style = self.options['heading_style']
+        text = text.rstrip()
+        if style == UNDERLINED and n <= 2:
+            line = '=' if n == 1 else '-'
+            return self.underline(text, line)
+        hashes = '#' * n
+        if style == ATX_CLOSED:
+            return '%s %s %s\n\n' % (hashes, text, hashes)
+        return '%s %s\n\n' % (hashes, text)
 
     def convert_i(self, el, text):
         return self.convert_em(el, text)
