@@ -15,13 +15,27 @@ def escape(text):
     return text.replace('_', r'\_')
 
 
+def _todict(obj):
+    return dict((k, getattr(obj, k)) for k in dir(obj) if not k.startswith('_'))
+
+
 class MarkdownConverter(object):
-    def __init__(self, tags_to_strip=None, tags_to_convert=None):
-        if tags_to_strip is not None and tags_to_convert is not None:
+    class DefaultOptions:
+        strip = None
+        convert = None
+
+    class Options(DefaultOptions):
+        pass
+
+    def __init__(self, **options):
+        # Create an options dictionary. Use DefaultOptions as a base so that
+        # it doesn't have to be extended.
+        self.options = _todict(self.DefaultOptions)
+        self.options.update(_todict(self.Options))
+        self.options.update(options)
+        if self.options['strip'] is not None and self.options['convert'] is not None:
             raise ValueError('You may specify either tags to strip or tags to'
                              ' convert, but not both.')
-        self.tags_to_strip = tags_to_strip
-        self.tags_to_convert = tags_to_convert
 
     def convert(self, html):
         # We want to take advantage of the html5 parsing, but we don't actually
@@ -68,10 +82,12 @@ class MarkdownConverter(object):
 
     def should_convert_tag(self, tag):
         tag = tag.lower()
-        if self.tags_to_strip is not None:
-            return tag not in self.tags_to_strip
-        elif self.tags_to_convert is not None:
-            return tag in self.tags_to_convert
+        strip = self.options['strip']
+        convert = self.options['convert']
+        if strip is not None:
+            return tag not in strip
+        elif convert is not None:
+            return tag in convert
         else:
             return True
 
@@ -134,6 +150,5 @@ class MarkdownConverter(object):
         return '![%s](%s%s)' % (alt, src, title_part)
 
 
-def markdownify(html, strip=None, convert=None):
-    converter = MarkdownConverter(strip, convert)
-    return converter.convert(html)
+def markdownify(html, **options):
+    return MarkdownConverter(**options).convert(html)
