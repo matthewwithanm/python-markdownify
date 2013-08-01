@@ -113,6 +113,10 @@ def test_nested_uls():
     assert md(nested_uls) == '* 1\n\t+ a\n\t\t- I\n\t\t- II\n\t\t- III\n\t\t\n\t+ b\n\t+ c\n\t\n* 2\n* 3\n'
 
 
+def test_bullets():
+    assert md(nested_uls, bullets='-') == '- 1\n\t- a\n\t\t- I\n\t\t- II\n\t\t- III\n\t\t\n\t- b\n\t- c\n\t\n- 2\n- 3\n'
+
+
 def test_img():
     assert md('<img src="/path/to/img.jpg" alt="Alt text" title="Optional title" />') == '![Alt text](/path/to/img.jpg "Optional title")'
     assert md('<img src="/path/to/img.jpg" alt="Alt text" />') == '![Alt text](/path/to/img.jpg)'
