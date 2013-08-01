@@ -32,6 +32,7 @@ class MarkdownConverter(object):
         convert = None
         autolinks = True
         heading_style = UNDERLINED
+        bullets = '*+-'  # An iterable of bullet types.
 
     class Options(DefaultOptions):
         pass
@@ -100,6 +101,9 @@ class MarkdownConverter(object):
         else:
             return True
 
+    def indent(self, text, level):
+        return line_beginning_re.sub('\t' * level, text) if text else ''
+
     def underline(self, text, pad_char):
         text = (text or '').rstrip()
         return '%s\n%s\n\n' % (text, pad_char * len(text)) if text else ''
@@ -139,12 +143,32 @@ class MarkdownConverter(object):
     def convert_i(self, el, text):
         return self.convert_em(el, text)
 
+    def convert_list(self, el, text):
+        nested = False
+        while el:
+            if el.name == 'li':
+                nested = True
+                break
+            el = el.parent
+        if nested:
+            text = '\n' + self.indent(text, 1)
+        return text
+
+    convert_ul = convert_list
+    convert_ol = convert_list
+
     def convert_li(self, el, text):
         parent = el.parent
         if parent is not None and parent.name == 'ol':
             bullet = '%s.' % (parent.index(el) + 1)
         else:
-            bullet = '*'
+            depth = -1
+            while el:
+                if el.name == 'ul':
+                    depth += 1
+                el = el.parent
+            bullets = self.options['bullets']
+            bullet = bullets[depth % len(bullets)]
         return '%s %s\n' % (bullet, text or '')
 
     def convert_p(self, el, text):
