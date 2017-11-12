@@ -53,7 +53,7 @@ class MarkdownConverter(object):
         # want a full document. Therefore, we'll mark our fragment with an id,
         # create the document, and extract the element with the id.
         html = wrapped % html
-        soup = BeautifulSoup(html)
+        soup = BeautifulSoup(html, 'html.parser')
         return self.process_tag(soup.find(id=FRAGMENT_ID), children_only=True)
 
     def process_tag(self, node, children_only=False):
