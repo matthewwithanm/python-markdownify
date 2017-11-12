@@ -9,7 +9,7 @@ read = lambda filepath: codecs.open(filepath, 'r', 'utf-8').read()
 
 
 pkgmeta = {}
-execfile(os.path.join(os.path.dirname(__file__), 'markdownify', 'pkgmeta.py'),
+exec(open(os.path.join(os.path.dirname(__file__), 'markdownify', 'pkgmeta.py')).read(),
          pkgmeta)
 
 
@@ -75,7 +75,7 @@ setup(
         'pytest',
     ],
     install_requires=[
-        'beautifulsoup4',
+        'beautifulsoup4', 'six'
     ],
     classifiers=[
         'Environment :: Web Environment',

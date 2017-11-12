@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup, NavigableString
 import re
+import six
 
 
 convert_heading_re = re.compile(r'convert_h(\d+)')
@@ -61,7 +62,7 @@ class MarkdownConverter(object):
         # Convert the children first
         for el in node.children:
             if isinstance(el, NavigableString):
-                text += self.process_text(unicode(el))
+                text += self.process_text(six.text_type(el))
             else:
                 text += self.process_tag(el)
 
