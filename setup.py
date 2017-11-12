@@ -10,7 +10,7 @@ read = lambda filepath: codecs.open(filepath, 'r', 'utf-8').read()
 pkgmeta = {
     '__title__': 'markdownify',
     '__author__': 'Matthew Tretter',
-    '__version__': '0.4.1-will',
+    '__version__': '0.4.1',
 }
 
 class PyTest(TestCommand):
@@ -75,7 +75,7 @@ setup(
         'pytest',
     ],
     install_requires=[
-        'beautifulsoup4',
+        'beautifulsoup4', 'six'
     ],
     classifiers=[
         'Environment :: Web Environment',
