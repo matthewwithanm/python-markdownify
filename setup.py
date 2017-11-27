@@ -7,10 +7,11 @@ from setuptools.command.test import test as TestCommand, Command
 
 read = lambda filepath: codecs.open(filepath, 'r', 'utf-8').read()
 
-
-pkgmeta = {}
-exec(open(os.path.join(os.path.dirname(__file__), 'markdownify', 'pkgmeta.py')).read(),
-         pkgmeta)
+pkgmeta = {
+    '__title__': 'markdownify',
+    '__author__': 'Matthew Tretter',
+    '__version__': '0.4.1',
+}
 
 
 class PyTest(TestCommand):
