@@ -105,9 +105,11 @@ class MarkdownConverter(object):
     def indent(self, text, level):
         return line_beginning_re.sub('\t' * level, text) if text else ''
 
+    #Updated to return <h> tags with proper formatting; removed extra /n from return
     def underline(self, text, pad_char):
         text = (text or '').rstrip()
-        return '%s\n%s\n\n' % (text, pad_char * len(text)) if text else ''
+        return '%s%s\n' % (pad_char, text) if text else ''
+
 
     def convert_a(self, el, text):
         href = el.get('href')
@@ -118,8 +120,48 @@ class MarkdownConverter(object):
         title_part = ' "%s"' % title.replace('"', r'\"') if title else ''
         return '[%s](%s%s)' % (text or '', href, title_part) if href else text or ''
 
+    #Command updated to handle h1-h6 returning updated markdown format instead of pound sign
+    def convert_hn(self, n, el, text):
+        style = self.options['heading_style']
+        text = text.rstrip()
+        if style == UNDERLINED and n <= 6:
+            line = 'h{}. '.format(n)
+            return self.underline(text, line)
+        else:
+            line = 'h6. '
+            return self.underline(text, line)
+
+    # Updated to handle <i></i> to **%s**
     def convert_b(self, el, text):
-        return self.convert_strong(el, text)
+        return '**%s**' % text if text else ''
+
+    def convert_em(self, el, text):
+        return '**%s**' % text if text else ''
+
+
+    #Updated to handle <i></i> to _%s_
+    def convert_i(self, el, text):
+        return '_%s_' % text if text else ''
+
+    #Updated to handle <u></u> to +%s+
+    def convert_u(self, el, text):
+        return '+%s+' % text if text else ''
+
+    #Updated to handle <del></del> to -%s-
+    def convert_del(self, el, text):
+        return '-%s-' % text if text else ''
+
+    #Added to handle <sup></sup> to ^%s^
+    def convert_sup(self, el, text):
+        return '^%s^' % text if text else ''
+
+    #Updated to handle <sub></sub> to ~%s~
+    def convert_sub(self, el, text):
+        return '~%s~' % text if text else ''
+
+    # Added to handle new subscript format of surrounding question marks
+    def convert_cite(self, el, text):
+        return '??%s??' % text if text else ''
 
     def convert_blockquote(self, el, text):
         return '\n' + line_beginning_re.sub('> ', text) if text else ''
@@ -127,22 +169,8 @@ class MarkdownConverter(object):
     def convert_br(self, el, text):
         return '  \n'
 
-    def convert_em(self, el, text):
-        return '*%s*' % text if text else ''
-
-    def convert_hn(self, n, el, text):
-        style = self.options['heading_style']
-        text = text.rstrip()
-        if style == UNDERLINED and n <= 2:
-            line = '=' if n == 1 else '-'
-            return self.underline(text, line)
-        hashes = '#' * n
-        if style == ATX_CLOSED:
-            return '%s %s %s\n\n' % (hashes, text, hashes)
-        return '%s %s\n\n' % (hashes, text)
-
-    def convert_i(self, el, text):
-        return self.convert_em(el, text)
+    def convert_p(self, el, text):
+        return '%s\n\n' % text if text else ''
 
     def convert_list(self, el, text):
         nested = False
@@ -171,12 +199,6 @@ class MarkdownConverter(object):
             bullets = self.options['bullets']
             bullet = bullets[depth % len(bullets)]
         return '%s %s\n' % (bullet, text or '')
-
-    def convert_p(self, el, text):
-        return '%s\n\n' % text if text else ''
-
-    def convert_strong(self, el, text):
-        return '**%s**' % text if text else ''
 
     def convert_img(self, el, text):
         alt = el.attrs.get('alt', None) or ''
