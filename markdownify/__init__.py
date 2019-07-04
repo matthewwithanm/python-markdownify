@@ -153,7 +153,7 @@ class MarkdownConverter(object):
             el = el.parent
         if nested:
             text = '\n' + self.indent(text, 1)
-        return text
+        return '\n' + text + '\n'
 
     convert_ul = convert_list
     convert_ol = convert_list
