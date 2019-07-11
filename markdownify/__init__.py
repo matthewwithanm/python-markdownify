@@ -22,6 +22,17 @@ def escape(text):
         return ''
     return text.replace('_', r'\_')
 
+def chomp(text):
+    """
+    If the text in an inline tag like b, a, or em contains a leading or trailing
+    space, strip the string and return a space as suffix of prefix, if needed.
+    This function is used to prevent conversions like
+        <b> foo</b> => ** foo**
+    """
+    prefix = ' ' if text and text[0] == ' ' else ''
+    suffix = ' ' if text and text[-1] == ' ' else ''
+    text = text.strip()
+    return (prefix, suffix, text)
 
 def _todict(obj):
     return dict((k, getattr(obj, k)) for k in dir(obj) if not k.startswith('_'))
@@ -110,13 +121,16 @@ class MarkdownConverter(object):
         return '%s\n%s\n\n' % (text, pad_char * len(text)) if text else ''
 
     def convert_a(self, el, text):
+        prefix, suffix, text = chomp(text)
+        if not text:
+            return ''
         href = el.get('href')
         title = el.get('title')
         if self.options['autolinks'] and text == href and not title:
             # Shortcut syntax
             return '<%s>' % href
         title_part = ' "%s"' % title.replace('"', r'\"') if title else ''
-        return '[%s](%s%s)' % (text or '', href, title_part) if href else text or ''
+        return '%s[%s](%s%s)%s' % (prefix, text or '', href, title_part, suffix) if href else text or ''
 
     def convert_b(self, el, text):
         return self.convert_strong(el, text)
@@ -128,7 +142,10 @@ class MarkdownConverter(object):
         return '  \n'
 
     def convert_em(self, el, text):
-        return '*%s*' % text if text else ''
+        prefix, suffix, text = chomp(text)
+        if not text:
+            return ''
+        return '%s*%s*%s' % (prefix, text if text else '', suffix)
 
     def convert_hn(self, n, el, text):
         style = self.options['heading_style']
@@ -176,7 +193,10 @@ class MarkdownConverter(object):
         return '%s\n\n' % text if text else ''
 
     def convert_strong(self, el, text):
-        return '**%s**' % text if text else ''
+        prefix, suffix, text = chomp(text)
+        if not text:
+            return ''
+        return '%s**%s**%s' % (prefix, text if text else '', suffix)
 
     def convert_img(self, el, text):
         alt = el.attrs.get('alt', None) or ''
