@@ -130,7 +130,7 @@ class MarkdownConverter(object):
             # Shortcut syntax
             return '<%s>' % href
         title_part = ' "%s"' % title.replace('"', r'\"') if title else ''
-        return '%s[%s](%s%s)%s' % (prefix, text or '', href, title_part, suffix) if href else text or ''
+        return '%s[%s](%s%s)%s' % (prefix, text, href, title_part, suffix) if href else text
 
     def convert_b(self, el, text):
         return self.convert_strong(el, text)
@@ -145,7 +145,7 @@ class MarkdownConverter(object):
         prefix, suffix, text = chomp(text)
         if not text:
             return ''
-        return '%s*%s*%s' % (prefix, text if text else '', suffix)
+        return '%s*%s*%s' % (prefix, text, suffix)
 
     def convert_hn(self, n, el, text):
         style = self.options['heading_style']
@@ -196,7 +196,7 @@ class MarkdownConverter(object):
         prefix, suffix, text = chomp(text)
         if not text:
             return ''
-        return '%s**%s**%s' % (prefix, text if text else '', suffix)
+        return '%s**%s**%s' % (prefix, text, suffix)
 
     def convert_img(self, el, text):
         alt = el.attrs.get('alt', None) or ''
