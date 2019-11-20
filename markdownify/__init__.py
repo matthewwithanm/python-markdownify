@@ -59,6 +59,11 @@ class MarkdownConverter(object):
     def process_tag(self, node, children_only=False):
         text = ''
 
+        # Clean newline-only textnodes outside <pre>
+        for el in node.children:
+            if node.name != 'pre' and isinstance(el, NavigableString) and six.text_type(el) == '\n':
+                el.extract()
+
         # Convert the children first
         for el in node.children:
             if isinstance(el, NavigableString):
