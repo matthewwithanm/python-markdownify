@@ -62,7 +62,8 @@ class MarkdownConverter(object):
         # Convert the children first
         for el in node.children:
             if isinstance(el, NavigableString):
-                text += self.process_text(six.text_type(el))
+                # Blank chars shall be striped except in <pre>
+                text += self.process_text(six.text_type(el), keep_whitespaces=(node.name == 'pre'))
             else:
                 text += self.process_tag(el)
 
@@ -73,7 +74,9 @@ class MarkdownConverter(object):
 
         return text
 
-    def process_text(self, text):
+    def process_text(self, text, keep_whitespaces=False):
+        if keep_whitespaces:
+            return escape(text or '')
         return escape(whitespace_re.sub(' ', text or ''))
 
     def __getattr__(self, attr):
@@ -174,6 +177,9 @@ class MarkdownConverter(object):
 
     def convert_p(self, el, text):
         return '%s\n\n' % text if text else ''
+
+    def convert_pre(self, el, text):
+        return '```%s\n```\n' % text if text else ''
 
     def convert_strong(self, el, text):
         return '**%s**' % text if text else ''
