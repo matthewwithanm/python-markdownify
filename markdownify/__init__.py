@@ -133,6 +133,9 @@ class MarkdownConverter(object):
     def convert_code(self, el, text):
         return '`%s`' % text if text else ''
 
+    def convert_del(self, el, text):
+        return '~~%s~~' % text if text else ''
+
     def convert_em(self, el, text):
         return '*%s*' % text if text else ''
 
@@ -183,6 +186,9 @@ class MarkdownConverter(object):
 
     def convert_pre(self, el, text):
         return '```%s\n```\n' % text if text else ''
+
+    def convert_s(self, el, text):
+        return self.convert_del(el, text)
 
     def convert_strong(self, el, text):
         return '**%s**' % text if text else ''
