@@ -130,6 +130,9 @@ class MarkdownConverter(object):
     def convert_br(self, el, text):
         return '  \n'
 
+    def convert_code(self, el, text):
+        return '`%s`' % text if text else ''
+
     def convert_em(self, el, text):
         return '*%s*' % text if text else ''
 
