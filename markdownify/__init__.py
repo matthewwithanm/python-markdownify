@@ -151,14 +151,19 @@ class MarkdownConverter(object):
 
     def convert_list(self, el, text):
         nested = False
+        before_paragraph = False
+        print(el.name, repr(el.next_sibling), repr(text))
+        if el.next_sibling and el.next_sibling.name not in ['ul', 'ol']:
+            print(el.name, repr(el.next_sibling))
+            before_paragraph = True
         while el:
             if el.name == 'li':
                 nested = True
                 break
             el = el.parent
         if nested:
-            text = '\n' + self.indent(text, 1)
-        return '\n' + text + '\n'
+            text = '\n' + self.indent(text, 1).rstrip()
+        return text + ('\n' if before_paragraph else '')
 
     convert_ul = convert_list
     convert_ol = convert_list

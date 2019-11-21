@@ -2,7 +2,7 @@ from markdownify import markdownify as md, ATX, ATX_CLOSED
 import re
 
 
-nested_uls = re.sub('\s+', '', """
+nested_uls = """
     <ul>
         <li>1
             <ul>
@@ -19,7 +19,26 @@ nested_uls = re.sub('\s+', '', """
         </li>
         <li>2</li>
         <li>3</li>
-    </ul>""")
+    </ul>"""
+
+nested_ols = """
+    <ol>
+        <li>1
+            <ol>
+                <li>a
+                    <ol>
+                        <li>I</li>
+                        <li>II</li>
+                        <li>III</li>
+                    </ol>
+                </li>
+                <li>b</li>
+                <li>c</li>
+            </ol>
+        </li>
+        <li>2</li>
+        <li>3</li>
+    </ul>"""
 
 
 def test_a():
@@ -92,6 +111,8 @@ def test_i():
 def test_ol():
     assert md('<ol><li>a</li><li>b</li></ol>') == '1. a\n2. b\n'
 
+def test_nested_ols():
+    assert md(nested_ols) == '1. 1 \n\t1. a \n\t\t1. I\n\t\t2. II\n\t\t3. III\n\t2. b\n\t3. c\n2. 2\n3. 3\n'
 
 def test_p():
     assert md('<p>hello</p>') == 'hello\n\n'
@@ -113,11 +134,11 @@ def test_nested_uls():
     Nested ULs should alternate bullet characters.
 
     """
-    assert md(nested_uls) == '* 1\n\t+ a\n\t\t- I\n\t\t- II\n\t\t- III\n\t\t\n\t+ b\n\t+ c\n\t\n* 2\n* 3\n'
+    assert md(nested_uls) == '* 1 \n\t+ a \n\t\t- I\n\t\t- II\n\t\t- III\n\t+ b\n\t+ c\n* 2\n* 3\n'
 
 
 def test_bullets():
-    assert md(nested_uls, bullets='-') == '- 1\n\t- a\n\t\t- I\n\t\t- II\n\t\t- III\n\t\t\n\t- b\n\t- c\n\t\n- 2\n- 3\n'
+    assert md(nested_uls, bullets='-') == '- 1 \n\t- a \n\t\t- I\n\t\t- II\n\t\t- III\n\t- b\n\t- c\n- 2\n- 3\n'
 
 
 def test_img():
