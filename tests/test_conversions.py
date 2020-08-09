@@ -21,10 +21,24 @@ nested_uls = re.sub('\s+', '', """
         <li>3</li>
     </ul>""")
 
+def test_chomp():
+    assert md(' <b></b> ') == '  '
+    assert md(' <b> </b> ') == '  '
+    assert md(' <b>  </b> ') == '  '
+    assert md(' <b>   </b> ') == '  '
+    assert md(' <b>s </b> ') == ' **s**  '
+    assert md(' <b> s</b> ') == '  **s** '
+    assert md(' <b> s </b> ') == '  **s**  '
+    assert md(' <b>  s  </b> ') == '  **s**  '
 
 def test_a():
     assert md('<a href="http://google.com">Google</a>') == '[Google](http://google.com)'
 
+def test_a_spaces():
+    assert md('foo <a href="http://google.com">Google</a> bar') == 'foo [Google](http://google.com) bar'
+    assert md('foo<a href="http://google.com"> Google</a> bar') == 'foo [Google](http://google.com) bar'
+    assert md('foo <a href="http://google.com">Google </a>bar') == 'foo [Google](http://google.com) bar'
+    assert md('foo <a href="http://google.com"></a> bar') == 'foo  bar'
 
 def test_a_with_title():
     text = md('<a href="http://google.com" title="The &quot;Goog&quot;">Google</a>')
@@ -44,6 +58,12 @@ def test_a_no_autolinks():
 def test_b():
     assert md('<b>Hello</b>') == '**Hello**'
 
+def test_b_spaces():
+    assert md('foo <b>Hello</b> bar') == 'foo **Hello** bar'
+    assert md('foo<b> Hello</b> bar') == 'foo **Hello** bar'
+    assert md('foo <b>Hello </b>bar') == 'foo **Hello** bar'
+    assert md('foo <b></b> bar') == 'foo  bar'
+
 
 def test_blockquote():
     assert md('<blockquote>Hello</blockquote>').strip() == '> Hello'
@@ -60,6 +80,12 @@ def test_br():
 
 def test_em():
     assert md('<em>Hello</em>') == '*Hello*'
+
+def test_em_spaces():
+    assert md('foo <em>Hello</em> bar') == 'foo *Hello* bar'
+    assert md('foo<em> Hello</em> bar') == 'foo *Hello* bar'
+    assert md('foo <em>Hello </em>bar') == 'foo *Hello* bar'
+    assert md('foo <em></em> bar') == 'foo  bar'
 
 
 def test_h1():
