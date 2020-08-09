@@ -7,10 +7,11 @@ from setuptools.command.test import test as TestCommand, Command
 
 read = lambda filepath: codecs.open(filepath, 'r', 'utf-8').read()
 
-
-pkgmeta = {}
-execfile(os.path.join(os.path.dirname(__file__), 'markdownify', 'pkgmeta.py'),
-         pkgmeta)
+pkgmeta = {
+    '__title__': 'markdownify',
+    '__author__': 'Matthew Tretter',
+    '__version__': '0.4.1',
+}
 
 
 class PyTest(TestCommand):
@@ -75,13 +76,13 @@ setup(
         'pytest',
     ],
     install_requires=[
-        'beautifulsoup4',
+        'beautifulsoup4', 'six'
     ],
     classifiers=[
         'Environment :: Web Environment',
         'Framework :: Django',
         'Intended Audience :: Developers',
-        'License :: OSI Approved :: BSD License',
+        'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
         'Programming Language :: Python :: 2.5',
         'Programming Language :: Python :: 2.6',

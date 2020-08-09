@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup, NavigableString
 import re
+import six
 
 
 convert_heading_re = re.compile(r'convert_h(\d+)')
@@ -20,6 +21,19 @@ def escape(text):
     if not text:
         return ''
     return text.replace('_', r'\_')
+
+
+def chomp(text):
+    """
+    If the text in an inline tag like b, a, or em contains a leading or trailing
+    space, strip the string and return a space as suffix of prefix, if needed.
+    This function is used to prevent conversions like
+        <b> foo</b> => ** foo**
+    """
+    prefix = ' ' if text and text[0] == ' ' else ''
+    suffix = ' ' if text and text[-1] == ' ' else ''
+    text = text.strip()
+    return (prefix, suffix, text)
 
 
 def _todict(obj):
@@ -52,7 +66,7 @@ class MarkdownConverter(object):
         # want a full document. Therefore, we'll mark our fragment with an id,
         # create the document, and extract the element with the id.
         html = wrapped % html
-        soup = BeautifulSoup(html)
+        soup = BeautifulSoup(html, 'html.parser')
         return self.process_tag(soup.find(id=FRAGMENT_ID), children_only=True)
 
     def process_tag(self, node, children_only=False):
@@ -61,7 +75,7 @@ class MarkdownConverter(object):
         # Convert the children first
         for el in node.children:
             if isinstance(el, NavigableString):
-                text += self.process_text(unicode(el))
+                text += self.process_text(six.text_type(el))
             else:
                 text += self.process_tag(el)
 
@@ -109,13 +123,16 @@ class MarkdownConverter(object):
         return '%s\n%s\n\n' % (text, pad_char * len(text)) if text else ''
 
     def convert_a(self, el, text):
+        prefix, suffix, text = chomp(text)
+        if not text:
+            return ''
         href = el.get('href')
         title = el.get('title')
         if self.options['autolinks'] and text == href and not title:
             # Shortcut syntax
             return '<%s>' % href
         title_part = ' "%s"' % title.replace('"', r'\"') if title else ''
-        return '[%s](%s%s)' % (text or '', href, title_part) if href else text or ''
+        return '%s[%s](%s%s)%s' % (prefix, text, href, title_part, suffix) if href else text
 
     def convert_b(self, el, text):
         return self.convert_strong(el, text)
@@ -127,7 +144,10 @@ class MarkdownConverter(object):
         return '  \n'
 
     def convert_em(self, el, text):
-        return '*%s*' % text if text else ''
+        prefix, suffix, text = chomp(text)
+        if not text:
+            return ''
+        return '%s*%s*%s' % (prefix, text, suffix)
 
     def convert_hn(self, n, el, text):
         style = self.options['heading_style']
@@ -151,8 +171,9 @@ class MarkdownConverter(object):
                 break
             el = el.parent
         if nested:
-            text = '\n' + self.indent(text, 1)
-        return text
+            # remove trailing newline if nested
+            return '\n' + self.indent(text, 1).rstrip()
+        return '\n' + text + '\n'
 
     convert_ul = convert_list
     convert_ol = convert_list
@@ -175,7 +196,10 @@ class MarkdownConverter(object):
         return '%s\n\n' % text if text else ''
 
     def convert_strong(self, el, text):
-        return '**%s**' % text if text else ''
+        prefix, suffix, text = chomp(text)
+        if not text:
+            return ''
+        return '%s**%s**%s' % (prefix, text, suffix)
 
     def convert_img(self, el, text):
         alt = el.attrs.get('alt', None) or ''
