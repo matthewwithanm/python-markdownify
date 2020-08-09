@@ -169,7 +169,8 @@ class MarkdownConverter(object):
                 break
             el = el.parent
         if nested:
-            text = '\n' + self.indent(text, 1)
+            # remove trailing newline if nested
+            return '\n' + self.indent(text, 1).rstrip()
         return '\n' + text + '\n'
 
     convert_ul = convert_list
