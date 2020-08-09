@@ -22,6 +22,7 @@ def escape(text):
         return ''
     return text.replace('_', r'\_')
 
+
 def chomp(text):
     """
     If the text in an inline tag like b, a, or em contains a leading or trailing
@@ -33,6 +34,7 @@ def chomp(text):
     suffix = ' ' if text and text[-1] == ' ' else ''
     text = text.strip()
     return (prefix, suffix, text)
+
 
 def _todict(obj):
     return dict((k, getattr(obj, k)) for k in dir(obj) if not k.startswith('_'))
