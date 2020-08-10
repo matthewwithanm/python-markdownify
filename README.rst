@@ -1,3 +1,7 @@
+.. image:: https://img.shields.io/pypi/v/markdownify   :alt: PyPI
+.. image:: https://img.shields.io/pypi/l/markdownify   :alt: PyPI - License
+.. image:: https://img.shields.io/pypi/dm/markdownify   :alt: PyPI - Downloads
+
 Installation
 ============
 
