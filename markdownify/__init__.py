@@ -181,7 +181,11 @@ class MarkdownConverter(object):
     def convert_li(self, el, text):
         parent = el.parent
         if parent is not None and parent.name == 'ol':
-            bullet = '%s.' % (parent.index(el) + 1)
+            if parent.get("start"):
+                start = int(parent.get("start"))
+            else:
+                start = 1
+            bullet = '%s.' % (start + parent.index(el))
         else:
             depth = -1
             while el:

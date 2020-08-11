@@ -123,6 +123,7 @@ def test_i():
 
 def test_ol():
     assert md('<ol><li>a</li><li>b</li></ol>') == '\n1. a\n2. b\n\n'
+    assert md('<ol start="3"><li>a</li><li>b</li></ol>') == '\n3. a\n4. b\n\n'
 
 
 def test_p():
