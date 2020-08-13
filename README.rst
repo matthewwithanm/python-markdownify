@@ -1,6 +1,6 @@
 .. image:: https://img.shields.io/pypi/v/markdownify
 .. image:: https://img.shields.io/pypi/l/markdownify
-.. image:: https://img.shields.io/pypi/dm/markdownify
+.. image:: https://pepy.tech/badge/markdownify
 
 Installation
 ============
