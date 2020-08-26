@@ -1,5 +1,4 @@
 from markdownify import markdownify as md, ATX, ATX_CLOSED
-import re
 
 
 nested_uls = """
@@ -41,8 +40,26 @@ nested_ols = """
     </ul>"""
 
 
+def test_chomp():
+    assert md(' <b></b> ') == '  '
+    assert md(' <b> </b> ') == '  '
+    assert md(' <b>  </b> ') == '  '
+    assert md(' <b>   </b> ') == '  '
+    assert md(' <b>s </b> ') == ' **s**  '
+    assert md(' <b> s</b> ') == '  **s** '
+    assert md(' <b> s </b> ') == '  **s**  '
+    assert md(' <b>  s  </b> ') == '  **s**  '
+
+
 def test_a():
     assert md('<a href="http://google.com">Google</a>') == '[Google](http://google.com)'
+
+
+def test_a_spaces():
+    assert md('foo <a href="http://google.com">Google</a> bar') == 'foo [Google](http://google.com) bar'
+    assert md('foo<a href="http://google.com"> Google</a> bar') == 'foo [Google](http://google.com) bar'
+    assert md('foo <a href="http://google.com">Google </a>bar') == 'foo [Google](http://google.com) bar'
+    assert md('foo <a href="http://google.com"></a> bar') == 'foo  bar'
 
 
 def test_a_with_title():
@@ -64,6 +81,13 @@ def test_b():
     assert md('<b>Hello</b>') == '**Hello**'
 
 
+def test_b_spaces():
+    assert md('foo <b>Hello</b> bar') == 'foo **Hello** bar'
+    assert md('foo<b> Hello</b> bar') == 'foo **Hello** bar'
+    assert md('foo <b>Hello </b>bar') == 'foo **Hello** bar'
+    assert md('foo <b></b> bar') == 'foo  bar'
+
+
 def test_blockquote():
     assert md('<blockquote>Hello</blockquote>').strip() == '> Hello'
 
@@ -79,6 +103,13 @@ def test_br():
 
 def test_em():
     assert md('<em>Hello</em>') == '*Hello*'
+
+
+def test_em_spaces():
+    assert md('foo <em>Hello</em> bar') == 'foo *Hello* bar'
+    assert md('foo<em> Hello</em> bar') == 'foo *Hello* bar'
+    assert md('foo <em>Hello </em>bar') == 'foo *Hello* bar'
+    assert md('foo <em></em> bar') == 'foo  bar'
 
 
 def test_h1():
@@ -109,10 +140,13 @@ def test_i():
 
 
 def test_ol():
-    assert md('<ol><li>a</li><li>b</li></ol>') == '1. a\n2. b\n'
+    assert md('<ol><li>a</li><li>b</li></ol>') == '\n1. a\n2. b\n\n'
+    assert md('<ol start="3"><li>a</li><li>b</li></ol>') == '\n3. a\n4. b\n\n'
+
 
 def test_nested_ols():
     assert md(nested_ols) == '1. 1 \n\t1. a \n\t\t1. I\n\t\t2. II\n\t\t3. III\n\t2. b\n\t3. c\n2. 2\n3. 3\n'
+
 
 def test_p():
     assert md('<p>hello</p>') == 'hello\n\n'
@@ -123,21 +157,23 @@ def test_strong():
 
 
 def test_ul():
-    assert md('<ul><li>a</li><li>b</li></ul>') == '* a\n* b\n'
-    
+    assert md('<ul><li>a</li><li>b</li></ul>') == '\n* a\n* b\n\n'
+
+
 def test_inline_ul():
     assert md('<p>foo</p><ul><li>a</li><li>b</li></ul><p>bar</p>') == 'foo\n\n* a\n* b\n\nbar\n\n'
+
 
 def test_nested_uls():
     """
     Nested ULs should alternate bullet characters.
 
     """
-    assert md(nested_uls) == '* 1 \n\t+ a \n\t\t- I\n\t\t- II\n\t\t- III\n\t+ b\n\t+ c\n* 2\n* 3\n'
+    assert md(nested_uls) == '* 1 \n\t+ a \n\t\t- I\n\t\t- II\n\t\t- III\n\t+ b\n\t+ c\n* 2\n* 3\n\n'
 
 
 def test_bullets():
-    assert md(nested_uls, bullets='-') == '- 1 \n\t- a \n\t\t- I\n\t\t- II\n\t\t- III\n\t- b\n\t- c\n- 2\n- 3\n'
+    assert md(nested_uls, bullets='-') == '- 1 \n\t- a \n\t\t- I\n\t\t- II\n\t\t- III\n\t- b\n\t- c\n- 2\n- 3\n\n'
 
 
 def test_img():

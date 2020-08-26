@@ -1,3 +1,21 @@
+|build| |version| |license| |downloads|
+
+.. |build| image:: https://img.shields.io/github/workflow/status/matthewwithanm/python-markdownify/Python%20application/develop
+    :alt: GitHub Workflow Status
+    :target: https://github.com/matthewwithanm/python-markdownify/actions?query=workflow%3A%22Python+application%22
+
+.. |version| image:: https://img.shields.io/pypi/v/markdownify
+    :alt: Pypi version
+    :target: https://pypi.org/project/markdownify/
+
+.. |license| image:: https://img.shields.io/pypi/l/markdownify
+    :alt: License
+    :target: https://github.com/matthewwithanm/python-markdownify/blob/develop/LICENSE
+
+.. |downloads| image:: https://pepy.tech/badge/markdownify
+    :alt: Pypi Downloads
+    :target: https://pepy.tech/project/markdownify
+
 Installation
 ============
 
