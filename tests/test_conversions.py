@@ -140,8 +140,8 @@ def test_i():
 
 
 def test_ol():
-    assert md('<ol><li>a</li><li>b</li></ol>') == '\n1. a\n2. b\n\n'
-    assert md('<ol start="3"><li>a</li><li>b</li></ol>') == '\n3. a\n4. b\n\n'
+    assert md('<ol><li>a</li><li>b</li></ol>') == '1. a\n2. b\n'
+    assert md('<ol start="3"><li>a</li><li>b</li></ol>') == '3. a\n4. b\n'
 
 
 def test_nested_ols():
@@ -157,7 +157,7 @@ def test_strong():
 
 
 def test_ul():
-    assert md('<ul><li>a</li><li>b</li></ul>') == '\n* a\n* b\n\n'
+    assert md('<ul><li>a</li><li>b</li></ul>') == '* a\n* b\n'
 
 
 def test_inline_ul():
@@ -169,11 +169,11 @@ def test_nested_uls():
     Nested ULs should alternate bullet characters.
 
     """
-    assert md(nested_uls) == '* 1 \n\t+ a \n\t\t- I\n\t\t- II\n\t\t- III\n\t+ b\n\t+ c\n* 2\n* 3\n\n'
+    assert md(nested_uls) == '* 1 \n\t+ a \n\t\t- I\n\t\t- II\n\t\t- III\n\t+ b\n\t+ c\n* 2\n* 3\n'
 
 
 def test_bullets():
-    assert md(nested_uls, bullets='-') == '- 1 \n\t- a \n\t\t- I\n\t\t- II\n\t\t- III\n\t- b\n\t- c\n- 2\n- 3\n\n'
+    assert md(nested_uls, bullets='-') == '- 1 \n\t- a \n\t\t- I\n\t\t- II\n\t\t- III\n\t- b\n\t- c\n- 2\n- 3\n'
 
 
 def test_img():
