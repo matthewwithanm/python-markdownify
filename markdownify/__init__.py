@@ -6,8 +6,6 @@ import six
 convert_heading_re = re.compile(r'convert_h(\d+)')
 line_beginning_re = re.compile(r'^', re.MULTILINE)
 whitespace_re = re.compile(r'[\r\n\s\t ]+')
-FRAGMENT_ID = '__MARKDOWNIFY_WRAPPER__'
-wrapped = '<div id="%s">%%s</div>' % FRAGMENT_ID
 
 
 # Heading styles
@@ -62,12 +60,8 @@ class MarkdownConverter(object):
                              ' convert, but not both.')
 
     def convert(self, html):
-        # We want to take advantage of the html5 parsing, but we don't actually
-        # want a full document. Therefore, we'll mark our fragment with an id,
-        # create the document, and extract the element with the id.
-        html = wrapped % html
         soup = BeautifulSoup(html, 'html.parser')
-        return self.process_tag(soup.find(id=FRAGMENT_ID), children_only=True)
+        return self.process_tag(soup, children_only=True)
 
     def process_tag(self, node, children_only=False):
         text = ''
