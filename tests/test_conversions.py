@@ -73,12 +73,14 @@ def test_b_spaces():
 def test_blockquote():
     assert md('<blockquote>Hello</blockquote>').strip() == '> Hello'
 
+def test_blockquote_with_paragraph():
+    assert md('<blockquote>Hello</blockquote>\n\n<p>handsome</p>').strip() == '> Hello\n\n handsome'
 
 def test_nested_blockquote():
     text = md('<blockquote>And she was like <blockquote>Hello</blockquote></blockquote>').strip()
-    assert text == '> And she was like \n> > Hello'
+    assert text == '> And she was like \n> > Hello\n> \n>'
 
-
+    
 def test_br():
     assert md('a<br />b<br />c') == 'a  \nb  \nc'
 
