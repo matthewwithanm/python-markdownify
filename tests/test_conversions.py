@@ -107,6 +107,14 @@ def test_hn():
     assert md('<h6>Hello</h6>') == '###### Hello\n\n'
 
 
+def test_hn_nested_tag():
+    assert md('<h3>A <b>Bold</b> C </h3>') == '### A **Bold** C\n\n'
+    assert md('<h3>A <p>P</p> C </h3>') == '### A P C\n\n'
+    assert md('<h1>A <p>P</p> C </h1>', heading_style=ATX_CLOSED) == '# A P C #\n\n'
+    assert md('<h1>A <p>P</p> C </h1>', heading_style=ATX) == '# A P C\n\n'
+    assert md('<h3>A <blockquote>BQ</blockquote> C </h3>') == '### A BQ C\n\n'
+
+
 def test_atx_headings():
     assert md('<h1>Hello</h1>', heading_style=ATX) == '# Hello\n\n'
     assert md('<h2>Hello</h2>', heading_style=ATX) == '## Hello\n\n'
