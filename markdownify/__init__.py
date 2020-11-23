@@ -143,6 +143,18 @@ class MarkdownConverter(object):
             return ''
         return '%s*%s*%s' % (prefix, text, suffix)
 
+    def convert_code(self, el, text):
+        prefix, suffix, text = chomp(text)
+        if not text:
+            return ''
+        return '%s`%s`%s' % (prefix, text, suffix)
+
+    def convert_samp(self, el, text):
+        return self.convert_code(el, text)
+
+    def convert_kbd(self, el, text):
+        return self.convert_code(el, text)
+
     def convert_hn(self, n, el, text):
         style = self.options['heading_style']
         text = text.rstrip()
