@@ -9,6 +9,5 @@ def test_nested():
 def test_code_with_tricky_content():
     assert md('<code>></code>') == "`>`"
     assert md('<code>/home/</code><b>username</b>') == "`/home/`**username**"
-    # convert_br() adds trailing spaces (why?); ignore them by using 2 tests,
-    assert md('<code>Line1<br />Line2</code>').startswith("`Line1")
-    assert md('<code>Line1<br />Line2</code>').endswith("\nLine2`")
+    assert md('First line <code>blah blah<br />blah blah</code> second line') \
+            == "First line `blah blah  \nblah blah` second line"
