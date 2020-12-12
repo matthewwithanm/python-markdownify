@@ -115,6 +115,14 @@ def test_hn_nested_tag():
     assert md('<h3>A <blockquote>BQ</blockquote> C </h3>') == '### A BQ C\n\n'
 
 
+def test_hr():
+    assert md('<hr>hr</hr>') == 'hr'
+
+
+def test_head():
+    assert md('<head>head</head>') == 'head'
+
+
 def test_atx_headings():
     assert md('<h1>Hello</h1>', heading_style=ATX) == '# Hello\n\n'
     assert md('<h2>Hello</h2>', heading_style=ATX) == '## Hello\n\n'

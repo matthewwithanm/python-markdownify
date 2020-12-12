@@ -6,6 +6,7 @@ import six
 convert_heading_re = re.compile(r'convert_h(\d+)')
 line_beginning_re = re.compile(r'^', re.MULTILINE)
 whitespace_re = re.compile(r'[\r\n\s\t ]+')
+html_heading_re = re.compile(r'h[1-6]')
 
 
 # Heading styles
@@ -66,7 +67,7 @@ class MarkdownConverter(object):
     def process_tag(self, node, convert_as_inline, children_only=False):
         text = ''
         # markdown headings can't include block elements (elements w/newlines)
-        isHeading = node.name.startswith('h')
+        isHeading = html_heading_re.match(node.name) is not None
         convert_children_as_inline = convert_as_inline
 
         if not children_only and isHeading:
