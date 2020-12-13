@@ -6,6 +6,7 @@ import six
 convert_heading_re = re.compile(r'convert_h(\d+)')
 line_beginning_re = re.compile(r'^', re.MULTILINE)
 whitespace_re = re.compile(r'[\r\n\s\t ]+')
+html_heading_re = re.compile(r'h[1-6]')
 
 
 # Heading styles
@@ -61,22 +62,28 @@ class MarkdownConverter(object):
 
     def convert(self, html):
         soup = BeautifulSoup(html, 'html.parser')
-        return self.process_tag(soup, children_only=True)
+        return self.process_tag(soup, convert_as_inline=False, children_only=True)
 
-    def process_tag(self, node, children_only=False):
+    def process_tag(self, node, convert_as_inline, children_only=False):
         text = ''
+        # markdown headings can't include block elements (elements w/newlines)
+        isHeading = html_heading_re.match(node.name) is not None
+        convert_children_as_inline = convert_as_inline
+
+        if not children_only and isHeading:
+            convert_children_as_inline = True
 
         # Convert the children first
         for el in node.children:
             if isinstance(el, NavigableString):
                 text += self.process_text(six.text_type(el))
             else:
-                text += self.process_tag(el)
+                text += self.process_tag(el, convert_children_as_inline)
 
         if not children_only:
             convert_fn = getattr(self, 'convert_%s' % node.name, None)
             if convert_fn and self.should_convert_tag(node.name):
-                text = convert_fn(node, text)
+                text = convert_fn(node, text, convert_as_inline)
 
         return text
 
@@ -89,8 +96,8 @@ class MarkdownConverter(object):
         if m:
             n = int(m.group(1))
 
-            def convert_tag(el, text):
-                return self.convert_hn(n, el, text)
+            def convert_tag(el, text, convert_as_inline):
+                return self.convert_hn(n, el, text, convert_as_inline)
 
             convert_tag.__name__ = 'convert_h%s' % n
             setattr(self, convert_tag.__name__, convert_tag)
@@ -116,10 +123,12 @@ class MarkdownConverter(object):
         text = (text or '').rstrip()
         return '%s\n%s\n\n' % (text, pad_char * len(text)) if text else ''
 
-    def convert_a(self, el, text):
+    def convert_a(self, el, text, convert_as_inline):
         prefix, suffix, text = chomp(text)
         if not text:
             return ''
+        if convert_as_inline:
+            return text
         href = el.get('href')
         title = el.get('title')
         if self.options['autolinks'] and text == href and not title:
@@ -128,22 +137,32 @@ class MarkdownConverter(object):
         title_part = ' "%s"' % title.replace('"', r'\"') if title else ''
         return '%s[%s](%s%s)%s' % (prefix, text, href, title_part, suffix) if href else text
 
-    def convert_b(self, el, text):
-        return self.convert_strong(el, text)
+    def convert_b(self, el, text, convert_as_inline):
+        return self.convert_strong(el, text, convert_as_inline)
 
-    def convert_blockquote(self, el, text):
+    def convert_blockquote(self, el, text, convert_as_inline):
+
+        if convert_as_inline:
+            return text
+
         return '\n' + line_beginning_re.sub('> ', text) if text else ''
 
-    def convert_br(self, el, text):
+    def convert_br(self, el, text, convert_as_inline):
+        if convert_as_inline:
+            return ""
+
         return '  \n'
 
-    def convert_em(self, el, text):
+    def convert_em(self, el, text, convert_as_inline):
         prefix, suffix, text = chomp(text)
         if not text:
             return ''
         return '%s*%s*%s' % (prefix, text, suffix)
 
-    def convert_hn(self, n, el, text):
+    def convert_hn(self, n, el, text, convert_as_inline):
+        if convert_as_inline:
+            return text
+
         style = self.options['heading_style']
         text = text.rstrip()
         if style == UNDERLINED and n <= 2:
@@ -154,10 +173,14 @@ class MarkdownConverter(object):
             return '%s %s %s\n\n' % (hashes, text, hashes)
         return '%s %s\n\n' % (hashes, text)
 
-    def convert_i(self, el, text):
-        return self.convert_em(el, text)
+    def convert_i(self, el, text, convert_as_inline):
+        return self.convert_em(el, text, convert_as_inline)
 
-    def convert_list(self, el, text):
+    def convert_list(self, el, text, convert_as_inline):
+
+        # Converting a list to inline is undefined.
+        # Ignoring convert_to_inline for list.
+
         nested = False
         while el:
             if el.name == 'li':
@@ -172,7 +195,7 @@ class MarkdownConverter(object):
     convert_ul = convert_list
     convert_ol = convert_list
 
-    def convert_li(self, el, text):
+    def convert_li(self, el, text, convert_as_inline):
         parent = el.parent
         if parent is not None and parent.name == 'ol':
             if parent.get("start"):
@@ -190,20 +213,25 @@ class MarkdownConverter(object):
             bullet = bullets[depth % len(bullets)]
         return '%s %s\n' % (bullet, text or '')
 
-    def convert_p(self, el, text):
+    def convert_p(self, el, text, convert_as_inline):
+        if convert_as_inline:
+            return text
         return '%s\n\n' % text if text else ''
 
-    def convert_strong(self, el, text):
+    def convert_strong(self, el, text, convert_as_inline):
         prefix, suffix, text = chomp(text)
         if not text:
             return ''
         return '%s**%s**%s' % (prefix, text, suffix)
 
-    def convert_img(self, el, text):
+    def convert_img(self, el, text, convert_as_inline):
         alt = el.attrs.get('alt', None) or ''
         src = el.attrs.get('src', None) or ''
         title = el.attrs.get('title', None) or ''
         title_part = ' "%s"' % title.replace('"', r'\"') if title else ''
+        if convert_as_inline:
+            return alt
+
         return '![%s](%s%s)' % (alt, src, title_part)
 
 
