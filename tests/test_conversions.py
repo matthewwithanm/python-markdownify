@@ -107,12 +107,42 @@ def test_hn():
     assert md('<h6>Hello</h6>') == '###### Hello\n\n'
 
 
-def test_hn_nested_tag():
-    assert md('<h3>A <b>Bold</b> C </h3>') == '### A **Bold** C\n\n'
-    assert md('<h3>A <p>P</p> C </h3>') == '### A P C\n\n'
+def test_hn_nested_tag_heading_style():
     assert md('<h1>A <p>P</p> C </h1>', heading_style=ATX_CLOSED) == '# A P C #\n\n'
     assert md('<h1>A <p>P</p> C </h1>', heading_style=ATX) == '# A P C\n\n'
-    assert md('<h3>A <blockquote>BQ</blockquote> C </h3>') == '### A BQ C\n\n'
+
+
+def test_hn_nested_simple_tag():
+    tag_to_markdown = [
+        ("strong", "**strong**"),
+        ("b", "**b**"),
+        ("em", "*em*"),
+        ("i", "*i*"),
+        ("p", "p"),
+        ("a", "a"),
+        ("div", "div"),
+        ("blockquote", "blockquote"),
+    ]
+
+    for tag, markdown in tag_to_markdown:
+        assert md('<h3>A <' + tag + '>' + tag + '</' + tag + '> B</h3>') == '### A ' + markdown + ' B\n\n'
+
+    assert md('<h3>A <br>B</h3>', heading_style=ATX) == '### A B\n\n'
+
+    # Nested lists not supported
+    # assert md('<h3>A <ul><li>li1</i><li>l2</li></ul></h3>', heading_style=ATX) == '### A li1 li2 B\n\n'
+
+
+def test_hn_nested_img():
+    assert md('<img src="/path/to/img.jpg" alt="Alt text" title="Optional title" />') == '![Alt text](/path/to/img.jpg "Optional title")'
+    assert md('<img src="/path/to/img.jpg" alt="Alt text" />') == '![Alt text](/path/to/img.jpg)'
+    image_attributes_to_markdown = [
+        ("", ""),
+        ("alt='Alt Text'", "Alt Text"),
+        ("alt='Alt Text' title='Optional title'", "Alt Text"),
+    ]
+    for image_attributes, markdown in image_attributes_to_markdown:
+        assert md('<h3>A <img src="/path/to/img.jpg " ' + image_attributes + '/> B</h3>') == '### A ' + markdown + ' B\n\n'
 
 
 def test_hr():
