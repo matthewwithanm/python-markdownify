@@ -10,4 +10,4 @@ def test_soup():
 
 
 def test_whitespace():
-    assert md(' a  b \n\n c ') == ' a b c '
+    assert md(' a  b \t\t c ') == ' a b c '

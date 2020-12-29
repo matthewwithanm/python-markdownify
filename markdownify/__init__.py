@@ -5,7 +5,7 @@ import six
 
 convert_heading_re = re.compile(r'convert_h(\d+)')
 line_beginning_re = re.compile(r'^', re.MULTILINE)
-whitespace_re = re.compile(r'[\r\n\s\t ]+')
+whitespace_re = re.compile(r'[\t ]+')
 html_heading_re = re.compile(r'h[1-6]')
 
 
