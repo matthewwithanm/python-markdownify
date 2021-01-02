@@ -131,7 +131,8 @@ class MarkdownConverter(object):
             return text
         href = el.get('href')
         title = el.get('title')
-        if self.options['autolinks'] and text == href and not title:
+        # For the replacement see #29: text nodes underscores are escaped
+        if self.options['autolinks'] and text.replace(r'\_', '_') == href and not title:
             # Shortcut syntax
             return '<%s>' % href
         title_part = ' "%s"' % title.replace('"', r'\"') if title else ''
