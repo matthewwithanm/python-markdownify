@@ -110,6 +110,10 @@ def test_hn():
     assert md('<h3>Hello</h3>') == '### Hello\n\n'
     assert md('<h6>Hello</h6>') == '###### Hello\n\n'
 
+def test_hn_chained():
+    assert md('<h1>First</h1>\n<h2>Second</h2>\n<h3>Third</h3>', heading_style=ATX) == '# First\n\n\n## Second\n\n\n### Third\n\n'
+    assert md('X<h1>First</h1>', heading_style=ATX) == 'X# First\n\n'
+
 
 def test_hn_nested_tag_heading_style():
     assert md('<h1>A <p>P</p> C </h1>', heading_style=ATX_CLOSED) == '# A P C #\n\n'
