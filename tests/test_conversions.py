@@ -77,11 +77,6 @@ def test_chomp():
     assert md(' <b> s</b> ') == '  **s** '
     assert md(' <b> s </b> ') == '  **s**  '
     assert md(' <b>  s  </b> ') == '  **s**  '
-    assert md('<b>bold with br<br></b><i>italic</i>') == '**bold with br***italic*'
-
-
-def test_chomp_ext():
-    assert md('<b>bold with br<br></b><i>italic</i>') == '**bold with br***italic*'
 
 
 def test_a():
