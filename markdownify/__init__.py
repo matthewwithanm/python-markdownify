@@ -245,6 +245,7 @@ class MarkdownConverter(object):
             columns = row.find_all('td')
             if len(headers) > 0:
                 headers = [head.text.strip() for head in headers]
+                headers = [head for head in headers if head]
                 text_data.append(' | '.join(headers))
                 text_data.append(' | '.join(['---'] * len(headers)))
             elif len(columns) > 0:
