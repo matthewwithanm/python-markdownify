@@ -67,6 +67,30 @@ table_head_body = re.sub(r'\s+', '', """
 </table>
 """)
 
+table_missing_header = re.sub(r'\s+', '', """
+<table>
+    <thead>
+            <tr>
+            <th></th>
+            <th>Lastname</th>
+            <th>Age</th>
+            </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Jill</td>
+            <td>Smith</td>
+            <td>50</td>
+        </tr>
+        <tr>
+            <td>Eve</td>
+            <td>Jackson</td>
+            <td>94</td>
+        </tr>
+    </tbody>
+</table>
+""")
+
 
 def test_chomp():
     assert md(' <b></b> ') == '  '
@@ -267,3 +291,4 @@ def test_div():
 def test_table():
     assert md(table) == 'Firstname | Lastname | Age\n--- | --- | ---\nJill | Smith | 50\nEve | Jackson | 94'
     assert md(table_head_body) == 'Firstname | Lastname | Age\n--- | --- | ---\nJill | Smith | 50\nEve | Jackson | 94'
+    assert md(table_missing_header) == ' | Lastname | Age\n--- | --- | ---\nJill | Smith | 50\nEve | Jackson | 94'
