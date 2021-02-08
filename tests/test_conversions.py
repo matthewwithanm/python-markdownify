@@ -22,6 +22,52 @@ nested_uls = re.sub(r'\s+', '', """
     </ul>""")
 
 
+table = re.sub(r'\s+', '', """
+<table>
+    <tr>
+        <th>Firstname</th>
+        <th>Lastname</th> 
+        <th>Age</th>
+    </tr>
+    <tr>
+        <td>Jill</td>
+        <td>Smith</td> 
+        <td>50</td>
+    </tr>
+    <tr>
+        <td>Eve</td>
+        <td>Jackson</td> 
+        <td>94</td>
+    </tr>
+</table>
+""")
+
+
+table_head_body = re.sub(r'\s+', '', """
+<table>
+    <thead>
+            <tr>
+            <th>Firstname</th>
+            <th>Lastname</th>
+            <th>Age</th>
+            </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Jill</td>
+            <td>Smith</td> 
+            <td>50</td>
+        </tr>
+        <tr>
+            <td>Eve</td>
+            <td>Jackson</td> 
+            <td>94</td>
+        </tr>
+    </tbody>
+</table>
+""")
+
+
 def test_chomp():
     assert md(' <b></b> ') == '  '
     assert md(' <b> </b> ') == '  '
@@ -31,6 +77,11 @@ def test_chomp():
     assert md(' <b> s</b> ') == '  **s** '
     assert md(' <b> s </b> ') == '  **s**  '
     assert md(' <b>  s  </b> ') == '  **s**  '
+    assert md('<b>bold with br<br></b><i>italic</i>') == '**bold with br***italic*'
+
+
+def test_chomp_ext():
+    assert md('<b>bold with br<br></b><i>italic</i>') == '**bold with br***italic*'
 
 
 def test_a():
@@ -216,3 +267,8 @@ def test_img():
 
 def test_div():
     assert md('Hello</div> World') == 'Hello World'
+
+
+def test_table():
+    assert md(table) == 'Firstname | Lastname | Age\n--- | --- | ---\nJill | Smith | 50\nEve | Jackson | 94'
+    assert md(table_head_body) == 'Firstname | Lastname | Age\n--- | --- | ---\nJill | Smith | 50\nEve | Jackson | 94'
