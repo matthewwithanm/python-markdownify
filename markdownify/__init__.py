@@ -47,6 +47,7 @@ class MarkdownConverter(object):
         heading_style = UNDERLINED
         bullets = '*+-'  # An iterable of bullet types.
         strong_em_symbol = '*'
+        newline = 'spaces'
 
     class Options(DefaultOptions):
         pass
@@ -155,7 +156,10 @@ class MarkdownConverter(object):
         if convert_as_inline:
             return ""
 
-        return '  \n'
+        if self.options['newline'] == 'backslash':
+            return '\\\n'
+        else:
+            return '  \n'
 
     def convert_em(self, el, text, convert_as_inline):
         em_tag = self.options['strong_em_symbol']
