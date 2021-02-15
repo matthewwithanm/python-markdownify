@@ -75,6 +75,12 @@ bullets
   lists are nested. Otherwise, the bullet will alternate based on nesting
   level. Defaults to ``'*+-'``.
 
+strong_em_symbol
+  In markdown, both `*` and `_` are used to encode **strong** or *emphasized* texts. The preferred symbol can be passed through this argument, which defaults to `*`.
+
+newline
+  Defines the style of marking linebreaks (`<br>`) in markdown. The default value `'spaces'` of this option means the regular '  \n' will be used (i.e. two spaces and a newline), while `'backslash'` will convert a linebreak to `''\\\n'` (a backslash an a newline). While the latter convention is non-standard, it is commonly preferred and supported by a lot of converters.
+
 Options may be specified as kwargs to the ``markdownify`` function, or as a
 nested ``Options`` class in ``MarkdownConverter`` subclasses.
 
