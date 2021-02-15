@@ -46,6 +46,7 @@ class MarkdownConverter(object):
         autolinks = True
         heading_style = UNDERLINED
         bullets = '*+-'  # An iterable of bullet types.
+        strong_em_symbol = '*'
 
     class Options(DefaultOptions):
         pass
@@ -157,10 +158,11 @@ class MarkdownConverter(object):
         return '  \n'
 
     def convert_em(self, el, text, convert_as_inline):
+        em_tag = self.options['strong_em_symbol']
         prefix, suffix, text = chomp(text)
         if not text:
             return ''
-        return '%s*%s*%s' % (prefix, text, suffix)
+        return '%s%s%s%s%s' % (prefix, em_tag, text, em_tag, suffix)
 
     def convert_hn(self, n, el, text, convert_as_inline):
         if convert_as_inline:
@@ -222,10 +224,11 @@ class MarkdownConverter(object):
         return '%s\n\n' % text if text else ''
 
     def convert_strong(self, el, text, convert_as_inline):
+        strong_tag = 2 * self.options['strong_em_symbol']
         prefix, suffix, text = chomp(text)
         if not text:
             return ''
-        return '%s**%s**%s' % (prefix, text, suffix)
+        return '%s%s%s%s%s' % (prefix, strong_tag, text, strong_tag, suffix)
 
     def convert_img(self, el, text, convert_as_inline):
         alt = el.attrs.get('alt', None) or ''
