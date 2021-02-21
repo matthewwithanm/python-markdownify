@@ -1,4 +1,4 @@
-from bs4 import BeautifulSoup, NavigableString
+from bs4 import BeautifulSoup, NavigableString, Comment
 import re
 import six
 
@@ -75,7 +75,9 @@ class MarkdownConverter(object):
 
         # Convert the children first
         for el in node.children:
-            if isinstance(el, NavigableString):
+            if isinstance(el, Comment):
+                continue
+            elif isinstance(el, NavigableString):
                 text += self.process_text(six.text_type(el))
             else:
                 text += self.process_tag(el, convert_children_as_inline)
@@ -146,7 +148,7 @@ class MarkdownConverter(object):
         if convert_as_inline:
             return text
 
-        return '\n' + line_beginning_re.sub('> ', text) if text else ''
+        return '\n' + (line_beginning_re.sub('> ', text) + '\n\n') if text else ''
 
     def convert_br(self, el, text, convert_as_inline):
         if convert_as_inline:
