@@ -65,7 +65,6 @@ def test_a_no_autolinks():
 
 def test_b():
     assert md('<b>Hello</b>') == '**Hello**'
-    assert md('<b>Hello</b>', strong_em_symbol='_') == '__Hello__'
 
 
 def test_b_spaces():
@@ -86,12 +85,10 @@ def test_nested_blockquote():
 
 def test_br():
     assert md('a<br />b<br />c') == 'a  \nb  \nc'
-    assert md('a<br />b<br />c', newline_style=BACKSLASH) == 'a\\\nb\\\nc'
 
 
 def test_em():
     assert md('<em>Hello</em>') == '*Hello*'
-    assert md('<em>Hello</em>', strong_em_symbol='_') == '_Hello_'
 
 
 def test_em_spaces():
@@ -177,7 +174,6 @@ def test_atx_closed_headings():
 
 def test_i():
     assert md('<i>Hello</i>') == '*Hello*'
-    assert md('<i>Hello</i>', strong_em_symbol='_') == '_Hello_'
 
 
 def test_ol():
@@ -191,7 +187,6 @@ def test_p():
 
 def test_strong():
     assert md('<strong>Hello</strong>') == '**Hello**'
-    assert md('<strong>Hello</strong>', strong_em_symbol='_') == '__Hello__'
 
 
 def test_ul():
@@ -221,3 +216,14 @@ def test_img():
 
 def test_div():
     assert md('Hello</div> World') == 'Hello World'
+
+
+def test_strong_em_symbol():
+    assert md('<strong>Hello</strong>', strong_em_symbol='_') == '__Hello__'
+    assert md('<b>Hello</b>', strong_em_symbol='_') == '__Hello__'
+    assert md('<em>Hello</em>', strong_em_symbol='_') == '_Hello_'
+    assert md('<i>Hello</i>', strong_em_symbol='_') == '_Hello_'
+
+
+def test_newline_style():
+    assert md('a<br />b<br />c', newline_style=BACKSLASH) == 'a\\\nb\\\nc'
