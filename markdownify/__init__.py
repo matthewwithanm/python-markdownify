@@ -159,7 +159,7 @@ class MarkdownConverter(object):
         if convert_as_inline:
             return ""
 
-        if self.options['newline_style'] == BACKSLASH:
+        if self.options['newline_style'].lower() == BACKSLASH:
             return '\\\n'
         else:
             return '  \n'
@@ -175,7 +175,7 @@ class MarkdownConverter(object):
         if convert_as_inline:
             return text
 
-        style = self.options['heading_style']
+        style = self.options['heading_style'].lower()
         text = text.rstrip()
         if style == UNDERLINED and n <= 2:
             line = '=' if n == 1 else '-'
