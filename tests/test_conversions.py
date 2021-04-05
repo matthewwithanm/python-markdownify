@@ -65,6 +65,7 @@ def test_a_no_autolinks():
 
 def test_b():
     assert md('<b>Hello</b>') == '**Hello**'
+    assert md('<b>Hello</b>', strong_em_symbol='_') == '__Hello__'
 
 
 def test_b_spaces():
@@ -89,6 +90,7 @@ def test_br():
 
 def test_em():
     assert md('<em>Hello</em>') == '*Hello*'
+    assert md('<em>Hello</em>', strong_em_symbol='_') == '_Hello_'
 
 
 def test_em_spaces():
@@ -174,6 +176,7 @@ def test_atx_closed_headings():
 
 def test_i():
     assert md('<i>Hello</i>') == '*Hello*'
+    assert md('<i>Hello</i>', strong_em_symbol='_') == '_Hello_'
 
 
 def test_ol():
@@ -187,6 +190,7 @@ def test_p():
 
 def test_strong():
     assert md('<strong>Hello</strong>') == '**Hello**'
+    assert md('<strong>Hello</strong>', strong_em_symbol='_') == '__Hello__'
 
 
 def test_ul():
