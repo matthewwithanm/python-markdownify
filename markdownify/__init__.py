@@ -19,6 +19,7 @@ SETEXT = UNDERLINED
 SPACES = 'spaces'
 BACKSLASH = 'backslash'
 
+
 def escape(text):
     if not text:
         return ''
