@@ -15,6 +15,9 @@ ATX_CLOSED = 'atx_closed'
 UNDERLINED = 'underlined'
 SETEXT = UNDERLINED
 
+# Newline style
+SPACES = 'spaces'
+BACKSLASH = 'backslash'
 
 def escape(text):
     if not text:
@@ -47,7 +50,7 @@ class MarkdownConverter(object):
         heading_style = UNDERLINED
         bullets = '*+-'  # An iterable of bullet types.
         strong_em_symbol = '*'
-        newline = 'spaces'
+        newline_style = SPACES
 
     class Options(DefaultOptions):
         pass
@@ -156,7 +159,7 @@ class MarkdownConverter(object):
         if convert_as_inline:
             return ""
 
-        if self.options['newline'] == 'backslash':
+        if self.options['newline_style'] == BACKSLASH:
             return '\\\n'
         else:
             return '  \n'
