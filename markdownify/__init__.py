@@ -19,6 +19,10 @@ SETEXT = UNDERLINED
 SPACES = 'spaces'
 BACKSLASH = 'backslash'
 
+# Strong and emphasis style
+ASTERISK = '*'
+UNDERSCORE = '_'
+
 
 def escape(text):
     if not text:
@@ -50,7 +54,7 @@ class MarkdownConverter(object):
         autolinks = True
         heading_style = UNDERLINED
         bullets = '*+-'  # An iterable of bullet types.
-        strong_em_symbol = '*'
+        strong_em_symbol = ASTERISK
         newline_style = SPACES
 
     class Options(DefaultOptions):
