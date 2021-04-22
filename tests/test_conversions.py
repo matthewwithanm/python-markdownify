@@ -71,7 +71,7 @@ table_missing_text = re.sub(r'\s+', '', """
 <table>
     <thead>
             <tr>
-            <th>Firstname</th>
+            <th></th>
             <th>Lastname</th>
             <th>Age</th>
             </tr>
@@ -289,6 +289,6 @@ def test_div():
 
 
 def test_table():
-    assert md(table) == 'Firstname | Lastname | Age\n--- | --- | ---\nJill | Smith | 50\nEve | Jackson | 94'
-    assert md(table_head_body) == 'Firstname | Lastname | Age\n--- | --- | ---\nJill | Smith | 50\nEve | Jackson | 94'
-    assert md(table_missing_text) == 'Firstname | Lastname | Age\n--- | --- | ---\nJill |  | 50\nEve | Jackson | 94'
+    assert md(table) == '| Firstname | Lastname | Age |\n| --- | --- | --- |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |'
+    assert md(table_head_body) == '| Firstname | Lastname | Age |\n| --- | --- | --- |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |'
+    assert md(table_missing_text) == '|  | Lastname | Age |\n| --- | --- | --- |\n| Jill |  | 50 |\n| Eve | Jackson | 94 |'
