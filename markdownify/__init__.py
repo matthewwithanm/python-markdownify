@@ -252,6 +252,23 @@ class MarkdownConverter(object):
 
         return '![%s](%s%s)' % (alt, src, title_part)
 
+    def convert_table(self, el, text, convert_as_inline):
+        rows = el.find_all('tr')
+        text_data = []
+        for row in rows:
+            headers = row.find_all('th')
+            columns = row.find_all('td')
+            if len(headers) > 0:
+                headers = [head.text.strip() for head in headers]
+                text_data.append('| ' + ' | '.join(headers) + ' |')
+                text_data.append('| ' + ' | '.join(['---'] * len(headers)) + ' |')
+            elif len(columns) > 0:
+                columns = [colm.text.strip() for colm in columns]
+                text_data.append('| ' + ' | '.join(columns) + ' |')
+            else:
+                continue
+        return '\n'.join(text_data)
+
 
 def markdownify(html, **options):
     return MarkdownConverter(**options).convert(html)
