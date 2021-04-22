@@ -22,6 +22,76 @@ nested_uls = re.sub(r'\s+', '', """
     </ul>""")
 
 
+table = re.sub(r'\s+', '', """
+<table>
+    <tr>
+        <th>Firstname</th>
+        <th>Lastname</th>
+        <th>Age</th>
+    </tr>
+    <tr>
+        <td>Jill</td>
+        <td>Smith</td>
+        <td>50</td>
+    </tr>
+    <tr>
+        <td>Eve</td>
+        <td>Jackson</td>
+        <td>94</td>
+    </tr>
+</table>
+""")
+
+
+table_head_body = re.sub(r'\s+', '', """
+<table>
+    <thead>
+            <tr>
+            <th>Firstname</th>
+            <th>Lastname</th>
+            <th>Age</th>
+            </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Jill</td>
+            <td>Smith</td>
+            <td>50</td>
+        </tr>
+        <tr>
+            <td>Eve</td>
+            <td>Jackson</td>
+            <td>94</td>
+        </tr>
+    </tbody>
+</table>
+""")
+
+table_missing_text = re.sub(r'\s+', '', """
+<table>
+    <thead>
+            <tr>
+            <th></th>
+            <th>Lastname</th>
+            <th>Age</th>
+            </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Jill</td>
+            <td></td>
+            <td>50</td>
+        </tr>
+        <tr>
+            <td>Eve</td>
+            <td>Jackson</td>
+            <td>94</td>
+        </tr>
+    </tbody>
+</table>
+""")
+
+
 def test_chomp():
     assert md(' <b></b> ') == '  '
     assert md(' <b> </b> ') == '  '
@@ -220,6 +290,12 @@ def test_img():
 
 def test_div():
     assert md('Hello</div> World') == 'Hello World'
+
+
+def test_table():
+    assert md(table) == '| Firstname | Lastname | Age |\n| --- | --- | --- |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |'
+    assert md(table_head_body) == '| Firstname | Lastname | Age |\n| --- | --- | --- |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |'
+    assert md(table_missing_text) == '|  | Lastname | Age |\n| --- | --- | --- |\n| Jill |  | 50 |\n| Eve | Jackson | 94 |'
 
 
 def test_strong_em_symbol():
