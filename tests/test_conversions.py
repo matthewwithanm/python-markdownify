@@ -1,4 +1,4 @@
-from markdownify import markdownify as md, ATX, ATX_CLOSED
+from markdownify import markdownify as md, ATX, ATX_CLOSED, BACKSLASH, UNDERSCORE
 import re
 
 
@@ -145,12 +145,16 @@ def test_b_spaces():
 
 
 def test_blockquote():
-    assert md('<blockquote>Hello</blockquote>').strip() == '> Hello'
+    assert md('<blockquote>Hello</blockquote>') == '\n> Hello\n\n'
+
+
+def test_blockquote_with_paragraph():
+    assert md('<blockquote>Hello</blockquote><p>handsome</p>') == '\n> Hello\n\nhandsome\n\n'
 
 
 def test_nested_blockquote():
-    text = md('<blockquote>And she was like <blockquote>Hello</blockquote></blockquote>').strip()
-    assert text == '> And she was like \n> > Hello'
+    text = md('<blockquote>And she was like <blockquote>Hello</blockquote></blockquote>')
+    assert text == '\n> And she was like \n> > Hello\n> \n> \n\n'
 
 
 def test_br():
@@ -292,3 +296,14 @@ def test_table():
     assert md(table) == '| Firstname | Lastname | Age |\n| --- | --- | --- |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |'
     assert md(table_head_body) == '| Firstname | Lastname | Age |\n| --- | --- | --- |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |'
     assert md(table_missing_text) == '|  | Lastname | Age |\n| --- | --- | --- |\n| Jill |  | 50 |\n| Eve | Jackson | 94 |'
+
+
+def test_strong_em_symbol():
+    assert md('<strong>Hello</strong>', strong_em_symbol=UNDERSCORE) == '__Hello__'
+    assert md('<b>Hello</b>', strong_em_symbol=UNDERSCORE) == '__Hello__'
+    assert md('<em>Hello</em>', strong_em_symbol=UNDERSCORE) == '_Hello_'
+    assert md('<i>Hello</i>', strong_em_symbol=UNDERSCORE) == '_Hello_'
+
+
+def test_newline_style():
+    assert md('a<br />b<br />c', newline_style=BACKSLASH) == 'a\\\nb\\\nc'
