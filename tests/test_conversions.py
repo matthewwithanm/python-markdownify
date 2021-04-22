@@ -1,4 +1,4 @@
-from markdownify import markdownify as md, ATX, ATX_CLOSED
+from markdownify import markdownify as md, ATX, ATX_CLOSED, BACKSLASH, UNDERSCORE
 import re
 
 
@@ -220,3 +220,14 @@ def test_img():
 
 def test_div():
     assert md('Hello</div> World') == 'Hello World'
+
+
+def test_strong_em_symbol():
+    assert md('<strong>Hello</strong>', strong_em_symbol=UNDERSCORE) == '__Hello__'
+    assert md('<b>Hello</b>', strong_em_symbol=UNDERSCORE) == '__Hello__'
+    assert md('<em>Hello</em>', strong_em_symbol=UNDERSCORE) == '_Hello_'
+    assert md('<i>Hello</i>', strong_em_symbol=UNDERSCORE) == '_Hello_'
+
+
+def test_newline_style():
+    assert md('a<br />b<br />c', newline_style=BACKSLASH) == 'a\\\nb\\\nc'
