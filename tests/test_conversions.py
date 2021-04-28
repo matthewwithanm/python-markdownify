@@ -307,3 +307,7 @@ def test_strong_em_symbol():
 
 def test_newline_style():
     assert md('a<br />b<br />c', newline_style=BACKSLASH) == 'a\\\nb\\\nc'
+
+
+def test_hr():
+    assert md('Hello<hr />World') == 'Hello\n\n---\n\nWorld'

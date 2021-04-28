@@ -269,6 +269,9 @@ class MarkdownConverter(object):
                 continue
         return '\n'.join(text_data)
 
+    def convert_hr(self, el, text, convert_as_inline):
+        return '\n\n---\n\n'
+
 
 def markdownify(html, **options):
     return MarkdownConverter(**options).convert(html)
