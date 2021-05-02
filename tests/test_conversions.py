@@ -2,7 +2,7 @@ from markdownify import markdownify as md, ATX, ATX_CLOSED, BACKSLASH, UNDERSCOR
 import re
 
 
-nested_uls = re.sub(r'\s+', '', """
+nested_uls = """
     <ul>
         <li>1
             <ul>
@@ -19,7 +19,26 @@ nested_uls = re.sub(r'\s+', '', """
         </li>
         <li>2</li>
         <li>3</li>
-    </ul>""")
+    </ul>"""
+
+nested_ols = """
+    <ol>
+        <li>1
+            <ol>
+                <li>a
+                    <ol>
+                        <li>I</li>
+                        <li>II</li>
+                        <li>III</li>
+                    </ol>
+                </li>
+                <li>b</li>
+                <li>c</li>
+            </ol>
+        </li>
+        <li>2</li>
+        <li>3</li>
+    </ul>"""
 
 
 table = re.sub(r'\s+', '', """
@@ -253,8 +272,8 @@ def test_i():
 
 
 def test_ol():
-    assert md('<ol><li>a</li><li>b</li></ol>') == '\n1. a\n2. b\n\n'
-    assert md('<ol start="3"><li>a</li><li>b</li></ol>') == '\n3. a\n4. b\n\n'
+    assert md('<ol><li>a</li><li>b</li></ol>') == '1. a\n2. b\n'
+    assert md('<ol start="3"><li>a</li><li>b</li></ol>') == '3. a\n4. b\n'
 
 
 def test_p():
@@ -266,11 +285,15 @@ def test_strong():
 
 
 def test_ul():
-    assert md('<ul><li>a</li><li>b</li></ul>') == '\n* a\n* b\n\n'
+    assert md('<ul><li>a</li><li>b</li></ul>') == '* a\n* b\n'
+
+
+def test_nested_ols():
+    assert md(nested_ols) == '\n1. 1\n\t1. a\n\t\t1. I\n\t\t2. II\n\t\t3. III\n\t2. b\n\t3. c\n2. 2\n3. 3\n'
 
 
 def test_inline_ul():
-    assert md('<p>foo</p><ul><li>a</li><li>b</li></ul><p>bar</p>') == 'foo\n\n\n* a\n* b\n\nbar\n\n'
+    assert md('<p>foo</p><ul><li>a</li><li>b</li></ul><p>bar</p>') == 'foo\n\n* a\n* b\n\nbar\n\n'
 
 
 def test_nested_uls():
@@ -278,11 +301,11 @@ def test_nested_uls():
     Nested ULs should alternate bullet characters.
 
     """
-    assert md(nested_uls) == '\n* 1\n\t+ a\n\t\t- I\n\t\t- II\n\t\t- III\n\t+ b\n\t+ c\n* 2\n* 3\n\n'
+    assert md(nested_uls) == '\n* 1\n\t+ a\n\t\t- I\n\t\t- II\n\t\t- III\n\t+ b\n\t+ c\n* 2\n* 3\n'
 
 
 def test_bullets():
-    assert md(nested_uls, bullets='-') == '\n- 1\n\t- a\n\t\t- I\n\t\t- II\n\t\t- III\n\t- b\n\t- c\n- 2\n- 3\n\n'
+    assert md(nested_uls, bullets='-') == '\n- 1\n\t- a\n\t\t- I\n\t\t- II\n\t\t- III\n\t- b\n\t- c\n- 2\n- 3\n'
 
 
 def test_img():
