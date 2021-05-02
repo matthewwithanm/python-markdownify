@@ -6,6 +6,7 @@ import six
 convert_heading_re = re.compile(r'convert_h(\d+)')
 line_beginning_re = re.compile(r'^', re.MULTILINE)
 whitespace_re = re.compile(r'[\t ]+')
+all_whitespace_re = re.compile(r'[\s]+')
 html_heading_re = re.compile(r'h[1-6]')
 
 
@@ -83,17 +84,18 @@ class MarkdownConverter(object):
         if not children_only and isHeading:
             convert_children_as_inline = True
 
-        # Clean newline-only textnodes outside <pre>
-        for el in node.children:
-            if node.name != 'pre' and isinstance(el, NavigableString) and six.text_type(el) == '\n':
-                el.extract()
+        # Remove whitespace-only textnodes in lists
+        if node.name in ['ol', 'ul', 'li']:
+            for el in node.children:
+                if isinstance(el, NavigableString) and six.text_type(el).strip() == '':
+                    el.extract()
 
         # Convert the children first
         for el in node.children:
             if isinstance(el, Comment):
                 continue
             elif isinstance(el, NavigableString):
-                text += self.process_text(six.text_type(el))
+                text += self.process_text(el)
             else:
                 text += self.process_tag(el, convert_children_as_inline)
 
@@ -104,7 +106,10 @@ class MarkdownConverter(object):
 
         return text
 
-    def process_text(self, text):
+    def process_text(self, el):
+        text = six.text_type(el)
+        if el.parent.name == 'li':
+            return escape(all_whitespace_re.sub(' ', text or '')).rstrip()
         return escape(whitespace_re.sub(' ', text or ''))
 
     def __getattr__(self, attr):
