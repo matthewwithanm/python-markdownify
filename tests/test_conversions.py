@@ -229,7 +229,9 @@ def test_hn_nested_img():
 
 
 def test_hr():
-    assert md('<hr>hr</hr>') == 'hr'
+    assert md('Hello<hr>World') == 'Hello\n\n---\n\nWorld'
+    assert md('Hello<hr />World') == 'Hello\n\n---\n\nWorld'
+    assert md('<p>Hello</p>\n<hr>\n<p>World</p>') == 'Hello\n\n\n\n\n---\n\n\nWorld\n\n'
 
 
 def test_head():
