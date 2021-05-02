@@ -2,7 +2,7 @@ from markdownify import markdownify as md
 
 
 def test_underscore():
-    assert md('_hey_dude_') == '\_hey\_dude\_'
+    assert md('_hey_dude_') == r'\_hey\_dude\_'
 
 
 def test_xml_entities():

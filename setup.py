@@ -10,7 +10,7 @@ read = lambda filepath: codecs.open(filepath, 'r', 'utf-8').read()
 pkgmeta = {
     '__title__': 'markdownify',
     '__author__': 'Matthew Tretter',
-    '__version__': '0.5.2',
+    '__version__': '0.7.1',
 }
 
 
@@ -50,7 +50,7 @@ class LintCommand(Command):
                 yield "%s.py" % filename
 
     def run(self):
-        from flake8.engine import get_style_guide
+        from flake8.api.legacy import get_style_guide
         flake8_style = get_style_guide(config_file='setup.cfg')
         paths = self.distribution_files()
         report = flake8_style.check_files(paths)
@@ -70,13 +70,13 @@ setup(
     zip_safe=False,
     include_package_data=True,
     setup_requires=[
-        'flake8',
+        'flake8>=3.8,<4',
     ],
     tests_require=[
-        'pytest',
+        'pytest>=6.2,<7',
     ],
     install_requires=[
-        'beautifulsoup4', 'six'
+        'beautifulsoup4>=4.9,<5', 'six>=1.15,<2'
     ],
     classifiers=[
         'Environment :: Web Environment',
@@ -87,6 +87,9 @@ setup(
         'Programming Language :: Python :: 2.5',
         'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
         'Topic :: Utilities'
     ],
     cmdclass={
