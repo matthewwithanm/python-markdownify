@@ -85,9 +85,17 @@ class MarkdownConverter(object):
             convert_children_as_inline = True
 
         # Remove whitespace-only textnodes in lists
-        if node.name in ['ol', 'ul', 'li']:
+        def is_list_node(el):
+            return el and el.name in ['ol', 'ul', 'li']
+
+        if is_list_node(node):
             for el in node.children:
-                if isinstance(el, NavigableString) and six.text_type(el).strip() == '':
+                # Only extract (remove) whitespace-only text node if any of the conditions is true:
+                # - el is the first element in its parent
+                # - el is the last element in its parent
+                # - el is adjacent to an list node
+                can_extract = not el.previous_sibling or not el.next_sibling or is_list_node(el.previous_sibling) or is_list_node(el.next_sibling)
+                if isinstance(el, NavigableString) and six.text_type(el).strip() == '' and can_extract:
                     el.extract()
 
         # Convert the children first
@@ -111,7 +119,7 @@ class MarkdownConverter(object):
         # remove trailing whitespaces if any of the following condition is true:
         # - current text node is the last node in li
         # - current text node is followed by an embedded list
-        if el.parent.name == 'li' and (not el.next_sibling or el.next_sibling.name in ["ul", "ol"]):
+        if el.parent.name == 'li' and (not el.next_sibling or el.next_sibling.name in ['ul', 'ol']):
             return escape(all_whitespace_re.sub(' ', text or '')).rstrip()
         return escape(whitespace_re.sub(' ', text or ''))
 
