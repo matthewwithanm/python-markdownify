@@ -308,6 +308,10 @@ def test_bullets():
     assert md(nested_uls, bullets='-') == '\n- 1\n\t- a\n\t\t- I\n\t\t- II\n\t\t- III\n\t- b\n\t- c\n- 2\n- 3\n'
 
 
+def test_li_text():
+    assert md('<ul><li>foo <a href="#">bar</a></li><li>foo bar  </li></ul>') == '* foo [bar](#)\n* foo bar\n'
+
+
 def test_img():
     assert md('<img src="/path/to/img.jpg" alt="Alt text" title="Optional title" />') == '![Alt text](/path/to/img.jpg "Optional title")'
     assert md('<img src="/path/to/img.jpg" alt="Alt text" />') == '![Alt text](/path/to/img.jpg)'

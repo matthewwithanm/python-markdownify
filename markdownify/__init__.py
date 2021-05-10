@@ -108,7 +108,10 @@ class MarkdownConverter(object):
 
     def process_text(self, el):
         text = six.text_type(el)
-        if el.parent.name == 'li':
+        # remove trailing whitespaces if any of the following condition is true:
+        # - current text node is the last node in li
+        # - current text node is followed by an embedded list
+        if el.parent.name == 'li' and (not el.next_sibling or el.next_sibling.name in ["ul", "ol"]):
             return escape(all_whitespace_re.sub(' ', text or '')).rstrip()
         return escape(whitespace_re.sub(' ', text or ''))
 
