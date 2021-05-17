@@ -281,20 +281,19 @@ class MarkdownConverter(object):
         text_data = []
         rendered_header = False
         for row in rows:
-            headers = row.find_all('th')
-            columns = row.find_all('td')
-            if not rendered_header and len(headers) > 0:
-                headers = [head.text.strip() for head in headers]
-                text_data.append('| ' + ' | '.join(headers) + ' |')
-                text_data.append('| ' + ' | '.join(['---'] * len(headers)) + ' |')
+            cells = row.find_all(['td', 'th'])
+            is_headrow = all([cell.name == 'th' for cell in cells])
+            texts = [cell.text.strip() for cell in cells]
+            if not rendered_header and is_headrow:
+                text_data.append('| ' + ' | '.join(texts) + ' |')
+                text_data.append('| ' + ' | '.join(['---'] * len(cells)) + ' |')
                 rendered_header = True
-            elif len(columns) > 0:
+            elif len(cells) > 0:
                 if not rendered_header:
-                    text_data.append('| ' + ' | '.join([''] * len(columns)) + ' |')
-                    text_data.append('| ' + ' | '.join(['---'] * len(columns)) + ' |')
+                    text_data.append('| ' + ' | '.join([''] * len(cells)) + ' |')
+                    text_data.append('| ' + ' | '.join(['---'] * len(cells)) + ' |')
                     rendered_header = True
-                columns = [colm.text.strip() for colm in columns]
-                text_data.append('| ' + ' | '.join(columns) + ' |')
+                text_data.append('| ' + ' | '.join(texts) + ' |')
             else:
                 continue
         return '\n'.join(text_data)

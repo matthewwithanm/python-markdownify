@@ -60,6 +60,25 @@ table = """<table>
 </table>"""
 
 
+table_with_header_column = """<table>
+    <tr>
+        <th>Firstname</th>
+        <th>Lastname</th>
+        <th>Age</th>
+    </tr>
+    <tr>
+        <th>Jill</th>
+        <td>Smith</td>
+        <td>50</td>
+    </tr>
+    <tr>
+        <th>Eve</th>
+        <td>Jackson</td>
+        <td>94</td>
+    </tr>
+</table>"""
+
+
 table_head_body = """<table>
     <thead>
         <tr>
@@ -335,6 +354,7 @@ def test_div():
 
 def test_table():
     assert md(table) == '| Firstname | Lastname | Age |\n| --- | --- | --- |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |'
+    assert md(table_with_header_column) == '| Firstname | Lastname | Age |\n| --- | --- | --- |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |'
     assert md(table_head_body) == '| Firstname | Lastname | Age |\n| --- | --- | --- |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |'
     assert md(table_missing_text) == '|  | Lastname | Age |\n| --- | --- | --- |\n| Jill |  | 50 |\n| Eve | Jackson | 94 |'
     assert md(table_missing_head) == '|  |  |  |\n| --- | --- | --- |\n| Firstname | Lastname | Age |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |'
