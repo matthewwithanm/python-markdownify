@@ -1,5 +1,4 @@
 from markdownify import markdownify as md, ATX, ATX_CLOSED, BACKSLASH, UNDERSCORE
-import re
 
 
 nested_uls = """
@@ -41,8 +40,7 @@ nested_ols = """
     </ul>"""
 
 
-table = re.sub(r'\s+', '', """
-<table>
+table = """<table>
     <tr>
         <th>Firstname</th>
         <th>Lastname</th>
@@ -58,18 +56,54 @@ table = re.sub(r'\s+', '', """
         <td>Jackson</td>
         <td>94</td>
     </tr>
-</table>
-""")
+</table>"""
 
 
-table_head_body = re.sub(r'\s+', '', """
-<table>
+table_with_html_content = """<table>
+    <tr>
+        <th>Firstname</th>
+        <th>Lastname</th>
+        <th>Age</th>
+    </tr>
+    <tr>
+        <td><b>Jill</b></td>
+        <td><i>Smith</i></td>
+        <td><a href="#">50</a></td>
+    </tr>
+    <tr>
+        <td>Eve</td>
+        <td>Jackson</td>
+        <td>94</td>
+    </tr>
+</table>"""
+
+
+table_with_header_column = """<table>
+    <tr>
+        <th>Firstname</th>
+        <th>Lastname</th>
+        <th>Age</th>
+    </tr>
+    <tr>
+        <th>Jill</th>
+        <td>Smith</td>
+        <td>50</td>
+    </tr>
+    <tr>
+        <th>Eve</th>
+        <td>Jackson</td>
+        <td>94</td>
+    </tr>
+</table>"""
+
+
+table_head_body = """<table>
     <thead>
-            <tr>
+        <tr>
             <th>Firstname</th>
             <th>Lastname</th>
             <th>Age</th>
-            </tr>
+        </tr>
     </thead>
     <tbody>
         <tr>
@@ -83,17 +117,15 @@ table_head_body = re.sub(r'\s+', '', """
             <td>94</td>
         </tr>
     </tbody>
-</table>
-""")
+</table>"""
 
-table_missing_text = re.sub(r'\s+', '', """
-<table>
+table_missing_text = """<table>
     <thead>
-            <tr>
+        <tr>
             <th></th>
             <th>Lastname</th>
             <th>Age</th>
-            </tr>
+        </tr>
     </thead>
     <tbody>
         <tr>
@@ -107,8 +139,25 @@ table_missing_text = re.sub(r'\s+', '', """
             <td>94</td>
         </tr>
     </tbody>
-</table>
-""")
+</table>"""
+
+table_missing_head = """<table>
+    <tr>
+        <td>Firstname</td>
+        <td>Lastname</td>
+        <td>Age</td>
+    </tr>
+    <tr>
+        <td>Jill</td>
+        <td>Smith</td>
+        <td>50</td>
+    </tr>
+    <tr>
+        <td>Eve</td>
+        <td>Jackson</td>
+        <td>94</td>
+    </tr>
+</table>"""
 
 
 def test_chomp():
@@ -322,9 +371,12 @@ def test_div():
 
 
 def test_table():
-    assert md(table) == '| Firstname | Lastname | Age |\n| --- | --- | --- |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |'
-    assert md(table_head_body) == '| Firstname | Lastname | Age |\n| --- | --- | --- |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |'
-    assert md(table_missing_text) == '|  | Lastname | Age |\n| --- | --- | --- |\n| Jill |  | 50 |\n| Eve | Jackson | 94 |'
+    assert md(table) == '\n\n| Firstname | Lastname | Age |\n| --- | --- | --- |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |\n\n'
+    assert md(table_with_html_content) == '\n\n| Firstname | Lastname | Age |\n| --- | --- | --- |\n| **Jill** | *Smith* | [50](#) |\n| Eve | Jackson | 94 |\n\n'
+    assert md(table_with_header_column) == '\n\n| Firstname | Lastname | Age |\n| --- | --- | --- |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |\n\n'
+    assert md(table_head_body) == '\n\n| Firstname | Lastname | Age |\n| --- | --- | --- |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |\n\n'
+    assert md(table_missing_text) == '\n\n|  | Lastname | Age |\n| --- | --- | --- |\n| Jill |  | 50 |\n| Eve | Jackson | 94 |\n\n'
+    assert md(table_missing_head) == '\n\n|  |  |  |\n| --- | --- | --- |\n| Firstname | Lastname | Age |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |\n\n'
 
 
 def test_strong_em_symbol():
