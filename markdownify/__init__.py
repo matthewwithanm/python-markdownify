@@ -84,18 +84,26 @@ class MarkdownConverter(object):
         if not children_only and isHeading:
             convert_children_as_inline = True
 
-        # Remove whitespace-only textnodes in lists
-        def is_list_node(el):
-            return el and el.name in ['ol', 'ul', 'li']
+        # Remove whitespace-only textnodes in purely nested nodes
+        def is_nested_node(el):
+            return el and el.name in ['ol', 'ul', 'li',
+                                      'table', 'thead', 'tbody', 'tfoot',
+                                      'tr', 'td', 'th']
 
-        if is_list_node(node):
+        if is_nested_node(node):
             for el in node.children:
-                # Only extract (remove) whitespace-only text node if any of the conditions is true:
+                # Only extract (remove) whitespace-only text node if any of the
+                # conditions is true:
                 # - el is the first element in its parent
                 # - el is the last element in its parent
-                # - el is adjacent to an list node
-                can_extract = not el.previous_sibling or not el.next_sibling or is_list_node(el.previous_sibling) or is_list_node(el.next_sibling)
-                if isinstance(el, NavigableString) and six.text_type(el).strip() == '' and can_extract:
+                # - el is adjacent to an nested node
+                can_extract = (not el.previous_sibling
+                               or not el.next_sibling
+                               or is_nested_node(el.previous_sibling)
+                               or is_nested_node(el.next_sibling))
+                if (isinstance(el, NavigableString)
+                        and six.text_type(el).strip() == ''
+                        and can_extract):
                     el.extract()
 
         # Convert the children first
@@ -277,21 +285,28 @@ class MarkdownConverter(object):
         return '![%s](%s%s)' % (alt, src, title_part)
 
     def convert_table(self, el, text, convert_as_inline):
-        rows = el.find_all('tr')
-        text_data = []
-        for row in rows:
-            headers = row.find_all('th')
-            columns = row.find_all('td')
-            if len(headers) > 0:
-                headers = [head.text.strip() for head in headers]
-                text_data.append('| ' + ' | '.join(headers) + ' |')
-                text_data.append('| ' + ' | '.join(['---'] * len(headers)) + ' |')
-            elif len(columns) > 0:
-                columns = [colm.text.strip() for colm in columns]
-                text_data.append('| ' + ' | '.join(columns) + ' |')
-            else:
-                continue
-        return '\n'.join(text_data)
+        return '\n\n' + text + '\n'
+
+    def convert_tr(self, el, text, convert_as_inline):
+        cells = el.find_all(['td', 'th'])
+        is_headrow = all([cell.name == 'th' for cell in cells])
+        overline = ''
+        underline = ''
+        if is_headrow and not el.previous_sibling:
+            # first row and is headline: print headline underline
+            underline += '| ' + ' | '.join(['---'] * len(cells)) + ' |' + '\n'
+        elif not el.previous_sibling and not el.parent.name != 'table':
+            # first row, not headline, and the parent is sth. like tbody:
+            # print empty headline above this row
+            overline += '| ' + ' | '.join([''] * len(cells)) + ' |' + '\n'
+            overline += '| ' + ' | '.join(['---'] * len(cells)) + ' |' + '\n'
+        return overline + '|' + text + '\n' + underline
+
+    def convert_th(self, el, text, convert_as_inline):
+        return ' ' + text + ' |'
+
+    def convert_td(self, el, text, convert_as_inline):
+        return ' ' + text + ' |'
 
     def convert_hr(self, el, text, convert_as_inline):
         return '\n\n---\n\n'
