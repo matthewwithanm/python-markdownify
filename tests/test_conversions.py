@@ -240,25 +240,33 @@ def test_em_spaces():
     assert md('foo <em></em> bar') == 'foo  bar'
 
 
-def code_samp_kbd_tests(tag):
+def inline_tests(tag, markup):
     # Basically re-use test_em() and test_em_spaces(),
-    assert md(f'<{tag}>Hello</{tag}>') == '`Hello`'
-    assert md(f'foo <{tag}>Hello</{tag}> bar') == 'foo `Hello` bar'
-    assert md(f'foo<{tag}> Hello</{tag}> bar') == 'foo `Hello` bar'
-    assert md(f'foo <{tag}>Hello </{tag}>bar') == 'foo `Hello` bar'
+    assert md(f'<{tag}>Hello</{tag}>') == f'{markup}Hello{markup}'
+    assert md(f'foo <{tag}>Hello</{tag}> bar') == f'foo {markup}Hello{markup} bar'
+    assert md(f'foo<{tag}> Hello</{tag}> bar') == f'foo {markup}Hello{markup} bar'
+    assert md(f'foo <{tag}>Hello </{tag}>bar') == f'foo {markup}Hello{markup} bar'
     assert md(f'foo <{tag}></{tag}> bar') in ['foo  bar', 'foo bar']  # Either is OK
 
 
 def test_code():
-    code_samp_kbd_tests('code')
+    inline_tests('code', '`')
 
 
 def test_samp():
-    code_samp_kbd_tests('samp')
+    inline_tests('samp', '`')
 
 
 def test_kbd():
-    code_samp_kbd_tests('kbd')
+    inline_tests('kbd', '`')
+
+
+def test_del():
+    inline_tests('del', '~~')
+
+
+def test_s():
+    inline_tests('s', '~~')
 
 
 def test_h1():

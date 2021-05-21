@@ -204,6 +204,12 @@ class MarkdownConverter(object):
             return ''
         return '%s`%s`%s' % (prefix, text, suffix)
 
+    def convert_del(self, el, text, convert_as_inline):
+        prefix, suffix, text = chomp(text)
+        if not text:
+            return ''
+        return '%s~~%s~~%s' % (prefix, text, suffix)
+
     def convert_em(self, el, text, convert_as_inline):
         em_tag = self.options['strong_em_symbol']
         prefix, suffix, text = chomp(text)
@@ -287,6 +293,8 @@ class MarkdownConverter(object):
         if convert_as_inline:
             return text
         return '%s\n\n' % text if text else ''
+
+    convert_s = convert_del
 
     def convert_strong(self, el, text, convert_as_inline):
         strong_tag = 2 * self.options['strong_em_symbol']
