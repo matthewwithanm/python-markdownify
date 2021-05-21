@@ -205,6 +205,18 @@ class MarkdownConverter(object):
             return ''
         return '%s%s%s%s%s' % (prefix, em_tag, text, em_tag, suffix)
 
+    def convert_code(self, el, text, convert_as_inline):
+        prefix, suffix, text = chomp(text)
+        if not text:
+            return ''
+        return '%s`%s`%s' % (prefix, text, suffix)
+
+    def convert_samp(self, el, text, convert_as_inline):
+        return self.convert_code(el, text, convert_as_inline)
+
+    def convert_kbd(self, el, text, convert_as_inline):
+        return self.convert_code(el, text, convert_as_inline)
+
     def convert_hn(self, n, el, text, convert_as_inline):
         if convert_as_inline:
             return text

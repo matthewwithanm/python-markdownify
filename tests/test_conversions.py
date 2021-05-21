@@ -240,6 +240,27 @@ def test_em_spaces():
     assert md('foo <em></em> bar') == 'foo  bar'
 
 
+def code_samp_kbd_tests(tag):
+    # Basically re-use test_em() and test_em_spaces(),
+    assert md(f'<{tag}>Hello</{tag}>') == '`Hello`'
+    assert md(f'foo <{tag}>Hello</{tag}> bar') == 'foo `Hello` bar'
+    assert md(f'foo<{tag}> Hello</{tag}> bar') == 'foo `Hello` bar'
+    assert md(f'foo <{tag}>Hello </{tag}>bar') == 'foo `Hello` bar'
+    assert md(f'foo <{tag}></{tag}> bar') in ['foo  bar', 'foo bar']  # Either is OK
+
+
+def test_code():
+    code_samp_kbd_tests('code')
+
+
+def test_samp():
+    code_samp_kbd_tests('samp')
+
+
+def test_kbd():
+    code_samp_kbd_tests('kbd')
+
+
 def test_h1():
     assert md('<h1>Hello</h1>') == 'Hello\n=====\n\n'
 
