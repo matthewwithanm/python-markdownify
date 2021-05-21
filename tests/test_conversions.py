@@ -240,6 +240,40 @@ def test_em_spaces():
     assert md('foo <em></em> bar') == 'foo  bar'
 
 
+def inline_tests(tag, markup):
+    # Basically re-use test_em() and test_em_spaces(),
+    assert md(f'<{tag}>Hello</{tag}>') == f'{markup}Hello{markup}'
+    assert md(f'foo <{tag}>Hello</{tag}> bar') == f'foo {markup}Hello{markup} bar'
+    assert md(f'foo<{tag}> Hello</{tag}> bar') == f'foo {markup}Hello{markup} bar'
+    assert md(f'foo <{tag}>Hello </{tag}>bar') == f'foo {markup}Hello{markup} bar'
+    assert md(f'foo <{tag}></{tag}> bar') in ['foo  bar', 'foo bar']  # Either is OK
+
+
+def test_code():
+    inline_tests('code', '`')
+
+
+def test_samp():
+    inline_tests('samp', '`')
+
+
+def test_kbd():
+    inline_tests('kbd', '`')
+
+
+def test_pre():
+    assert md('<pre>test\n    foo\nbar</pre>') == '\n```\ntest\n    foo\nbar\n```\n'
+    assert md('<pre><code>test\n    foo\nbar</code></pre>') == '\n```\ntest\n    foo\nbar\n```\n'
+
+
+def test_del():
+    inline_tests('del', '~~')
+
+
+def test_s():
+    inline_tests('s', '~~')
+
+
 def test_h1():
     assert md('<h1>Hello</h1>') == 'Hello\n=====\n\n'
 

@@ -44,6 +44,22 @@ def chomp(text):
     return (prefix, suffix, text)
 
 
+def abstract_inline_conversion(markup_fn):
+    """
+    This abstracts all simple inline tags like b, em, del, ...
+    Returns a function that wraps the chomped text in a pair of the string
+    that is returned by markup_fn. markup_fn is necessary to allow for
+    references to self.strong_em_symbol etc.
+    """
+    def implementation(self, el, text, convert_as_inline):
+        markup = markup_fn(self)
+        prefix, suffix, text = chomp(text)
+        if not text:
+            return ''
+        return '%s%s%s%s%s' % (prefix, markup, text, markup, suffix)
+    return implementation
+
+
 def _todict(obj):
     return dict((k, getattr(obj, k)) for k in dir(obj) if not k.startswith('_'))
 
@@ -124,12 +140,21 @@ class MarkdownConverter(object):
 
     def process_text(self, el):
         text = six.text_type(el)
+
+        # dont remove any whitespace when handling pre or code in pre
+        if (el.parent.name == 'pre'
+                or (el.parent.name == 'code' and el.parent.parent.name == 'pre')):
+            return escape(text or '')
+
+        cleaned_text = escape(whitespace_re.sub(' ', text or ''))
+
         # remove trailing whitespaces if any of the following condition is true:
         # - current text node is the last node in li
         # - current text node is followed by an embedded list
         if el.parent.name == 'li' and (not el.next_sibling or el.next_sibling.name in ['ul', 'ol']):
-            return escape(all_whitespace_re.sub(' ', text or '')).rstrip()
-        return escape(whitespace_re.sub(' ', text or ''))
+            return cleaned_text.rstrip()
+
+        return cleaned_text
 
     def __getattr__(self, attr):
         # Handle headings
@@ -179,8 +204,7 @@ class MarkdownConverter(object):
         title_part = ' "%s"' % title.replace('"', r'\"') if title else ''
         return '%s[%s](%s%s)%s' % (prefix, text, href, title_part, suffix) if href else text
 
-    def convert_b(self, el, text, convert_as_inline):
-        return self.convert_strong(el, text, convert_as_inline)
+    convert_b = abstract_inline_conversion(lambda self: 2 * self.options['strong_em_symbol'])
 
     def convert_blockquote(self, el, text, convert_as_inline):
 
@@ -198,12 +222,17 @@ class MarkdownConverter(object):
         else:
             return '  \n'
 
-    def convert_em(self, el, text, convert_as_inline):
-        em_tag = self.options['strong_em_symbol']
-        prefix, suffix, text = chomp(text)
-        if not text:
-            return ''
-        return '%s%s%s%s%s' % (prefix, em_tag, text, em_tag, suffix)
+    def convert_code(self, el, text, convert_as_inline):
+        if el.parent.name == 'pre':
+            return text
+        converter = abstract_inline_conversion(lambda self: '`')
+        return converter(self, el, text, convert_as_inline)
+
+    convert_del = abstract_inline_conversion(lambda self: '~~')
+
+    convert_em = abstract_inline_conversion(lambda self: self.options['strong_em_symbol'])
+
+    convert_kbd = convert_code
 
     def convert_hn(self, n, el, text, convert_as_inline):
         if convert_as_inline:
@@ -219,8 +248,20 @@ class MarkdownConverter(object):
             return '%s %s %s\n\n' % (hashes, text, hashes)
         return '%s %s\n\n' % (hashes, text)
 
-    def convert_i(self, el, text, convert_as_inline):
-        return self.convert_em(el, text, convert_as_inline)
+    def convert_hr(self, el, text, convert_as_inline):
+        return '\n\n---\n\n'
+
+    convert_i = convert_em
+
+    def convert_img(self, el, text, convert_as_inline):
+        alt = el.attrs.get('alt', None) or ''
+        src = el.attrs.get('src', None) or ''
+        title = el.attrs.get('title', None) or ''
+        title_part = ' "%s"' % title.replace('"', r'\"') if title else ''
+        if convert_as_inline:
+            return alt
+
+        return '![%s](%s%s)' % (alt, src, title_part)
 
     def convert_list(self, el, text, convert_as_inline):
 
@@ -267,25 +308,25 @@ class MarkdownConverter(object):
             return text
         return '%s\n\n' % text if text else ''
 
-    def convert_strong(self, el, text, convert_as_inline):
-        strong_tag = 2 * self.options['strong_em_symbol']
-        prefix, suffix, text = chomp(text)
+    def convert_pre(self, el, text, convert_as_inline):
         if not text:
             return ''
-        return '%s%s%s%s%s' % (prefix, strong_tag, text, strong_tag, suffix)
+        return '\n```\n%s\n```\n' % text
 
-    def convert_img(self, el, text, convert_as_inline):
-        alt = el.attrs.get('alt', None) or ''
-        src = el.attrs.get('src', None) or ''
-        title = el.attrs.get('title', None) or ''
-        title_part = ' "%s"' % title.replace('"', r'\"') if title else ''
-        if convert_as_inline:
-            return alt
+    convert_s = convert_del
 
-        return '![%s](%s%s)' % (alt, src, title_part)
+    convert_strong = convert_b
+
+    convert_samp = convert_code
 
     def convert_table(self, el, text, convert_as_inline):
         return '\n\n' + text + '\n'
+
+    def convert_td(self, el, text, convert_as_inline):
+        return ' ' + text + ' |'
+
+    def convert_th(self, el, text, convert_as_inline):
+        return ' ' + text + ' |'
 
     def convert_tr(self, el, text, convert_as_inline):
         cells = el.find_all(['td', 'th'])
@@ -301,15 +342,6 @@ class MarkdownConverter(object):
             overline += '| ' + ' | '.join([''] * len(cells)) + ' |' + '\n'
             overline += '| ' + ' | '.join(['---'] * len(cells)) + ' |' + '\n'
         return overline + '|' + text + '\n' + underline
-
-    def convert_th(self, el, text, convert_as_inline):
-        return ' ' + text + ' |'
-
-    def convert_td(self, el, text, convert_as_inline):
-        return ' ' + text + ' |'
-
-    def convert_hr(self, el, text, convert_as_inline):
-        return '\n\n---\n\n'
 
 
 def markdownify(html, **options):
