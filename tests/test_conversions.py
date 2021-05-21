@@ -261,6 +261,11 @@ def test_kbd():
     inline_tests('kbd', '`')
 
 
+def test_pre():
+    assert md('<pre>test\n    foo\nbar</pre>') == '\n```\ntest\n    foo\nbar\n```\n'
+    assert md('<pre><code>test\n    foo\nbar</code></pre>') == '\n```\ntest\n    foo\nbar\n```\n'
+
+
 def test_del():
     inline_tests('del', '~~')
 

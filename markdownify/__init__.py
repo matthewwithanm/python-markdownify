@@ -60,7 +60,6 @@ def abstract_inline_conversion(markup_fn):
     return implementation
 
 
-
 def _todict(obj):
     return dict((k, getattr(obj, k)) for k in dir(obj) if not k.startswith('_'))
 
@@ -141,12 +140,21 @@ class MarkdownConverter(object):
 
     def process_text(self, el):
         text = six.text_type(el)
+
+        # dont remove any whitespace when handling pre or code in pre
+        if (el.parent.name == 'pre'
+                or (el.parent.name == 'code' and el.parent.parent.name == 'pre')):
+            return escape(text or '')
+
+        cleaned_text = escape(whitespace_re.sub(' ', text or ''))
+
         # remove trailing whitespaces if any of the following condition is true:
         # - current text node is the last node in li
         # - current text node is followed by an embedded list
         if el.parent.name == 'li' and (not el.next_sibling or el.next_sibling.name in ['ul', 'ol']):
-            return escape(all_whitespace_re.sub(' ', text or '')).rstrip()
-        return escape(whitespace_re.sub(' ', text or ''))
+            return cleaned_text.rstrip()
+
+        return cleaned_text
 
     def __getattr__(self, attr):
         # Handle headings
@@ -214,7 +222,11 @@ class MarkdownConverter(object):
         else:
             return '  \n'
 
-    convert_code = abstract_inline_conversion(lambda self: '`')
+    def convert_code(self, el, text, convert_as_inline):
+        if el.parent.name == 'pre':
+            return text
+        converter = abstract_inline_conversion(lambda self: '`')
+        return converter(self, el, text, convert_as_inline)
 
     convert_del = abstract_inline_conversion(lambda self: '~~')
 
@@ -295,6 +307,11 @@ class MarkdownConverter(object):
         if convert_as_inline:
             return text
         return '%s\n\n' % text if text else ''
+
+    def convert_pre(self, el, text, convert_as_inline):
+        if not text:
+            return ''
+        return '\n```\n%s\n```\n' % text
 
     convert_s = convert_del
 
