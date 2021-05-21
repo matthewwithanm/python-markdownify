@@ -44,6 +44,23 @@ def chomp(text):
     return (prefix, suffix, text)
 
 
+def abstract_inline_conversion(markup_fn):
+    """
+    This abstracts all simple inline tags like b, em, del, ...
+    Returns a function that wraps the chomped text in a pair of the string
+    that is returned by markup_fn. markup_fn is necessary to allow for
+    references to self.strong_em_symbol etc.
+    """
+    def implementation(self, el, text, convert_as_inline):
+        markup = markup_fn(self)
+        prefix, suffix, text = chomp(text)
+        if not text:
+            return ''
+        return '%s%s%s%s%s' % (prefix, markup, text, markup, suffix)
+    return implementation
+
+
+
 def _todict(obj):
     return dict((k, getattr(obj, k)) for k in dir(obj) if not k.startswith('_'))
 
@@ -179,8 +196,7 @@ class MarkdownConverter(object):
         title_part = ' "%s"' % title.replace('"', r'\"') if title else ''
         return '%s[%s](%s%s)%s' % (prefix, text, href, title_part, suffix) if href else text
 
-    def convert_b(self, el, text, convert_as_inline):
-        return self.convert_strong(el, text, convert_as_inline)
+    convert_b = abstract_inline_conversion(lambda self: 2 * self.options['strong_em_symbol'])
 
     def convert_blockquote(self, el, text, convert_as_inline):
 
@@ -198,24 +214,11 @@ class MarkdownConverter(object):
         else:
             return '  \n'
 
-    def convert_code(self, el, text, convert_as_inline):
-        prefix, suffix, text = chomp(text)
-        if not text:
-            return ''
-        return '%s`%s`%s' % (prefix, text, suffix)
+    convert_code = abstract_inline_conversion(lambda self: '`')
 
-    def convert_del(self, el, text, convert_as_inline):
-        prefix, suffix, text = chomp(text)
-        if not text:
-            return ''
-        return '%s~~%s~~%s' % (prefix, text, suffix)
+    convert_del = abstract_inline_conversion(lambda self: '~~')
 
-    def convert_em(self, el, text, convert_as_inline):
-        em_tag = self.options['strong_em_symbol']
-        prefix, suffix, text = chomp(text)
-        if not text:
-            return ''
-        return '%s%s%s%s%s' % (prefix, em_tag, text, em_tag, suffix)
+    convert_em = abstract_inline_conversion(lambda self: self.options['strong_em_symbol'])
 
     convert_kbd = convert_code
 
@@ -236,8 +239,7 @@ class MarkdownConverter(object):
     def convert_hr(self, el, text, convert_as_inline):
         return '\n\n---\n\n'
 
-    def convert_i(self, el, text, convert_as_inline):
-        return self.convert_em(el, text, convert_as_inline)
+    convert_i = convert_em
 
     def convert_img(self, el, text, convert_as_inline):
         alt = el.attrs.get('alt', None) or ''
@@ -296,12 +298,7 @@ class MarkdownConverter(object):
 
     convert_s = convert_del
 
-    def convert_strong(self, el, text, convert_as_inline):
-        strong_tag = 2 * self.options['strong_em_symbol']
-        prefix, suffix, text = chomp(text)
-        if not text:
-            return ''
-        return '%s%s%s%s%s' % (prefix, strong_tag, text, strong_tag, suffix)
+    convert_strong = convert_b
 
     convert_samp = convert_code
 
