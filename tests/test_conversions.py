@@ -173,7 +173,6 @@ def test_chomp():
 
 def test_a():
     assert md('<a href="https://google.com">Google</a>') == '[Google](https://google.com)'
-    assert md('<a href="https://google.com">https://google.com</a>', autolinks=False) == '[https://google.com](https://google.com)'
     assert md('<a href="https://google.com">https://google.com</a>') == '<https://google.com>'
     assert md('<a href="https://community.kde.org/Get_Involved">https://community.kde.org/Get_Involved</a>') == '<https://community.kde.org/Get_Involved>'
     assert md('<a href="https://community.kde.org/Get_Involved">https://community.kde.org/Get_Involved</a>', autolinks=False) == '[https://community.kde.org/Get\\_Involved](https://community.kde.org/Get_Involved)'
@@ -189,6 +188,7 @@ def test_a_spaces():
 def test_a_with_title():
     text = md('<a href="http://google.com" title="The &quot;Goog&quot;">Google</a>')
     assert text == r'[Google](http://google.com "The \"Goog\"")'
+    assert md('<a href="https://google.com">https://google.com</a>', default_title=True) == '[https://google.com](https://google.com "https://google.com")'
 
 
 def test_a_shortcut():
@@ -197,8 +197,7 @@ def test_a_shortcut():
 
 
 def test_a_no_autolinks():
-    text = md('<a href="http://google.com">http://google.com</a>', autolinks=False)
-    assert text == '[http://google.com](http://google.com)'
+    assert md('<a href="https://google.com">https://google.com</a>', autolinks=False) == '[https://google.com](https://google.com)'
 
 
 def test_b():

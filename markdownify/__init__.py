@@ -69,6 +69,7 @@ class MarkdownConverter(object):
         strip = None
         convert = None
         autolinks = True
+        default_title = False
         heading_style = UNDERLINED
         bullets = '*+-'  # An iterable of bullet types.
         strong_em_symbol = ASTERISK
@@ -198,9 +199,14 @@ class MarkdownConverter(object):
         href = el.get('href')
         title = el.get('title')
         # For the replacement see #29: text nodes underscores are escaped
-        if self.options['autolinks'] and text.replace(r'\_', '_') == href and not title:
+        if (self.options['autolinks']
+                and text.replace(r'\_', '_') == href
+                and not title
+                and not self.options['default_title']):
             # Shortcut syntax
             return '<%s>' % href
+        if self.options['default_title'] and not title:
+            title = href
         title_part = ' "%s"' % title.replace('"', r'\"') if title else ''
         return '%s[%s](%s%s)%s' % (prefix, text, href, title_part, suffix) if href else text
 

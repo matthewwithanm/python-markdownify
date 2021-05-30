@@ -62,7 +62,11 @@ convert
 
 autolinks
   A boolean indicating whether the "automatic link" style should be used when
-  a ``a`` tag's contents match its href. Defaults to ``True``
+  a ``a`` tag's contents match its href. Defaults to ``True``.
+
+default_title
+  A boolean to enable setting the title of a link to its href, if no title is
+  given. Defaults to ``False``.
 
 heading_style
   Defines how headings should be converted. Accepted values are ``ATX``,
