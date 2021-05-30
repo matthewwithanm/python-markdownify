@@ -21,3 +21,8 @@ def test_code_with_tricky_content():
     assert md('<code>/home/</code><b>username</b>') == "`/home/`**username**"
     assert md('First line <code>blah blah<br />blah blah</code> second line') \
         == "First line `blah blah  \nblah blah` second line"
+
+
+def test_special_tags():
+    assert md('<!DOCTYPE html>') == ''
+    assert md('<![CDATA[foobar]]>') == 'foobar'
