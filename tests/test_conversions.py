@@ -201,3 +201,13 @@ def test_strong_em_symbol():
     assert md('<b>Hello</b>', strong_em_symbol=UNDERSCORE) == '__Hello__'
     assert md('<em>Hello</em>', strong_em_symbol=UNDERSCORE) == '_Hello_'
     assert md('<i>Hello</i>', strong_em_symbol=UNDERSCORE) == '_Hello_'
+
+
+def test_sub():
+    assert md('<sub>foo</sub>') == 'foo'
+    assert md('<sub>foo</sub>', sub_symbol='~') == '~foo~'
+
+
+def test_sup():
+    assert md('<sup>foo</sup>') == 'foo'
+    assert md('<sup>foo</sup>', sup_symbol='^') == '^foo^'

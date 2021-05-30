@@ -84,6 +84,11 @@ strong_em_symbol
   *emphasized* texts. Either of these symbols can be chosen by the options
   ``ASTERISK`` (default) or ``UNDERSCORE`` respectively.
 
+sub_symbol, sup_symbol
+  Define the chars that surround ``<sub>`` and ``<sup>`` text. Defaults to an
+  empty string, because this is non-standard behavior. Could be something like
+  ``~`` and ``^`` to result in ``~sub~`` and ``^sup^``.
+
 newline_style
   Defines the style of marking linebreaks (``<br>``) in markdown. The default
   value ``SPACES`` of this option will adopt the usual two spaces and a newline,

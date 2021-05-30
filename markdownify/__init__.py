@@ -66,14 +66,16 @@ def _todict(obj):
 
 class MarkdownConverter(object):
     class DefaultOptions:
-        strip = None
-        convert = None
         autolinks = True
+        bullets = '*+-'  # An iterable of bullet types.
+        convert = None
         default_title = False
         heading_style = UNDERLINED
-        bullets = '*+-'  # An iterable of bullet types.
-        strong_em_symbol = ASTERISK
         newline_style = SPACES
+        strip = None
+        strong_em_symbol = ASTERISK
+        sub_symbol = ''
+        sup_symbol = ''
 
     class Options(DefaultOptions):
         pass
@@ -324,6 +326,10 @@ class MarkdownConverter(object):
     convert_strong = convert_b
 
     convert_samp = convert_code
+
+    convert_sub = abstract_inline_conversion(lambda self: self.options['sub_symbol'])
+
+    convert_sup = abstract_inline_conversion(lambda self: self.options['sup_symbol'])
 
     def convert_table(self, el, text, convert_as_inline):
         return '\n\n' + text + '\n'
