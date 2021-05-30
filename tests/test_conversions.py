@@ -1,174 +1,13 @@
 from markdownify import markdownify as md, ATX, ATX_CLOSED, BACKSLASH, UNDERSCORE
 
 
-nested_uls = """
-    <ul>
-        <li>1
-            <ul>
-                <li>a
-                    <ul>
-                        <li>I</li>
-                        <li>II</li>
-                        <li>III</li>
-                    </ul>
-                </li>
-                <li>b</li>
-                <li>c</li>
-            </ul>
-        </li>
-        <li>2</li>
-        <li>3</li>
-    </ul>"""
-
-nested_ols = """
-    <ol>
-        <li>1
-            <ol>
-                <li>a
-                    <ol>
-                        <li>I</li>
-                        <li>II</li>
-                        <li>III</li>
-                    </ol>
-                </li>
-                <li>b</li>
-                <li>c</li>
-            </ol>
-        </li>
-        <li>2</li>
-        <li>3</li>
-    </ul>"""
-
-
-table = """<table>
-    <tr>
-        <th>Firstname</th>
-        <th>Lastname</th>
-        <th>Age</th>
-    </tr>
-    <tr>
-        <td>Jill</td>
-        <td>Smith</td>
-        <td>50</td>
-    </tr>
-    <tr>
-        <td>Eve</td>
-        <td>Jackson</td>
-        <td>94</td>
-    </tr>
-</table>"""
-
-
-table_with_html_content = """<table>
-    <tr>
-        <th>Firstname</th>
-        <th>Lastname</th>
-        <th>Age</th>
-    </tr>
-    <tr>
-        <td><b>Jill</b></td>
-        <td><i>Smith</i></td>
-        <td><a href="#">50</a></td>
-    </tr>
-    <tr>
-        <td>Eve</td>
-        <td>Jackson</td>
-        <td>94</td>
-    </tr>
-</table>"""
-
-
-table_with_header_column = """<table>
-    <tr>
-        <th>Firstname</th>
-        <th>Lastname</th>
-        <th>Age</th>
-    </tr>
-    <tr>
-        <th>Jill</th>
-        <td>Smith</td>
-        <td>50</td>
-    </tr>
-    <tr>
-        <th>Eve</th>
-        <td>Jackson</td>
-        <td>94</td>
-    </tr>
-</table>"""
-
-
-table_head_body = """<table>
-    <thead>
-        <tr>
-            <th>Firstname</th>
-            <th>Lastname</th>
-            <th>Age</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td>Jill</td>
-            <td>Smith</td>
-            <td>50</td>
-        </tr>
-        <tr>
-            <td>Eve</td>
-            <td>Jackson</td>
-            <td>94</td>
-        </tr>
-    </tbody>
-</table>"""
-
-table_missing_text = """<table>
-    <thead>
-        <tr>
-            <th></th>
-            <th>Lastname</th>
-            <th>Age</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td>Jill</td>
-            <td></td>
-            <td>50</td>
-        </tr>
-        <tr>
-            <td>Eve</td>
-            <td>Jackson</td>
-            <td>94</td>
-        </tr>
-    </tbody>
-</table>"""
-
-table_missing_head = """<table>
-    <tr>
-        <td>Firstname</td>
-        <td>Lastname</td>
-        <td>Age</td>
-    </tr>
-    <tr>
-        <td>Jill</td>
-        <td>Smith</td>
-        <td>50</td>
-    </tr>
-    <tr>
-        <td>Eve</td>
-        <td>Jackson</td>
-        <td>94</td>
-    </tr>
-</table>"""
-
-
-def test_chomp():
-    assert md(' <b></b> ') == '  '
-    assert md(' <b> </b> ') == '  '
-    assert md(' <b>  </b> ') == '  '
-    assert md(' <b>   </b> ') == '  '
-    assert md(' <b>s </b> ') == ' **s**  '
-    assert md(' <b> s</b> ') == '  **s** '
-    assert md(' <b> s </b> ') == '  **s**  '
-    assert md(' <b>  s  </b> ') == '  **s**  '
+def inline_tests(tag, markup):
+    # test template for different inline tags
+    assert md(f'<{tag}>Hello</{tag}>') == f'{markup}Hello{markup}'
+    assert md(f'foo <{tag}>Hello</{tag}> bar') == f'foo {markup}Hello{markup} bar'
+    assert md(f'foo<{tag}> Hello</{tag}> bar') == f'foo {markup}Hello{markup} bar'
+    assert md(f'foo <{tag}>Hello </{tag}>bar') == f'foo {markup}Hello{markup} bar'
+    assert md(f'foo <{tag}></{tag}> bar') in ['foo  bar', 'foo bar']  # Either is OK
 
 
 def test_a():
@@ -219,58 +58,30 @@ def test_blockquote_with_paragraph():
     assert md('<blockquote>Hello</blockquote><p>handsome</p>') == '\n> Hello\n\nhandsome\n\n'
 
 
-def test_nested_blockquote():
+def test_blockquote_nested():
     text = md('<blockquote>And she was like <blockquote>Hello</blockquote></blockquote>')
     assert text == '\n> And she was like \n> > Hello\n> \n> \n\n'
 
 
 def test_br():
     assert md('a<br />b<br />c') == 'a  \nb  \nc'
-
-
-def test_em():
-    assert md('<em>Hello</em>') == '*Hello*'
-
-
-def test_em_spaces():
-    assert md('foo <em>Hello</em> bar') == 'foo *Hello* bar'
-    assert md('foo<em> Hello</em> bar') == 'foo *Hello* bar'
-    assert md('foo <em>Hello </em>bar') == 'foo *Hello* bar'
-    assert md('foo <em></em> bar') == 'foo  bar'
-
-
-def inline_tests(tag, markup):
-    # Basically re-use test_em() and test_em_spaces(),
-    assert md(f'<{tag}>Hello</{tag}>') == f'{markup}Hello{markup}'
-    assert md(f'foo <{tag}>Hello</{tag}> bar') == f'foo {markup}Hello{markup} bar'
-    assert md(f'foo<{tag}> Hello</{tag}> bar') == f'foo {markup}Hello{markup} bar'
-    assert md(f'foo <{tag}>Hello </{tag}>bar') == f'foo {markup}Hello{markup} bar'
-    assert md(f'foo <{tag}></{tag}> bar') in ['foo  bar', 'foo bar']  # Either is OK
+    assert md('a<br />b<br />c', newline_style=BACKSLASH) == 'a\\\nb\\\nc'
 
 
 def test_code():
     inline_tests('code', '`')
 
 
-def test_samp():
-    inline_tests('samp', '`')
-
-
-def test_kbd():
-    inline_tests('kbd', '`')
-
-
-def test_pre():
-    assert md('<pre>test\n    foo\nbar</pre>') == '\n```\ntest\n    foo\nbar\n```\n'
-    assert md('<pre><code>test\n    foo\nbar</code></pre>') == '\n```\ntest\n    foo\nbar\n```\n'
-
-
 def test_del():
     inline_tests('del', '~~')
 
 
-def test_s():
-    inline_tests('s', '~~')
+def test_div():
+    assert md('Hello</div> World') == 'Hello World'
+
+
+def test_em():
+    inline_tests('em', '*')
 
 
 def test_h1():
@@ -283,6 +94,8 @@ def test_h2():
 
 def test_hn():
     assert md('<h3>Hello</h3>') == '### Hello\n\n'
+    assert md('<h4>Hello</h4>') == '#### Hello\n\n'
+    assert md('<h5>Hello</h5>') == '##### Hello\n\n'
     assert md('<h6>Hello</h6>') == '###### Hello\n\n'
 
 
@@ -329,69 +142,28 @@ def test_hn_nested_img():
         assert md('<h3>A <img src="/path/to/img.jpg " ' + image_attributes + '/> B</h3>') == '### A ' + markdown + ' B\n\n'
 
 
-def test_hr():
-    assert md('Hello<hr>World') == 'Hello\n\n---\n\nWorld'
-    assert md('Hello<hr />World') == 'Hello\n\n---\n\nWorld'
-    assert md('<p>Hello</p>\n<hr>\n<p>World</p>') == 'Hello\n\n\n\n\n---\n\n\nWorld\n\n'
+def test_hn_atx_headings():
+    assert md('<h1>Hello</h1>', heading_style=ATX) == '# Hello\n\n'
+    assert md('<h2>Hello</h2>', heading_style=ATX) == '## Hello\n\n'
+
+
+def test_hn_atx_closed_headings():
+    assert md('<h1>Hello</h1>', heading_style=ATX_CLOSED) == '# Hello #\n\n'
+    assert md('<h2>Hello</h2>', heading_style=ATX_CLOSED) == '## Hello ##\n\n'
 
 
 def test_head():
     assert md('<head>head</head>') == 'head'
 
 
-def test_atx_headings():
-    assert md('<h1>Hello</h1>', heading_style=ATX) == '# Hello\n\n'
-    assert md('<h2>Hello</h2>', heading_style=ATX) == '## Hello\n\n'
-
-
-def test_atx_closed_headings():
-    assert md('<h1>Hello</h1>', heading_style=ATX_CLOSED) == '# Hello #\n\n'
-    assert md('<h2>Hello</h2>', heading_style=ATX_CLOSED) == '## Hello ##\n\n'
+def test_hr():
+    assert md('Hello<hr>World') == 'Hello\n\n---\n\nWorld'
+    assert md('Hello<hr />World') == 'Hello\n\n---\n\nWorld'
+    assert md('<p>Hello</p>\n<hr>\n<p>World</p>') == 'Hello\n\n\n\n\n---\n\n\nWorld\n\n'
 
 
 def test_i():
     assert md('<i>Hello</i>') == '*Hello*'
-
-
-def test_ol():
-    assert md('<ol><li>a</li><li>b</li></ol>') == '1. a\n2. b\n'
-    assert md('<ol start="3"><li>a</li><li>b</li></ol>') == '3. a\n4. b\n'
-
-
-def test_p():
-    assert md('<p>hello</p>') == 'hello\n\n'
-
-
-def test_strong():
-    assert md('<strong>Hello</strong>') == '**Hello**'
-
-
-def test_ul():
-    assert md('<ul><li>a</li><li>b</li></ul>') == '* a\n* b\n'
-
-
-def test_nested_ols():
-    assert md(nested_ols) == '\n1. 1\n\t1. a\n\t\t1. I\n\t\t2. II\n\t\t3. III\n\t2. b\n\t3. c\n2. 2\n3. 3\n'
-
-
-def test_inline_ul():
-    assert md('<p>foo</p><ul><li>a</li><li>b</li></ul><p>bar</p>') == 'foo\n\n* a\n* b\n\nbar\n\n'
-
-
-def test_nested_uls():
-    """
-    Nested ULs should alternate bullet characters.
-
-    """
-    assert md(nested_uls) == '\n* 1\n\t+ a\n\t\t- I\n\t\t- II\n\t\t- III\n\t+ b\n\t+ c\n* 2\n* 3\n'
-
-
-def test_bullets():
-    assert md(nested_uls, bullets='-') == '\n- 1\n\t- a\n\t\t- I\n\t\t- II\n\t\t- III\n\t- b\n\t- c\n- 2\n- 3\n'
-
-
-def test_li_text():
-    assert md('<ul><li>foo <a href="#">bar</a></li><li>foo bar  </li><li>foo <b>bar</b>   <i>space</i>.</ul>') == '* foo [bar](#)\n* foo bar\n* foo **bar** *space*.\n'
 
 
 def test_img():
@@ -399,17 +171,29 @@ def test_img():
     assert md('<img src="/path/to/img.jpg" alt="Alt text" />') == '![Alt text](/path/to/img.jpg)'
 
 
-def test_div():
-    assert md('Hello</div> World') == 'Hello World'
+def test_kbd():
+    inline_tests('kbd', '`')
 
 
-def test_table():
-    assert md(table) == '\n\n| Firstname | Lastname | Age |\n| --- | --- | --- |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |\n\n'
-    assert md(table_with_html_content) == '\n\n| Firstname | Lastname | Age |\n| --- | --- | --- |\n| **Jill** | *Smith* | [50](#) |\n| Eve | Jackson | 94 |\n\n'
-    assert md(table_with_header_column) == '\n\n| Firstname | Lastname | Age |\n| --- | --- | --- |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |\n\n'
-    assert md(table_head_body) == '\n\n| Firstname | Lastname | Age |\n| --- | --- | --- |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |\n\n'
-    assert md(table_missing_text) == '\n\n|  | Lastname | Age |\n| --- | --- | --- |\n| Jill |  | 50 |\n| Eve | Jackson | 94 |\n\n'
-    assert md(table_missing_head) == '\n\n|  |  |  |\n| --- | --- | --- |\n| Firstname | Lastname | Age |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |\n\n'
+def test_p():
+    assert md('<p>hello</p>') == 'hello\n\n'
+
+
+def test_pre():
+    assert md('<pre>test\n    foo\nbar</pre>') == '\n```\ntest\n    foo\nbar\n```\n'
+    assert md('<pre><code>test\n    foo\nbar</code></pre>') == '\n```\ntest\n    foo\nbar\n```\n'
+
+
+def test_s():
+    inline_tests('s', '~~')
+
+
+def test_samp():
+    inline_tests('samp', '`')
+
+
+def test_strong():
+    assert md('<strong>Hello</strong>') == '**Hello**'
 
 
 def test_strong_em_symbol():
@@ -417,7 +201,3 @@ def test_strong_em_symbol():
     assert md('<b>Hello</b>', strong_em_symbol=UNDERSCORE) == '__Hello__'
     assert md('<em>Hello</em>', strong_em_symbol=UNDERSCORE) == '_Hello_'
     assert md('<i>Hello</i>', strong_em_symbol=UNDERSCORE) == '_Hello_'
-
-
-def test_newline_style():
-    assert md('a<br />b<br />c', newline_style=BACKSLASH) == 'a\\\nb\\\nc'
