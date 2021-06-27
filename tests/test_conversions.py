@@ -131,8 +131,6 @@ def test_hn_nested_simple_tag():
 
 
 def test_hn_nested_img():
-    assert md('<img src="/path/to/img.jpg" alt="Alt text" title="Optional title" />') == '![Alt text](/path/to/img.jpg "Optional title")'
-    assert md('<img src="/path/to/img.jpg" alt="Alt text" />') == '![Alt text](/path/to/img.jpg)'
     image_attributes_to_markdown = [
         ("", ""),
         ("alt='Alt Text'", "Alt Text"),
