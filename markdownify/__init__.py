@@ -240,6 +240,12 @@ class MarkdownConverter(object):
 
     convert_em = abstract_inline_conversion(lambda self: self.options['strong_em_symbol'])
 
+    def convert_figcaption(self, el, text, convert_as_inline):
+        return "<figcaption>%s</figcaption>" % text
+
+    def convert_figure(self, el, text, convert_as_inline):
+        return "<figure>%s</figure>" % text
+
     convert_kbd = convert_code
 
     def convert_hn(self, n, el, text, convert_as_inline):

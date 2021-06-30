@@ -39,6 +39,10 @@ def test_a_no_autolinks():
     assert md('<a href="https://google.com">https://google.com</a>', autolinks=False) == '[https://google.com](https://google.com)'
 
 
+def test_a_containing_images():
+    assert md('<a href="#"><img src="/path/to/img.jpg"></a>') == '[![](/path/to/img.jpg)](#)'
+
+
 def test_b():
     assert md('<b>Hello</b>') == '**Hello**'
 
@@ -82,6 +86,10 @@ def test_div():
 
 def test_em():
     inline_tests('em', '*')
+
+
+def test_figure():
+    assert md('<figure><img src="#"><figcaption>A</figcaption></figure>') == '<figure>![](#)<figcaption>A</figcaption></figure>'
 
 
 def test_h1():
