@@ -142,22 +142,26 @@ class MarkdownConverter(object):
         return text
 
     def process_text(self, el):
-        text = six.text_type(el)
+        text = six.text_type(el) or ''
 
         # dont remove any whitespace when handling pre or code in pre
-        if (el.parent.name == 'pre'
-                or (el.parent.name == 'code' and el.parent.parent.name == 'pre')):
-            return escape(text or '')
+        if not (el.parent.name == 'pre'
+                or (el.parent.name == 'code'
+                    and el.parent.parent.name == 'pre')):
+            text = whitespace_re.sub(' ', text)
 
-        cleaned_text = escape(whitespace_re.sub(' ', text or ''))
+        if el.parent.name != 'code':
+            text = escape(text)
 
         # remove trailing whitespaces if any of the following condition is true:
         # - current text node is the last node in li
         # - current text node is followed by an embedded list
-        if el.parent.name == 'li' and (not el.next_sibling or el.next_sibling.name in ['ul', 'ol']):
-            return cleaned_text.rstrip()
+        if (el.parent.name == 'li'
+                and (not el.next_sibling
+                     or el.next_sibling.name in ['ul', 'ol'])):
+            text = text.rstrip()
 
-        return cleaned_text
+        return text
 
     def __getattr__(self, attr):
         # Handle headings

@@ -74,6 +74,7 @@ def test_br():
 
 def test_code():
     inline_tests('code', '`')
+    assert md('<code>this_should_not_escape</code>') == '`this_should_not_escape`'
 
 
 def test_del():
