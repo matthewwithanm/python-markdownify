@@ -10,7 +10,7 @@ read = lambda filepath: codecs.open(filepath, 'r', 'utf-8').read()
 pkgmeta = {
     '__title__': 'markdownify',
     '__author__': 'Matthew Tretter',
-    '__version__': '0.9.1',
+    '__version__': '0.9.2',
 }
 
 
