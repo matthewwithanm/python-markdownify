@@ -101,7 +101,7 @@ nested ``Options`` class in ``MarkdownConverter`` subclasses.
 
 
 Creating Custom Converters
-=========================
+==========================
 
 If you have a special usecase that calls for a special conversion, you can
 always inherit from ``MarkdownConverter`` and override the method you want to
