@@ -96,11 +96,14 @@ class MarkdownConverter(object):
 
     def process_tag(self, node, convert_as_inline, children_only=False):
         text = ''
-        # markdown headings can't include block elements (elements w/newlines)
+
+        # markdown headings or cells can't include
+        # block elements (elements w/newlines)
         isHeading = html_heading_re.match(node.name) is not None
+        isCell = node.name in ['td', 'th']
         convert_children_as_inline = convert_as_inline
 
-        if not children_only and isHeading:
+        if not children_only and (isHeading or isCell):
             convert_children_as_inline = True
 
         # Remove whitespace-only textnodes in purely nested nodes
@@ -200,8 +203,6 @@ class MarkdownConverter(object):
         prefix, suffix, text = chomp(text)
         if not text:
             return ''
-        if convert_as_inline:
-            return text
         href = el.get('href')
         title = el.get('title')
         # For the replacement see #29: text nodes underscores are escaped
