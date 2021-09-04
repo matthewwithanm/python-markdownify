@@ -51,6 +51,14 @@ def test_nested_ols():
 
 def test_ul():
     assert md('<ul><li>a</li><li>b</li></ul>') == '* a\n* b\n'
+    assert md("""<ul>
+     <li>
+             a
+     </li>
+     <li> b </li>
+     <li>   c
+     </li>
+ </ul>""") == '* a\n* b\n* c\n'
 
 
 def test_inline_ul():
