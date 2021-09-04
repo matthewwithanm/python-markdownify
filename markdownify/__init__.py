@@ -314,7 +314,7 @@ class MarkdownConverter(object):
                 el = el.parent
             bullets = self.options['bullets']
             bullet = bullets[depth % len(bullets)]
-        return '%s %s\n' % (bullet, text or '')
+        return '%s %s\n' % (bullet, (text or '').strip())
 
     def convert_p(self, el, text, convert_as_inline):
         if convert_as_inline:
