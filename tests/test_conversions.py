@@ -210,3 +210,7 @@ def test_sub():
 def test_sup():
     assert md('<sup>foo</sup>') == 'foo'
     assert md('<sup>foo</sup>', sup_symbol='^') == '^foo^'
+
+def test_lang():
+    assert md('<pre>test\n    foo\nbar</pre>',language='python') == '\n```python\ntest\n    foo\nbar\n```\n'
+    assert md('<pre><code>test\n    foo\nbar</code></pre>',language='javascript') == '\n```javascript\ntest\n    foo\nbar\n```\n'

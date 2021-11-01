@@ -76,6 +76,7 @@ class MarkdownConverter(object):
         strong_em_symbol = ASTERISK
         sub_symbol = ''
         sup_symbol = ''
+        language = None
 
     class Options(DefaultOptions):
         pass
@@ -324,7 +325,10 @@ class MarkdownConverter(object):
     def convert_pre(self, el, text, convert_as_inline):
         if not text:
             return ''
-        return '\n```\n%s\n```\n' % text
+        if not self.options['language']:
+            return '\n```\n%s\n```\n' % text
+        else:
+            return f'\n```{self.options["language"]}\n%s\n```\n' % text
 
     convert_s = convert_del
 

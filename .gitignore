@@ -8,3 +8,4 @@
 /MANIFEST
 /venv
 build/
+.vscode/settings.json
