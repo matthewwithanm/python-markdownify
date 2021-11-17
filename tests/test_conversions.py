@@ -213,5 +213,5 @@ def test_sup():
 
 
 def test_lang():
-    assert md('<pre>test\n    foo\nbar</pre>', language='python') == '\n```python\ntest\n    foo\nbar\n```\n'
-    assert md('<pre><code>test\n    foo\nbar</code></pre>', language='javascript') == '\n```javascript\ntest\n    foo\nbar\n```\n'
+    assert md('<pre>test\n    foo\nbar</pre>', code_language='python') == '\n```python\ntest\n    foo\nbar\n```\n'
+    assert md('<pre><code>test\n    foo\nbar</code></pre>', code_language='javascript') == '\n```javascript\ntest\n    foo\nbar\n```\n'
