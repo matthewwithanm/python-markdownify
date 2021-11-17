@@ -96,6 +96,12 @@ newline_style
   newline). While the latter convention is non-standard, it is commonly
   preferred and supported by a lot of interpreters.
 
+code_language
+  Defines the language that should be assumed for all ``<pre>`` sections.
+  Useful, if all code on a page is in the same programming language and
+  should be annotated with ``\`\`\`python`` or similar.
+  Defaults to ``''`` (empty string).
+
 Options may be specified as kwargs to the ``markdownify`` function, or as a
 nested ``Options`` class in ``MarkdownConverter`` subclasses.
 
