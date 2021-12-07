@@ -70,13 +70,13 @@ setup(
     zip_safe=False,
     include_package_data=True,
     setup_requires=[
-        'flake8>=3.8,<4',
+        'flake8>=3.8',
     ],
     tests_require=[
-        'pytest>=6.2,<7',
+        'pytest>=6.2',
     ],
     install_requires=[
-        'beautifulsoup4>=4.9,<5', 'six>=1.15,<2'
+        'beautifulsoup4>=4.9', 'six>=1.15'
     ],
     classifiers=[
         'Environment :: Web Environment',
