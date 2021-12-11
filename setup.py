@@ -70,7 +70,7 @@ setup(
     zip_safe=False,
     include_package_data=True,
     setup_requires=[
-        'flake8>=3.8,<4',
+        'flake8>=3.8,<5',
     ],
     tests_require=[
         'pytest>=6.2,<7',
