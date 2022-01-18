@@ -102,6 +102,10 @@ code_language
   should be annotated with `````python`` or similar.
   Defaults to ``''`` (empty string) and can be any string.
 
+escape_underscores
+  If set to ``False``, do not escape ``_`` to ``\_`` in text.
+  Defaults to ``True``.
+
 Options may be specified as kwargs to the ``markdownify`` function, or as a
 nested ``Options`` class in ``MarkdownConverter`` subclasses.
 
