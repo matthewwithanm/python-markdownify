@@ -25,10 +25,12 @@ ASTERISK = '*'
 UNDERSCORE = '_'
 
 
-def escape(text):
+def escape(text, escape_underscores):
     if not text:
         return ''
-    return text.replace('_', r'\_')
+    if escape_underscores:
+        return text.replace('_', r'\_')
+    return text
 
 
 def chomp(text):
@@ -68,15 +70,16 @@ class MarkdownConverter(object):
     class DefaultOptions:
         autolinks = True
         bullets = '*+-'  # An iterable of bullet types.
+        code_language = ''
         convert = None
         default_title = False
+        escape_underscores = True
         heading_style = UNDERLINED
         newline_style = SPACES
         strip = None
         strong_em_symbol = ASTERISK
         sub_symbol = ''
         sup_symbol = ''
-        code_language = ''
 
     class Options(DefaultOptions):
         pass
@@ -155,7 +158,7 @@ class MarkdownConverter(object):
             text = whitespace_re.sub(' ', text)
 
         if el.parent.name != 'code':
-            text = escape(text)
+            text = escape(text, self.options['escape_underscores'])
 
         # remove trailing whitespaces if any of the following condition is true:
         # - current text node is the last node in li
