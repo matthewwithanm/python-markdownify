@@ -110,6 +110,18 @@ Options may be specified as kwargs to the ``markdownify`` function, or as a
 nested ``Options`` class in ``MarkdownConverter`` subclasses.
 
 
+Converting BeautifulSoup objects
+================================
+
+.. code:: python
+
+    from markdownify import MarkdownConverter
+
+    # Create shorthand method for conversion
+    def md(soup, **options):
+        return ImageBlockConverter(**options).convert_soup(soup)
+
+
 Creating Custom Converters
 ==========================
 

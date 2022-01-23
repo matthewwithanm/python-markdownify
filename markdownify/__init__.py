@@ -96,6 +96,9 @@ class MarkdownConverter(object):
 
     def convert(self, html):
         soup = BeautifulSoup(html, 'html.parser')
+        return self.convert_soup(soup)
+
+    def convert_soup(self, soup):
         return self.process_tag(soup, convert_as_inline=False, children_only=True)
 
     def process_tag(self, node, convert_as_inline, children_only=False):

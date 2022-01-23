@@ -1,4 +1,5 @@
 from markdownify import MarkdownConverter
+from bs4 import BeautifulSoup
 
 
 class ImageBlockConverter(MarkdownConverter):
@@ -16,3 +17,9 @@ def test_img():
 
     assert md('<img src="/path/to/img.jpg" alt="Alt text" title="Optional title" />') == '![Alt text](/path/to/img.jpg "Optional title")\n\n'
     assert md('<img src="/path/to/img.jpg" alt="Alt text" />') == '![Alt text](/path/to/img.jpg)\n\n'
+
+
+def test_soup():
+    html = '<b>test</b>'
+    soup = BeautifulSoup(html, 'html.parser')
+    assert MarkdownConverter().convert_soup(soup) == '**test**'
