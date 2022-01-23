@@ -32,14 +32,14 @@ Convert some HTML to Markdown:
     from markdownify import markdownify as md
     md('<b>Yay</b> <a href="http://github.com">GitHub</a>')  # > '**Yay** [GitHub](http://github.com)'
 
-Specify tags to exclude (blacklist):
+Specify tags to exclude:
 
 .. code:: python
 
     from markdownify import markdownify as md
     md('<b>Yay</b> <a href="http://github.com">GitHub</a>', strip=['a'])  # > '**Yay** GitHub'
 
-\...or specify the tags you want to include (whitelist):
+\...or specify the tags you want to include:
 
 .. code:: python
 
@@ -53,11 +53,11 @@ Options
 Markdownify supports the following options:
 
 strip
-  A list of tags to strip (blacklist). This option can't be used with the
+  A list of tags to strip. This option can't be used with the
   ``convert`` option.
 
 convert
-  A list of tags to convert (whitelist). This option can't be used with the
+  A list of tags to convert. This option can't be used with the
   ``strip`` option.
 
 autolinks
