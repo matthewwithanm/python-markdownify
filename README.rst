@@ -119,7 +119,7 @@ Converting BeautifulSoup objects
 
     # Create shorthand method for conversion
     def md(soup, **options):
-        return ImageBlockConverter(**options).convert_soup(soup)
+        return MarkdownConverter(**options).convert_soup(soup)
 
 
 Creating Custom Converters
