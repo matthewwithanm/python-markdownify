@@ -25,11 +25,13 @@ ASTERISK = '*'
 UNDERSCORE = '_'
 
 
-def escape(text, escape_underscores):
+def escape(text, escape_underscores, escape_asterisks):
     if not text:
         return ''
     if escape_underscores:
-        return text.replace('_', r'\_')
+        text = text.replace('_', r'\_')
+    if escape_asterisks:
+        text = text.replace('*', r'\*')
     return text
 
 
@@ -74,6 +76,7 @@ class MarkdownConverter(object):
         convert = None
         default_title = False
         escape_underscores = True
+        escape_asterisks = True
         heading_style = UNDERLINED
         newline_style = SPACES
         strip = None
@@ -161,7 +164,10 @@ class MarkdownConverter(object):
             text = whitespace_re.sub(' ', text)
 
         if el.parent.name != 'code':
-            text = escape(text, self.options['escape_underscores'])
+            text = escape(
+                text,
+                self.options['escape_underscores'],
+                self.options['escape_asterisks'])
 
         # remove trailing whitespaces if any of the following condition is true:
         # - current text node is the last node in li
