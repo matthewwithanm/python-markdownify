@@ -63,6 +63,7 @@ class MarkdownConverter(object):
         autolinks = True
         bullets = '*+-'  # An iterable of bullet types.
         code_language = ''
+        code_language_callback = None
         convert = None
         default_title = False
         escape_asterisks = True
@@ -335,7 +336,12 @@ class MarkdownConverter(object):
     def convert_pre(self, el, text, convert_as_inline):
         if not text:
             return ''
-        return '\n```%s\n%s\n```\n' % (self.options['code_language'], text)
+        code_language = self.options['code_language']
+
+        if self.options['code_language_callback']:
+            code_language = self.options['code_language_callback'](el) or code_language
+
+        return '\n```%s\n%s\n```\n' % (code_language, text)
 
     convert_s = convert_del
 

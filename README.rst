@@ -102,6 +102,19 @@ code_language
   should be annotated with `````python`` or similar.
   Defaults to ``''`` (empty string) and can be any string.
 
+code_language_callback
+  When the HTML code contains ``pre`` tags that in some way provide the code
+  language, for example as class, this callback can be used to extract the
+  language from the tag and prefix it to the converted ``pre`` tag.
+  The callback gets one single argument, an BeautifylSoup object, and returns
+  a string containing the code language, or ``None``.
+  An example to use the class name as code language could be::
+
+    def callback(el):
+        return el['class'][0] if el.has_attr('class') else None
+
+  Defaults to ``None``.
+
 escape_asterisks
   If set to ``False``, do not escape ``*`` to ``\*`` in text.
   Defaults to ``True``.
