@@ -25,14 +25,6 @@ ASTERISK = '*'
 UNDERSCORE = '_'
 
 
-def escape(text, escape_underscores):
-    if not text:
-        return ''
-    if escape_underscores:
-        return text.replace('_', r'\_')
-    return text
-
-
 def chomp(text):
     """
     If the text in an inline tag like b, a, or em contains a leading or trailing
@@ -71,10 +63,13 @@ class MarkdownConverter(object):
         autolinks = True
         bullets = '*+-'  # An iterable of bullet types.
         code_language = ''
+        code_language_callback = None
         convert = None
         default_title = False
+        escape_asterisks = True
         escape_underscores = True
         heading_style = UNDERLINED
+        keep_inline_images_in = []
         newline_style = SPACES
         strip = None
         strong_em_symbol = ASTERISK
@@ -161,7 +156,7 @@ class MarkdownConverter(object):
             text = whitespace_re.sub(' ', text)
 
         if el.parent.name != 'code':
-            text = escape(text, self.options['escape_underscores'])
+            text = self.escape(text)
 
         # remove trailing whitespaces if any of the following condition is true:
         # - current text node is the last node in li
@@ -198,6 +193,15 @@ class MarkdownConverter(object):
             return tag in convert
         else:
             return True
+
+    def escape(self, text):
+        if not text:
+            return ''
+        if self.options['escape_asterisks']:
+            text = text.replace('*', r'\*')
+        if self.options['escape_underscores']:
+            text = text.replace('_', r'\_')
+        return text
 
     def indent(self, text, level):
         return line_beginning_re.sub('\t' * level, text) if text else ''
@@ -278,7 +282,8 @@ class MarkdownConverter(object):
         src = el.attrs.get('src', None) or ''
         title = el.attrs.get('title', None) or ''
         title_part = ' "%s"' % title.replace('"', r'\"') if title else ''
-        if convert_as_inline:
+        if (convert_as_inline
+                and el.parent.name not in self.options['keep_inline_images_in']):
             return alt
 
         return '![%s](%s%s)' % (alt, src, title_part)
@@ -331,7 +336,12 @@ class MarkdownConverter(object):
     def convert_pre(self, el, text, convert_as_inline):
         if not text:
             return ''
-        return '\n```%s\n%s\n```\n' % (self.options['code_language'], text)
+        code_language = self.options['code_language']
+
+        if self.options['code_language_callback']:
+            code_language = self.options['code_language_callback'](el) or code_language
+
+        return '\n```%s\n%s\n```\n' % (code_language, text)
 
     convert_s = convert_del
 

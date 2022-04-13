@@ -102,9 +102,33 @@ code_language
   should be annotated with `````python`` or similar.
   Defaults to ``''`` (empty string) and can be any string.
 
+code_language_callback
+  When the HTML code contains ``pre`` tags that in some way provide the code
+  language, for example as class, this callback can be used to extract the
+  language from the tag and prefix it to the converted ``pre`` tag.
+  The callback gets one single argument, an BeautifylSoup object, and returns
+  a string containing the code language, or ``None``.
+  An example to use the class name as code language could be::
+
+    def callback(el):
+        return el['class'][0] if el.has_attr('class') else None
+
+  Defaults to ``None``.
+
+escape_asterisks
+  If set to ``False``, do not escape ``*`` to ``\*`` in text.
+  Defaults to ``True``.
+
 escape_underscores
   If set to ``False``, do not escape ``_`` to ``\_`` in text.
   Defaults to ``True``.
+
+keep_inline_images_in
+  Images are converted to their alt-text when the images are located inside
+  headlines or table cells. If some inline images should be converted to
+  markdown images instead, this option can be set to a list of parent tags
+  that should be allowed to contain inline images, for example ``['td']``.
+  Defaults to an empty list.
 
 Options may be specified as kwargs to the ``markdownify`` function, or as a
 nested ``Options`` class in ``MarkdownConverter`` subclasses.
