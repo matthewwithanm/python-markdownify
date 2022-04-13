@@ -106,6 +106,13 @@ escape_underscores
   If set to ``False``, do not escape ``_`` to ``\_`` in text.
   Defaults to ``True``.
 
+keep_inline_images_in
+  Images are converted to their alt-text when the images are located inside
+  headlines or table cells. If some inline images should be converted to
+  markdown images instead, this option can be set to a list of parent tags
+  that should be allowed to contain inline images, for example ``['td']``.
+  Defaults to an empty list.
+
 Options may be specified as kwargs to the ``markdownify`` function, or as a
 nested ``Options`` class in ``MarkdownConverter`` subclasses.
 

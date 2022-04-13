@@ -75,6 +75,7 @@ class MarkdownConverter(object):
         default_title = False
         escape_underscores = True
         heading_style = UNDERLINED
+        keep_inline_images_in = []
         newline_style = SPACES
         strip = None
         strong_em_symbol = ASTERISK
@@ -278,7 +279,8 @@ class MarkdownConverter(object):
         src = el.attrs.get('src', None) or ''
         title = el.attrs.get('title', None) or ''
         title_part = ' "%s"' % title.replace('"', r'\"') if title else ''
-        if convert_as_inline:
+        if (convert_as_inline
+                and el.parent.name not in self.options['keep_inline_images_in']):
             return alt
 
         return '![%s](%s%s)' % (alt, src, title_part)
