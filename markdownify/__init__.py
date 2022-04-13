@@ -25,14 +25,6 @@ ASTERISK = '*'
 UNDERSCORE = '_'
 
 
-def escape(text, escape_underscores):
-    if not text:
-        return ''
-    if escape_underscores:
-        return text.replace('_', r'\_')
-    return text
-
-
 def chomp(text):
     """
     If the text in an inline tag like b, a, or em contains a leading or trailing
@@ -73,6 +65,7 @@ class MarkdownConverter(object):
         code_language = ''
         convert = None
         default_title = False
+        escape_asterisks = True
         escape_underscores = True
         heading_style = UNDERLINED
         keep_inline_images_in = []
@@ -162,7 +155,7 @@ class MarkdownConverter(object):
             text = whitespace_re.sub(' ', text)
 
         if el.parent.name != 'code':
-            text = escape(text, self.options['escape_underscores'])
+            text = self.escape(text)
 
         # remove trailing whitespaces if any of the following condition is true:
         # - current text node is the last node in li
@@ -199,6 +192,15 @@ class MarkdownConverter(object):
             return tag in convert
         else:
             return True
+
+    def escape(self, text):
+        if not text:
+            return ''
+        if self.options['escape_asterisks']:
+            text = text.replace('*', r'\*')
+        if self.options['escape_underscores']:
+            text = text.replace('_', r'\_')
+        return text
 
     def indent(self, text, level):
         return line_beginning_re.sub('\t' * level, text) if text else ''

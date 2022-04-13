@@ -102,6 +102,10 @@ code_language
   should be annotated with `````python`` or similar.
   Defaults to ``''`` (empty string) and can be any string.
 
+escape_asterisks
+  If set to ``False``, do not escape ``*`` to ``\*`` in text.
+  Defaults to ``True``.
+
 escape_underscores
   If set to ``False``, do not escape ``_`` to ``\_`` in text.
   Defaults to ``True``.
