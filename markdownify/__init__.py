@@ -370,8 +370,13 @@ class MarkdownConverter(object):
         if is_headrow and not el.previous_sibling:
             # first row and is headline: print headline underline
             underline += '| ' + ' | '.join(['---'] * len(cells)) + ' |' + '\n'
-        elif not el.previous_sibling and not el.parent.name != 'table':
-            # first row, not headline, and the parent is sth. like tbody:
+        elif (not el.previous_sibling
+              and (el.parent.name == 'table'
+                   or (el.parent.name == 'tbody'
+                       and not el.parent.previous_sibling))):
+            # first row, not headline, and:
+            # - the parent is table or
+            # - the parent is tbody at the beginning of a table.
             # print empty headline above this row
             overline += '| ' + ' | '.join([''] * len(cells)) + ' |' + '\n'
             overline += '| ' + ' | '.join(['---'] * len(cells)) + ' |' + '\n'
