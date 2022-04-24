@@ -92,7 +92,7 @@ sub_symbol, sup_symbol
 newline_style
   Defines the style of marking linebreaks (``<br>``) in markdown. The default
   value ``SPACES`` of this option will adopt the usual two spaces and a newline,
-  while ``BACKSLASH`` will convert a linebreak to ``\\n`` (a backslash an a
+  while ``BACKSLASH`` will convert a linebreak to ``\\n`` (a backslash and a
   newline). While the latter convention is non-standard, it is commonly
   preferred and supported by a lot of interpreters.
 
