@@ -130,6 +130,11 @@ keep_inline_images_in
   that should be allowed to contain inline images, for example ``['td']``.
   Defaults to an empty list.
 
+wrap, wrap_width
+  If ``wrap`` is set to ``True``, all text paragraphs are wrapped at
+  ``wrap_width`` characters. Defaults to ``False`` and ``80``.
+  Use with ``newline_style=BACKSLASH`` to keep line breaks in paragraphs.
+
 Options may be specified as kwargs to the ``markdownify`` function, or as a
 nested ``Options`` class in ``MarkdownConverter`` subclasses.
 
