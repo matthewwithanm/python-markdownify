@@ -92,7 +92,7 @@ sub_symbol, sup_symbol
 newline_style
   Defines the style of marking linebreaks (``<br>``) in markdown. The default
   value ``SPACES`` of this option will adopt the usual two spaces and a newline,
-  while ``BACKSLASH`` will convert a linebreak to ``\\n`` (a backslash an a
+  while ``BACKSLASH`` will convert a linebreak to ``\\n`` (a backslash and a
   newline). While the latter convention is non-standard, it is commonly
   preferred and supported by a lot of interpreters.
 
@@ -129,6 +129,11 @@ keep_inline_images_in
   markdown images instead, this option can be set to a list of parent tags
   that should be allowed to contain inline images, for example ``['td']``.
   Defaults to an empty list.
+
+wrap, wrap_width
+  If ``wrap`` is set to ``True``, all text paragraphs are wrapped at
+  ``wrap_width`` characters. Defaults to ``False`` and ``80``.
+  Use with ``newline_style=BACKSLASH`` to keep line breaks in paragraphs.
 
 Options may be specified as kwargs to the ``markdownify`` function, or as a
 nested ``Options`` class in ``MarkdownConverter`` subclasses.

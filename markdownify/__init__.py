@@ -1,4 +1,5 @@
 from bs4 import BeautifulSoup, NavigableString, Comment, Doctype
+from textwrap import fill
 import re
 import six
 
@@ -75,6 +76,8 @@ class MarkdownConverter(object):
         strong_em_symbol = ASTERISK
         sub_symbol = ''
         sup_symbol = ''
+        wrap = False
+        wrap_width = 80
 
     class Options(DefaultOptions):
         pass
@@ -331,6 +334,11 @@ class MarkdownConverter(object):
     def convert_p(self, el, text, convert_as_inline):
         if convert_as_inline:
             return text
+        if self.options['wrap']:
+            text = fill(text,
+                        width=self.options['wrap_width'],
+                        break_long_words=False,
+                        break_on_hyphens=False)
         return '%s\n\n' % text if text else ''
 
     def convert_pre(self, el, text, convert_as_inline):

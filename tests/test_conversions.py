@@ -177,6 +177,11 @@ def test_kbd():
 
 def test_p():
     assert md('<p>hello</p>') == 'hello\n\n'
+    assert md('<p>123456789 123456789</p>') == '123456789 123456789\n\n'
+    assert md('<p>123456789 123456789</p>', wrap=True, wrap_width=10) == '123456789\n123456789\n\n'
+    assert md('<p><a href="https://example.com">Some long link</a></p>', wrap=True, wrap_width=10) == '[Some long\nlink](https://example.com)\n\n'
+    assert md('<p>12345<br />67890</p>', wrap=True, wrap_width=10, newline_style=BACKSLASH) == '12345\\\n67890\n\n'
+    assert md('<p>12345678901<br />12345</p>', wrap=True, wrap_width=10, newline_style=BACKSLASH) == '12345678901\\\n12345\n\n'
 
 
 def test_pre():
