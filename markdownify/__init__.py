@@ -158,7 +158,7 @@ class MarkdownConverter(object):
                     and el.parent.parent.name == 'pre')):
             text = whitespace_re.sub(' ', text)
 
-        if el.parent.name != 'code':
+        if el.parent.name != 'code' and el.parent.name != 'pre':
             text = self.escape(text)
 
         # remove trailing whitespaces if any of the following condition is true:
