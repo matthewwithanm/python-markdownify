@@ -96,4 +96,9 @@ setup(
         'test': PyTest,
         'lint': LintCommand,
     },
+    entry_points={
+        'console_scripts': [
+            'markdownify = markdownify.main:main'
+        ]
+    }
 )
