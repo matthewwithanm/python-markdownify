@@ -175,7 +175,7 @@ change:
 
 
 Command Line Interface
-=====================
+======================
 
 Use ``markdownify example.html > example.md`` or pipe input from stdin
 (``cat example.html | markdownify > example.md``).
