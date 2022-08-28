@@ -9,3 +9,4 @@
 /venv
 build/
 .vscode/settings.json
+.tox/

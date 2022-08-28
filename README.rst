@@ -174,13 +174,16 @@ change:
         return ImageBlockConverter(**options).convert(html)
 
 
+Command Line Interface
+=====================
+
+Use ``markdownify example.html > example.md`` or pipe input from stdin
+(``cat example.html | markdownify > example.md``).
+Call ``markdownify -h`` to see all available options.
+They are the same as listed above and take the same arguments.
+
+
 Development
 ===========
 
-To run tests:
-
-``python setup.py test``
-
-To lint:
-
-``python setup.py lint``
+To run tests and the linter run ``pip install tox`` once, then ``tox``.
