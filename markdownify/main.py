@@ -28,12 +28,15 @@ def main(argv=sys.argv[1:]):
     parser.add_argument('--default-title', action='store_false',
                         help="A boolean to enable setting the title of a link to its "
                         "href, if no title is given.")
-    parser.add_argument('--heading-style',
+    parser.add_argument('--heading-style', default='UNDERLINED',
                         choices=('ATX', 'ATX_CLOSED', 'SETEXT', 'UNDERLINED'),
                         help="Defines how headings should be converted.")
     parser.add_argument('-b', '--bullets', default='*+-',
                         help="A string of bullet styles to use; the bullet will "
                         "alternate based on nesting level.")
+    parser.add_argument('--strong-em-symbol', default='ASTERISK',
+                        choices=('ASTERISK', 'UNDERSCORE'),
+                        help="Use * or _ to convert strong and italics text"),
     parser.add_argument('--sub-symbol', default='',
                         help="Define the chars that surround '<sub>'.")
     parser.add_argument('--sup-symbol', default='',
