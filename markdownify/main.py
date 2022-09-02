@@ -3,7 +3,8 @@
 import argparse
 import sys
 
-from markdownify import markdownify
+from markdownify import markdownify, ATX, ATX_CLOSED, UNDERLINED, \
+    SPACES, BACKSLASH, ASTERISK, UNDERSCORE
 
 
 def main(argv=sys.argv[1:]):
@@ -28,19 +29,23 @@ def main(argv=sys.argv[1:]):
     parser.add_argument('--default-title', action='store_false',
                         help="A boolean to enable setting the title of a link to its "
                         "href, if no title is given.")
-    parser.add_argument('--heading-style', default='UNDERLINED',
-                        choices=('ATX', 'ATX_CLOSED', 'SETEXT', 'UNDERLINED'),
+    parser.add_argument('--heading-style', default=UNDERLINED,
+                        choices=(ATX, ATX_CLOSED, UNDERLINED),
                         help="Defines how headings should be converted.")
     parser.add_argument('-b', '--bullets', default='*+-',
                         help="A string of bullet styles to use; the bullet will "
                         "alternate based on nesting level.")
-    parser.add_argument('--strong-em-symbol', default='ASTERISK',
-                        choices=('ASTERISK', 'UNDERSCORE'),
+    parser.add_argument('--strong-em-symbol', default=ASTERISK,
+                        choices=(ASTERISK, UNDERSCORE),
                         help="Use * or _ to convert strong and italics text"),
     parser.add_argument('--sub-symbol', default='',
                         help="Define the chars that surround '<sub>'.")
     parser.add_argument('--sup-symbol', default='',
                         help="Define the chars that surround '<sup>'.")
+    parser.add_argument('--newline-style', default=SPACES,
+                        choices=(SPACES, BACKSLASH),
+                        help="Defines the style of <br> conversions: two spaces "
+                        "or backslash at the and of the line thet should break.")
     parser.add_argument('--code-language', default='',
                         help="Defines the language that should be assumed for all "
                         "'<pre>' sections.")
