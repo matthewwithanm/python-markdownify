@@ -238,7 +238,7 @@ class MarkdownConverter(object):
         if convert_as_inline:
             return text
 
-        return '\n' + (line_beginning_re.sub('> ', text) + '\n\n') if text else ''
+        return '\n' + (line_beginning_re.sub('> ', text.strip()) + '\n\n') if text else ''
 
     def convert_br(self, el, text, convert_as_inline):
         if convert_as_inline:
