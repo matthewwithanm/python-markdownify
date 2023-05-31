@@ -89,6 +89,8 @@ def test_header_with_space():
     assert md('<h3>\n\nHello</h3>') == '### Hello\n\n'
     assert md('<h4>\n\nHello</h4>') == '#### Hello\n\n'
     assert md('<h5>\n\nHello</h5>') == '##### Hello\n\n'
+    assert md('<h5>\n\nHello\n\n</h5>') == '##### Hello\n\n'
+    assert md('<h5>\n\nHello   \n\n</h5>') == '##### Hello\n\n'
 
 
 def test_h1():
