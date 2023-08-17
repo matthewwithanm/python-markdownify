@@ -1,4 +1,4 @@
-from bs4 import BeautifulSoup, NavigableString, Comment, Doctype
+from bs4 import BeautifulSoup, NavigableString, Comment, Doctype, Stylesheet
 from textwrap import fill
 import re
 import six
@@ -135,7 +135,7 @@ class MarkdownConverter(object):
 
         # Convert the children first
         for el in node.children:
-            if isinstance(el, Comment) or isinstance(el, Doctype):
+            if isinstance(el, Comment) or isinstance(el, Doctype) or isinstance(el, Stylesheet):
                 continue
             elif isinstance(el, NavigableString):
                 text += self.process_text(el)
