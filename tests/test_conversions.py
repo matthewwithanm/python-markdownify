@@ -70,7 +70,12 @@ def test_br():
 
 def test_code():
     inline_tests('code', '`')
-    assert md('<code>this_should_not_escape</code>') == '`this_should_not_escape`'
+    assert md('<code>*this_should_not_escape*</code>') == '`*this_should_not_escape*`'
+    assert md('<kbd>*this_should_not_escape*</kbd>') == '`*this_should_not_escape*`'
+    assert md('<samp>*this_should_not_escape*</samp>') == '`*this_should_not_escape*`'
+    assert md('<code><span>*this_should_not_escape*</span></code>') == '`*this_should_not_escape*`'
+    assert md('<code>this  should\t\tnormalize</code>') == '`this should normalize`'
+    assert md('<code><span>this  should\t\tnormalize</span></code>') == '`this should normalize`'
 
 
 def test_del():
@@ -187,7 +192,10 @@ def test_p():
 def test_pre():
     assert md('<pre>test\n    foo\nbar</pre>') == '\n```\ntest\n    foo\nbar\n```\n'
     assert md('<pre><code>test\n    foo\nbar</code></pre>') == '\n```\ntest\n    foo\nbar\n```\n'
-    assert md('<pre>this_should_not_escape</pre>') == '\n```\nthis_should_not_escape\n```\n'
+    assert md('<pre>*this_should_not_escape*</pre>') == '\n```\n*this_should_not_escape*\n```\n'
+    assert md('<pre><span>*this_should_not_escape*</span></pre>') == '\n```\n*this_should_not_escape*\n```\n'
+    assert md('<pre>\t\tthis  should\t\tnot  normalize</pre>') == '\n```\n\t\tthis  should\t\tnot  normalize\n```\n'
+    assert md('<pre><span>\t\tthis  should\t\tnot  normalize</span></pre>') == '\n```\n\t\tthis  should\t\tnot  normalize\n```\n'
 
 
 def test_s():

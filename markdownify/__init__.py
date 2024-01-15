@@ -152,13 +152,12 @@ class MarkdownConverter(object):
     def process_text(self, el):
         text = six.text_type(el) or ''
 
-        # dont remove any whitespace when handling pre or code in pre
-        if not (el.parent.name == 'pre'
-                or (el.parent.name == 'code'
-                    and el.parent.parent.name == 'pre')):
+        # normalize whitespace if we're not inside a preformatted element
+        if not el.find_parent('pre'):
             text = whitespace_re.sub(' ', text)
 
-        if el.parent.name != 'code' and el.parent.name != 'pre':
+        # escape special characters if we're not inside a preformatted or code element
+        if not el.find_parent(['pre', 'code', 'kbd', 'samp']):
             text = self.escape(text)
 
         # remove trailing whitespaces if any of the following condition is true:
