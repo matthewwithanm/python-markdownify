@@ -338,7 +338,7 @@ class MarkdownConverter(object):
                         width=self.options['wrap_width'],
                         break_long_words=False,
                         break_on_hyphens=False)
-        return '%s\n\n' % text if text else ''
+        return '\n\n%s\n\n' % text if text else ''
 
     def convert_pre(self, el, text, convert_as_inline):
         if not text:
