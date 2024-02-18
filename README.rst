@@ -174,6 +174,21 @@ change:
         return ImageBlockConverter(**options).convert(html)
 
 
+    from markdownify import MarkdownConverter
+
+    class NoCssConverter(MarkdownConverter):
+        """
+        Create a custom MarkdownConverter that removes the CSS code by ignoring the `style` tag
+        """
+        def convert_style(self, el, text, convert_as_inline):
+            return ''
+
+    # Create shorthand method for conversion
+    def md(html, **options):
+        return NoCssConverter(**options).convert(html)
+
+
+
 Command Line Interface
 ======================
 
