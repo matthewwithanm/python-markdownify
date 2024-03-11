@@ -173,6 +173,7 @@ change:
     def md(html, **options):
         return ImageBlockConverter(**options).convert(html)
 
+.. code:: python
 
     from markdownify import MarkdownConverter
 
