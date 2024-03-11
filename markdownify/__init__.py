@@ -350,6 +350,12 @@ class MarkdownConverter(object):
 
         return '\n```%s\n%s\n```\n' % (code_language, text)
 
+    def convert_script(self, el, text, convert_as_inline):
+        return ''
+
+    def convert_style(self, el, text, convert_as_inline):
+        return ''
+
     convert_s = convert_del
 
     convert_strong = convert_b

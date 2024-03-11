@@ -198,6 +198,14 @@ def test_pre():
     assert md('<pre><span>\t\tthis  should\t\tnot  normalize</span></pre>') == '\n```\n\t\tthis  should\t\tnot  normalize\n```\n'
 
 
+def test_script():
+    assert md('foo <script>var foo=42;</script> bar') == 'foo  bar'
+
+
+def test_style():
+    assert md('foo <style>h1 { font-size: larger }</style> bar') == 'foo  bar'
+
+
 def test_s():
     inline_tests('s', '~~')
 
