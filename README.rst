@@ -156,7 +156,7 @@ Creating Custom Converters
 
 If you have a special usecase that calls for a special conversion, you can
 always inherit from ``MarkdownConverter`` and override the method you want to
-change:
+change or add a function with the following pattern: `def convert_<TAG NAME>(self, el, text, convert_as_inline):`. The class will automatically run the corresponding tag content/element through it at conversion time. 
 
 .. code:: python
 
@@ -172,21 +172,6 @@ change:
     # Create shorthand method for conversion
     def md(html, **options):
         return ImageBlockConverter(**options).convert(html)
-
-.. code:: python
-
-    from markdownify import MarkdownConverter
-
-    class NoCssConverter(MarkdownConverter):
-        """
-        Create a custom MarkdownConverter that removes the CSS code by ignoring the `style` tag
-        """
-        def convert_style(self, el, text, convert_as_inline):
-            return ''
-
-    # Create shorthand method for conversion
-    def md(html, **options):
-        return NoCssConverter(**options).convert(html)
 
 
 
