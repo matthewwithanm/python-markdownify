@@ -52,6 +52,12 @@ def test_b_spaces():
 
 def test_blockquote():
     assert md('<blockquote>Hello</blockquote>') == '\n> Hello\n\n'
+    assert md('<blockquote>\nHello\n</blockquote>') == '\n> Hello\n\n'
+
+
+def test_blockquote_with_nested_paragraph():
+    assert md('<blockquote><p>Hello</p></blockquote>') == '\n> Hello\n\n'
+    assert md('<blockquote><p>Hello</p><p>Hello again</p></blockquote>') == '\n> Hello\n> \n> Hello again\n\n'
 
 
 def test_blockquote_with_paragraph():
@@ -60,12 +66,17 @@ def test_blockquote_with_paragraph():
 
 def test_blockquote_nested():
     text = md('<blockquote>And she was like <blockquote>Hello</blockquote></blockquote>')
-    assert text == '\n> And she was like \n> > Hello\n> \n> \n\n'
+    assert text == '\n> And she was like \n> > Hello\n\n'
 
 
 def test_br():
     assert md('a<br />b<br />c') == 'a  \nb  \nc'
     assert md('a<br />b<br />c', newline_style=BACKSLASH) == 'a\\\nb\\\nc'
+
+
+def test_caption():
+    assert md('TEXT<figure><figcaption>Caption</figcaption><span>SPAN</span></figure>') == 'TEXT\n\nCaption\n\nSPAN'
+    assert md('<figure><span>SPAN</span><figcaption>Caption</figcaption></figure>TEXT') == 'SPAN\n\nCaption\n\nTEXT'
 
 
 def test_code():
@@ -88,6 +99,14 @@ def test_div():
 
 def test_em():
     inline_tests('em', '*')
+
+
+def test_header_with_space():
+    assert md('<h3>\n\nHello</h3>') == '### Hello\n\n'
+    assert md('<h4>\n\nHello</h4>') == '#### Hello\n\n'
+    assert md('<h5>\n\nHello</h5>') == '##### Hello\n\n'
+    assert md('<h5>\n\nHello\n\n</h5>') == '##### Hello\n\n'
+    assert md('<h5>\n\nHello   \n\n</h5>') == '##### Hello\n\n'
 
 
 def test_h1():
@@ -196,6 +215,14 @@ def test_pre():
     assert md('<pre><span>*this_should_not_escape*</span></pre>') == '\n```\n*this_should_not_escape*\n```\n'
     assert md('<pre>\t\tthis  should\t\tnot  normalize</pre>') == '\n```\n\t\tthis  should\t\tnot  normalize\n```\n'
     assert md('<pre><span>\t\tthis  should\t\tnot  normalize</span></pre>') == '\n```\n\t\tthis  should\t\tnot  normalize\n```\n'
+
+
+def test_script():
+    assert md('foo <script>var foo=42;</script> bar') == 'foo  bar'
+
+
+def test_style():
+    assert md('foo <style>h1 { font-size: larger }</style> bar') == 'foo  bar'
 
 
 def test_s():

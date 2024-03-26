@@ -156,7 +156,12 @@ Creating Custom Converters
 
 If you have a special usecase that calls for a special conversion, you can
 always inherit from ``MarkdownConverter`` and override the method you want to
-change:
+change.
+The function that handles a HTML tag named ``abc`` is called
+``convert_abc(self, el, text, convert_as_inline)`` and returns a string
+containing the converted HTML tag.
+The ``MarkdownConverter`` object will handle the conversion based on the
+function names:
 
 .. code:: python
 
@@ -172,6 +177,21 @@ change:
     # Create shorthand method for conversion
     def md(html, **options):
         return ImageBlockConverter(**options).convert(html)
+
+.. code:: python
+
+    from markdownify import MarkdownConverter
+
+    class IgnoreParagraphsConverter(MarkdownConverter):
+        """
+        Create a custom MarkdownConverter that ignores paragraphs
+        """
+        def convert_p(self, el, text, convert_as_inline):
+            return ''
+
+    # Create shorthand method for conversion
+    def md(html, **options):
+        return IgnoreParagraphsConverter(**options).convert(html)
 
 
 Command Line Interface
