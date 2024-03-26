@@ -377,7 +377,11 @@ class MarkdownConverter(object):
 
     def convert_tr(self, el, text, convert_as_inline):
         cells = el.find_all(['td', 'th'])
-        is_headrow = all([cell.name == 'th' for cell in cells])
+        is_headrow = (
+            all([cell.name == 'th' for cell in cells])
+            or (not el.previous_sibling and not el.parent.name == 'tbody')
+            or (not el.previous_sibling and el.parent.name == 'tbody' and len(el.parent.parent.find_all(['thead'])) < 1)
+        )
         overline = ''
         underline = ''
         if is_headrow and not el.previous_sibling:
