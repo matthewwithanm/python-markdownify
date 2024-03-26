@@ -376,10 +376,16 @@ class MarkdownConverter(object):
         return '\n\n' + text + '\n\n'
 
     def convert_td(self, el, text, convert_as_inline):
-        return ' ' + text.strip().replace("\n", " ") + ' |'
+        colspan = 1
+        if 'colspan' in el.attrs:
+            colspan = int(el['colspan'])
+        return ' ' + text.strip().replace("\n", " ") + ' |' * colspan
 
     def convert_th(self, el, text, convert_as_inline):
-        return ' ' + text + ' |'
+        colspan = 1
+        if 'colspan' in el.attrs:
+            colspan = int(el['colspan'])
+        return ' ' + text.strip().replace("\n", " ") + ' |' * colspan
 
     def convert_tr(self, el, text, convert_as_inline):
         cells = el.find_all(['td', 'th'])
@@ -392,7 +398,13 @@ class MarkdownConverter(object):
         underline = ''
         if is_headrow and not el.previous_sibling:
             # first row and is headline: print headline underline
-            underline += '| ' + ' | '.join(['---'] * len(cells)) + ' |' + '\n'
+            full_colspan = 0
+            for cell in cells:
+                if "colspan" in cell.attrs:
+                    full_colspan += int(cell["colspan"])
+                else:
+                    full_colspan += 1
+            underline += '| ' + ' | '.join(['---'] * full_colspan) + ' |' + '\n'
         elif (not el.previous_sibling
               and (el.parent.name == 'table'
                    or (el.parent.name == 'tbody'
