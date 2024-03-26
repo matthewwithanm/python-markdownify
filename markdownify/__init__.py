@@ -370,7 +370,7 @@ class MarkdownConverter(object):
         return '\n\n' + text + '\n'
 
     def convert_td(self, el, text, convert_as_inline):
-        return ' ' + text.strip() + ' |'
+        return ' ' + text.strip().replace("\n", " ") + ' |'
 
     def convert_th(self, el, text, convert_as_inline):
         return ' ' + text + ' |'
