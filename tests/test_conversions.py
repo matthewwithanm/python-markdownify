@@ -52,6 +52,12 @@ def test_b_spaces():
 
 def test_blockquote():
     assert md('<blockquote>Hello</blockquote>') == '\n> Hello\n\n'
+    assert md('<blockquote>\nHello\n</blockquote>') == '\n> Hello\n\n'
+
+
+def test_blockquote_with_nested_paragraph():
+    assert md('<blockquote><p>Hello</p></blockquote>') == '\n> Hello\n\n'
+    assert md('<blockquote><p>Hello</p><p>Hello again</p></blockquote>') == '\n> Hello\n> \n> Hello again\n\n'
 
 
 def test_blockquote_with_paragraph():
@@ -60,7 +66,7 @@ def test_blockquote_with_paragraph():
 
 def test_blockquote_nested():
     text = md('<blockquote>And she was like <blockquote>Hello</blockquote></blockquote>')
-    assert text == '\n> And she was like \n> > Hello\n> \n> \n\n'
+    assert text == '\n> And she was like \n> > Hello\n\n'
 
 
 def test_br():
@@ -93,6 +99,14 @@ def test_div():
 
 def test_em():
     inline_tests('em', '*')
+
+
+def test_header_with_space():
+    assert md('<h3>\n\nHello</h3>') == '### Hello\n\n'
+    assert md('<h4>\n\nHello</h4>') == '#### Hello\n\n'
+    assert md('<h5>\n\nHello</h5>') == '##### Hello\n\n'
+    assert md('<h5>\n\nHello\n\n</h5>') == '##### Hello\n\n'
+    assert md('<h5>\n\nHello   \n\n</h5>') == '##### Hello\n\n'
 
 
 def test_h1():

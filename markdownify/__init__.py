@@ -237,7 +237,7 @@ class MarkdownConverter(object):
         if convert_as_inline:
             return text
 
-        return '\n' + (line_beginning_re.sub('> ', text) + '\n\n') if text else ''
+        return '\n' + (line_beginning_re.sub('> ', text.strip()) + '\n\n') if text else ''
 
     def convert_br(self, el, text, convert_as_inline):
         if convert_as_inline:
@@ -265,7 +265,7 @@ class MarkdownConverter(object):
             return text
 
         style = self.options['heading_style'].lower()
-        text = text.rstrip()
+        text = text.strip()
         if style == UNDERLINED and n <= 2:
             line = '=' if n == 1 else '-'
             return self.underline(text, line)
@@ -376,14 +376,18 @@ class MarkdownConverter(object):
         return '\n\n' + text + '\n\n'
 
     def convert_td(self, el, text, convert_as_inline):
-        return ' ' + text + ' |'
+        return ' ' + text.strip().replace("\n", " ") + ' |'
 
     def convert_th(self, el, text, convert_as_inline):
         return ' ' + text + ' |'
 
     def convert_tr(self, el, text, convert_as_inline):
         cells = el.find_all(['td', 'th'])
-        is_headrow = all([cell.name == 'th' for cell in cells])
+        is_headrow = (
+            all([cell.name == 'th' for cell in cells])
+            or (not el.previous_sibling and not el.parent.name == 'tbody')
+            or (not el.previous_sibling and el.parent.name == 'tbody' and len(el.parent.parent.find_all(['thead'])) < 1)
+        )
         overline = ''
         underline = ''
         if is_headrow and not el.previous_sibling:
