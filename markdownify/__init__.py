@@ -265,7 +265,7 @@ class MarkdownConverter(object):
             return text
 
         style = self.options['heading_style'].lower()
-        text = text.rstrip()
+        text = text.strip()
         if style == UNDERLINED and n <= 2:
             line = '=' if n == 1 else '-'
             return self.underline(text, line)
