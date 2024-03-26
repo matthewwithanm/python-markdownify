@@ -221,4 +221,4 @@ def test_table():
     assert md(table_missing_text) == '\n\n|  | Lastname | Age |\n| --- | --- | --- |\n| Jill |  | 50 |\n| Eve | Jackson | 94 |\n\n'
     assert md(table_missing_head) == '\n\n| Firstname | Lastname | Age |\n| --- | --- | --- |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |\n\n'
     assert md(table_body) == '\n\n| Firstname | Lastname | Age |\n| --- | --- | --- |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |\n\n'
-    assert md(table_with_caption) == 'TEXT\n\nCaption\n| Firstname | Lastname | Age |\n\n'
+    assert md(table_with_caption) == 'TEXT\n\nCaption\n| Firstname | Lastname | Age |\n| --- | --- | --- |\n\n'
