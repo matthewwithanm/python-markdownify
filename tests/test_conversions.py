@@ -74,6 +74,11 @@ def test_br():
     assert md('a<br />b<br />c', newline_style=BACKSLASH) == 'a\\\nb\\\nc'
 
 
+def test_caption():
+    assert md('TEXT<figure><figcaption>Caption</figcaption><span>SPAN</span></figure>') == 'TEXT\n\nCaption\n\nSPAN'
+    assert md('<figure><span>SPAN</span><figcaption>Caption</figcaption></figure>TEXT') == 'SPAN\n\nCaption\n\nTEXT'
+
+
 def test_code():
     inline_tests('code', '`')
     assert md('<code>*this_should_not_escape*</code>') == '`*this_should_not_escape*`'
