@@ -152,13 +152,12 @@ class MarkdownConverter(object):
     def process_text(self, el):
         text = six.text_type(el) or ''
 
-        # dont remove any whitespace when handling pre or code in pre
-        if not (el.parent.name == 'pre'
-                or (el.parent.name == 'code'
-                    and el.parent.parent.name == 'pre')):
+        # normalize whitespace if we're not inside a preformatted element
+        if not el.find_parent('pre'):
             text = whitespace_re.sub(' ', text)
 
-        if el.parent.name != 'code' and el.parent.name != 'pre':
+        # escape special characters if we're not inside a preformatted or code element
+        if not el.find_parent(['pre', 'code', 'kbd', 'samp']):
             text = self.escape(text)
 
         # remove trailing whitespaces if any of the following condition is true:
@@ -238,7 +237,7 @@ class MarkdownConverter(object):
         if convert_as_inline:
             return text
 
-        return '\n' + (line_beginning_re.sub('> ', text) + '\n\n') if text else ''
+        return '\n' + (line_beginning_re.sub('> ', text.strip()) + '\n\n') if text else ''
 
     def convert_br(self, el, text, convert_as_inline):
         if convert_as_inline:
@@ -266,7 +265,7 @@ class MarkdownConverter(object):
             return text
 
         style = self.options['heading_style'].lower()
-        text = text.rstrip()
+        text = text.strip()
         if style == UNDERLINED and n <= 2:
             line = '=' if n == 1 else '-'
             return self.underline(text, line)
@@ -351,6 +350,12 @@ class MarkdownConverter(object):
 
         return '\n```%s\n%s\n```\n' % (code_language, text)
 
+    def convert_script(self, el, text, convert_as_inline):
+        return ''
+
+    def convert_style(self, el, text, convert_as_inline):
+        return ''
+
     convert_s = convert_del
 
     convert_strong = convert_b
@@ -364,20 +369,42 @@ class MarkdownConverter(object):
     def convert_table(self, el, text, convert_as_inline):
         return '\n\n' + text + '\n'
 
+    def convert_caption(self, el, text, convert_as_inline):
+        return text + '\n'
+
+    def convert_figcaption(self, el, text, convert_as_inline):
+        return '\n\n' + text + '\n\n'
+
     def convert_td(self, el, text, convert_as_inline):
-        return ' ' + text + ' |'
+        colspan = 1
+        if 'colspan' in el.attrs:
+            colspan = int(el['colspan'])
+        return ' ' + text.strip().replace("\n", " ") + ' |' * colspan
 
     def convert_th(self, el, text, convert_as_inline):
-        return ' ' + text + ' |'
+        colspan = 1
+        if 'colspan' in el.attrs:
+            colspan = int(el['colspan'])
+        return ' ' + text.strip().replace("\n", " ") + ' |' * colspan
 
     def convert_tr(self, el, text, convert_as_inline):
         cells = el.find_all(['td', 'th'])
-        is_headrow = all([cell.name == 'th' for cell in cells])
+        is_headrow = (
+            all([cell.name == 'th' for cell in cells])
+            or (not el.previous_sibling and not el.parent.name == 'tbody')
+            or (not el.previous_sibling and el.parent.name == 'tbody' and len(el.parent.parent.find_all(['thead'])) < 1)
+        )
         overline = ''
         underline = ''
         if is_headrow and not el.previous_sibling:
             # first row and is headline: print headline underline
-            underline += '| ' + ' | '.join(['---'] * len(cells)) + ' |' + '\n'
+            full_colspan = 0
+            for cell in cells:
+                if "colspan" in cell.attrs:
+                    full_colspan += int(cell["colspan"])
+                else:
+                    full_colspan += 1
+            underline += '| ' + ' | '.join(['---'] * full_colspan) + ' |' + '\n'
         elif (not el.previous_sibling
               and (el.parent.name == 'table'
                    or (el.parent.name == 'tbody'
