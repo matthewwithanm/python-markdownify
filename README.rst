@@ -84,10 +84,14 @@ strong_em_symbol
   *emphasized* texts. Either of these symbols can be chosen by the options
   ``ASTERISK`` (default) or ``UNDERSCORE`` respectively.
 
-sub_symbol, sup_symbol
+sub_symbol, sup_symbol, sub_symbol_after, sup_symbol_after
   Define the chars that surround ``<sub>`` and ``<sup>`` text. Defaults to an
   empty string, because this is non-standard behavior. Could be something like
-  ``~`` and ``^`` to result in ``~sub~`` and ``^sup^``.
+  ``~`` and ``^`` to result in ``~sub~`` and ``^sup^``.  If ``sub_symbol_after``
+  and ``sup_symbol_after`` are undefined, the same string is used both before
+  and after the text.  If they are defined, different strings may be used; this
+  allow specifying ``<sub>`` and ``</sub>`` to use raw HTML in the output for
+  subscripts, for example.
 
 newline_style
   Defines the style of marking linebreaks (``<br>``) in markdown. The default

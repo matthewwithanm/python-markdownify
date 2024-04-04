@@ -39,21 +39,24 @@ def chomp(text):
     return (prefix, suffix, text)
 
 
-def abstract_inline_conversion(markup_fn):
+def abstract_inline_conversion(markup_fn, markup_fn_after=None):
     """
     This abstracts all simple inline tags like b, em, del, ...
     Returns a function that wraps the chomped text in a pair of the string
-    that is returned by markup_fn. markup_fn is necessary to allow for
-    references to self.strong_em_symbol etc.
+    that is returned by markup_fn, or the string from markup_fn before the
+    chomped text and the string from markup_fn_after after it if markup_fn_after
+    is defined. markup_fn is necessary to allow for references to
+    self.strong_em_symbol etc.
     """
     def implementation(self, el, text, convert_as_inline):
         markup = markup_fn(self)
+        markup_after = markup_fn_after(self) if markup_fn_after else markup
         if el.find_parent(['pre', 'code', 'kbd', 'samp']):
             return text
         prefix, suffix, text = chomp(text)
         if not text:
             return ''
-        return '%s%s%s%s%s' % (prefix, markup, text, markup, suffix)
+        return '%s%s%s%s%s' % (prefix, markup, text, markup_after, suffix)
     return implementation
 
 
@@ -79,6 +82,8 @@ class MarkdownConverter(object):
         strong_em_symbol = ASTERISK
         sub_symbol = ''
         sup_symbol = ''
+        sub_symbol_after = None
+        sup_symbol_after = None
         wrap = False
         wrap_width = 80
 
@@ -368,9 +373,13 @@ class MarkdownConverter(object):
 
     convert_samp = convert_code
 
-    convert_sub = abstract_inline_conversion(lambda self: self.options['sub_symbol'])
+    convert_sub = abstract_inline_conversion(
+        lambda self: self.options['sub_symbol'],
+        lambda self: self.options['sub_symbol_after'] if self.options['sub_symbol_after'] is not None else self.options['sub_symbol'])
 
-    convert_sup = abstract_inline_conversion(lambda self: self.options['sup_symbol'])
+    convert_sup = abstract_inline_conversion(
+        lambda self: self.options['sup_symbol'],
+        lambda self: self.options['sup_symbol_after'] if self.options['sup_symbol_after'] is not None else self.options['sup_symbol'])
 
     def convert_table(self, el, text, convert_as_inline):
         return '\n\n' + text + '\n'
