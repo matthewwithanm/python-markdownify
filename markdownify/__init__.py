@@ -71,6 +71,7 @@ class MarkdownConverter(object):
         default_title = False
         escape_asterisks = True
         escape_underscores = True
+        escape_misc = True
         heading_style = UNDERLINED
         keep_inline_images_in = []
         newline_style = SPACES
@@ -201,6 +202,9 @@ class MarkdownConverter(object):
     def escape(self, text):
         if not text:
             return ''
+        if self.options['escape_misc']:
+            text = re.sub(r'([\\&<`[>~#=+|-])', r'\\\1', text)
+            text = re.sub(r'([0-9])([.)])', r'\1\\\2', text)
         if self.options['escape_asterisks']:
             text = text.replace('*', r'\*')
         if self.options['escape_underscores']:

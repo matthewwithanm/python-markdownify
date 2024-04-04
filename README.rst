@@ -123,6 +123,11 @@ escape_underscores
   If set to ``False``, do not escape ``_`` to ``\_`` in text.
   Defaults to ``True``.
 
+escape_misc
+  If set to ``False``, do not escape miscellaneous punctuation characters
+  that sometimes have Markdown significance in text.
+  Defaults to ``True``.
+
 keep_inline_images_in
   Images are converted to their alt-text when the images are located inside
   headlines or table cells. If some inline images should be converted to
