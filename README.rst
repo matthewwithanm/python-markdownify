@@ -1,8 +1,8 @@
 |build| |version| |license| |downloads|
 
-.. |build| image:: https://img.shields.io/github/workflow/status/matthewwithanm/python-markdownify/Python%20application/develop
+.. |build| image:: https://img.shields.io/github/actions/workflow/status/matthewwithanm/python-markdownify/python-app.yml?branch=develop
     :alt: GitHub Workflow Status
-    :target: https://github.com/matthewwithanm/python-markdownify/actions?query=workflow%3A%22Python+application%22
+    :target: https://github.com/matthewwithanm/python-markdownify/actions/workflows/python-app.yml?query=workflow%3A%22Python+application%22
 
 .. |version| image:: https://img.shields.io/pypi/v/markdownify
     :alt: Pypi version
