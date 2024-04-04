@@ -87,6 +87,16 @@ def test_code():
     assert md('<code><span>*this_should_not_escape*</span></code>') == '`*this_should_not_escape*`'
     assert md('<code>this  should\t\tnormalize</code>') == '`this should normalize`'
     assert md('<code><span>this  should\t\tnormalize</span></code>') == '`this should normalize`'
+    assert md('<code>foo<b>bar</b>baz</code>') == '`foobarbaz`'
+    assert md('<kbd>foo<i>bar</i>baz</kbd>') == '`foobarbaz`'
+    assert md('<samp>foo<del> bar </del>baz</samp>') == '`foo bar baz`'
+    assert md('<samp>foo <del>bar</del> baz</samp>') == '`foo bar baz`'
+    assert md('<code>foo<em> bar </em>baz</code>') == '`foo bar baz`'
+    assert md('<code>foo<code> bar </code>baz</code>') == '`foo bar baz`'
+    assert md('<code>foo<strong> bar </strong>baz</code>') == '`foo bar baz`'
+    assert md('<code>foo<s> bar </s>baz</code>') == '`foo bar baz`'
+    assert md('<code>foo<sup>bar</sup>baz</code>', sup_symbol='^') == '`foobarbaz`'
+    assert md('<code>foo<sub>bar</sub>baz</code>', sub_symbol='^') == '`foobarbaz`'
 
 
 def test_del():
@@ -215,6 +225,17 @@ def test_pre():
     assert md('<pre><span>*this_should_not_escape*</span></pre>') == '\n```\n*this_should_not_escape*\n```\n'
     assert md('<pre>\t\tthis  should\t\tnot  normalize</pre>') == '\n```\n\t\tthis  should\t\tnot  normalize\n```\n'
     assert md('<pre><span>\t\tthis  should\t\tnot  normalize</span></pre>') == '\n```\n\t\tthis  should\t\tnot  normalize\n```\n'
+    assert md('<pre>foo<b>\nbar\n</b>baz</pre>') == '\n```\nfoo\nbar\nbaz\n```\n'
+    assert md('<pre>foo<i>\nbar\n</i>baz</pre>') == '\n```\nfoo\nbar\nbaz\n```\n'
+    assert md('<pre>foo\n<i>bar</i>\nbaz</pre>') == '\n```\nfoo\nbar\nbaz\n```\n'
+    assert md('<pre>foo<i>\n</i>baz</pre>') == '\n```\nfoo\nbaz\n```\n'
+    assert md('<pre>foo<del>\nbar\n</del>baz</pre>') == '\n```\nfoo\nbar\nbaz\n```\n'
+    assert md('<pre>foo<em>\nbar\n</em>baz</pre>') == '\n```\nfoo\nbar\nbaz\n```\n'
+    assert md('<pre>foo<code>\nbar\n</code>baz</pre>') == '\n```\nfoo\nbar\nbaz\n```\n'
+    assert md('<pre>foo<strong>\nbar\n</strong>baz</pre>') == '\n```\nfoo\nbar\nbaz\n```\n'
+    assert md('<pre>foo<s>\nbar\n</s>baz</pre>') == '\n```\nfoo\nbar\nbaz\n```\n'
+    assert md('<pre>foo<sup>\nbar\n</sup>baz</pre>', sup_symbol='^') == '\n```\nfoo\nbar\nbaz\n```\n'
+    assert md('<pre>foo<sub>\nbar\n</sub>baz</pre>', sub_symbol='^') == '\n```\nfoo\nbar\nbaz\n```\n'
 
 
 def test_script():

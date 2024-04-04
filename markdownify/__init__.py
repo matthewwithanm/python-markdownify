@@ -48,6 +48,8 @@ def abstract_inline_conversion(markup_fn):
     """
     def implementation(self, el, text, convert_as_inline):
         markup = markup_fn(self)
+        if el.find_parent(['pre', 'code', 'kbd', 'samp']):
+            return text
         prefix, suffix, text = chomp(text)
         if not text:
             return ''
