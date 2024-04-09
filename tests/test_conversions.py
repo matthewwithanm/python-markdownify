@@ -112,36 +112,38 @@ def test_em():
 
 
 def test_header_with_space():
-    assert md('<h3>\n\nHello</h3>') == '### Hello\n\n'
-    assert md('<h4>\n\nHello</h4>') == '#### Hello\n\n'
-    assert md('<h5>\n\nHello</h5>') == '##### Hello\n\n'
-    assert md('<h5>\n\nHello\n\n</h5>') == '##### Hello\n\n'
-    assert md('<h5>\n\nHello   \n\n</h5>') == '##### Hello\n\n'
+    assert md('<h3>\n\nHello</h3>') == '\n### Hello\n\n'
+    assert md('<h4>\n\nHello</h4>') == '\n#### Hello\n\n'
+    assert md('<h5>\n\nHello</h5>') == '\n##### Hello\n\n'
+    assert md('<h5>\n\nHello\n\n</h5>') == '\n##### Hello\n\n'
+    assert md('<h5>\n\nHello   \n\n</h5>') == '\n##### Hello\n\n'
 
 
 def test_h1():
-    assert md('<h1>Hello</h1>') == 'Hello\n=====\n\n'
+    assert md('<h1>Hello</h1>') == '\n\nHello\n=====\n\n'
 
 
 def test_h2():
-    assert md('<h2>Hello</h2>') == 'Hello\n-----\n\n'
+    assert md('<h2>Hello</h2>') == '\n\nHello\n-----\n\n'
 
 
 def test_hn():
-    assert md('<h3>Hello</h3>') == '### Hello\n\n'
-    assert md('<h4>Hello</h4>') == '#### Hello\n\n'
-    assert md('<h5>Hello</h5>') == '##### Hello\n\n'
-    assert md('<h6>Hello</h6>') == '###### Hello\n\n'
+    assert md('<h3>Hello</h3>') == '\n### Hello\n\n'
+    assert md('<h4>Hello</h4>') == '\n#### Hello\n\n'
+    assert md('<h5>Hello</h5>') == '\n##### Hello\n\n'
+    assert md('<h6>Hello</h6>') == '\n###### Hello\n\n'
 
 
 def test_hn_chained():
-    assert md('<h1>First</h1>\n<h2>Second</h2>\n<h3>Third</h3>', heading_style=ATX) == '# First\n\n\n## Second\n\n\n### Third\n\n'
-    assert md('X<h1>First</h1>', heading_style=ATX) == 'X# First\n\n'
+    assert md('<h1>First</h1>\n<h2>Second</h2>\n<h3>Third</h3>', heading_style=ATX) == '\n# First\n\n\n## Second\n\n\n### Third\n\n'
+    assert md('X<h1>First</h1>', heading_style=ATX) == 'X\n# First\n\n'
+    assert md('X<h1>First</h1>', heading_style=ATX_CLOSED) == 'X\n# First #\n\n'
+    assert md('X<h1>First</h1>') == 'X\n\nFirst\n=====\n\n'
 
 
 def test_hn_nested_tag_heading_style():
-    assert md('<h1>A <p>P</p> C </h1>', heading_style=ATX_CLOSED) == '# A P C #\n\n'
-    assert md('<h1>A <p>P</p> C </h1>', heading_style=ATX) == '# A P C\n\n'
+    assert md('<h1>A <p>P</p> C </h1>', heading_style=ATX_CLOSED) == '\n# A P C #\n\n'
+    assert md('<h1>A <p>P</p> C </h1>', heading_style=ATX) == '\n# A P C\n\n'
 
 
 def test_hn_nested_simple_tag():
@@ -157,12 +159,12 @@ def test_hn_nested_simple_tag():
     ]
 
     for tag, markdown in tag_to_markdown:
-        assert md('<h3>A <' + tag + '>' + tag + '</' + tag + '> B</h3>') == '### A ' + markdown + ' B\n\n'
+        assert md('<h3>A <' + tag + '>' + tag + '</' + tag + '> B</h3>') == '\n### A ' + markdown + ' B\n\n'
 
-    assert md('<h3>A <br>B</h3>', heading_style=ATX) == '### A B\n\n'
+    assert md('<h3>A <br>B</h3>', heading_style=ATX) == '\n### A B\n\n'
 
     # Nested lists not supported
-    # assert md('<h3>A <ul><li>li1</i><li>l2</li></ul></h3>', heading_style=ATX) == '### A li1 li2 B\n\n'
+    # assert md('<h3>A <ul><li>li1</i><li>l2</li></ul></h3>', heading_style=ATX) == '\n### A li1 li2 B\n\n'
 
 
 def test_hn_nested_img():
@@ -172,18 +174,18 @@ def test_hn_nested_img():
         ("alt='Alt Text' title='Optional title'", "Alt Text", " \"Optional title\""),
     ]
     for image_attributes, markdown, title in image_attributes_to_markdown:
-        assert md('<h3>A <img src="/path/to/img.jpg" ' + image_attributes + '/> B</h3>') == '### A ' + markdown + ' B\n\n'
-        assert md('<h3>A <img src="/path/to/img.jpg" ' + image_attributes + '/> B</h3>', keep_inline_images_in=['h3']) == '### A ![' + markdown + '](/path/to/img.jpg' + title + ') B\n\n'
+        assert md('<h3>A <img src="/path/to/img.jpg" ' + image_attributes + '/> B</h3>') == '\n### A ' + markdown + ' B\n\n'
+        assert md('<h3>A <img src="/path/to/img.jpg" ' + image_attributes + '/> B</h3>', keep_inline_images_in=['h3']) == '\n### A ![' + markdown + '](/path/to/img.jpg' + title + ') B\n\n'
 
 
 def test_hn_atx_headings():
-    assert md('<h1>Hello</h1>', heading_style=ATX) == '# Hello\n\n'
-    assert md('<h2>Hello</h2>', heading_style=ATX) == '## Hello\n\n'
+    assert md('<h1>Hello</h1>', heading_style=ATX) == '\n# Hello\n\n'
+    assert md('<h2>Hello</h2>', heading_style=ATX) == '\n## Hello\n\n'
 
 
 def test_hn_atx_closed_headings():
-    assert md('<h1>Hello</h1>', heading_style=ATX_CLOSED) == '# Hello #\n\n'
-    assert md('<h2>Hello</h2>', heading_style=ATX_CLOSED) == '## Hello ##\n\n'
+    assert md('<h1>Hello</h1>', heading_style=ATX_CLOSED) == '\n# Hello #\n\n'
+    assert md('<h2>Hello</h2>', heading_style=ATX_CLOSED) == '\n## Hello ##\n\n'
 
 
 def test_head():
@@ -193,7 +195,7 @@ def test_head():
 def test_hr():
     assert md('Hello<hr>World') == 'Hello\n\n---\n\nWorld'
     assert md('Hello<hr />World') == 'Hello\n\n---\n\nWorld'
-    assert md('<p>Hello</p>\n<hr>\n<p>World</p>') == 'Hello\n\n\n\n\n---\n\n\nWorld\n\n'
+    assert md('<p>Hello</p>\n<hr>\n<p>World</p>') == '\n\nHello\n\n\n---\n\n\nWorld\n\n'
 
 
 def test_i():
@@ -210,12 +212,13 @@ def test_kbd():
 
 
 def test_p():
-    assert md('<p>hello</p>') == 'hello\n\n'
-    assert md('<p>123456789 123456789</p>') == '123456789 123456789\n\n'
-    assert md('<p>123456789 123456789</p>', wrap=True, wrap_width=10) == '123456789\n123456789\n\n'
-    assert md('<p><a href="https://example.com">Some long link</a></p>', wrap=True, wrap_width=10) == '[Some long\nlink](https://example.com)\n\n'
-    assert md('<p>12345<br />67890</p>', wrap=True, wrap_width=10, newline_style=BACKSLASH) == '12345\\\n67890\n\n'
-    assert md('<p>12345678901<br />12345</p>', wrap=True, wrap_width=10, newline_style=BACKSLASH) == '12345678901\\\n12345\n\n'
+    assert md('<p>hello</p>') == '\n\nhello\n\n'
+    assert md('<p>123456789 123456789</p>') == '\n\n123456789 123456789\n\n'
+    assert md('<p>123456789 123456789</p>', wrap=True, wrap_width=10) == '\n\n123456789\n123456789\n\n'
+    assert md('<p><a href="https://example.com">Some long link</a></p>', wrap=True, wrap_width=10) == '\n\n[Some long\nlink](https://example.com)\n\n'
+    assert md('<p>12345<br />67890</p>', wrap=True, wrap_width=10, newline_style=BACKSLASH) == '\n\n12345\\\n67890\n\n'
+    assert md('<p>12345678901<br />12345</p>', wrap=True, wrap_width=10, newline_style=BACKSLASH) == '\n\n12345678901\\\n12345\n\n'
+    assert md('First<p>Second</p><p>Third</p>Fourth') == 'First\n\nSecond\n\nThird\n\nFourth'
 
 
 def test_pre():
