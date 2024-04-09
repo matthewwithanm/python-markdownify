@@ -143,7 +143,13 @@ class MarkdownConverter(object):
             elif isinstance(el, NavigableString):
                 text += self.process_text(el)
             else:
-                text += self.process_tag(el, convert_children_as_inline)
+                text_strip = text.rstrip('\n')
+                newlines_left = len(text) - len(text_strip)
+                next_text = self.process_tag(el, convert_children_as_inline)
+                next_text_strip = next_text.lstrip('\n')
+                newlines_right = len(next_text) - len(next_text_strip)
+                newlines = '\n' * max(newlines_left, newlines_right)
+                text = text_strip + newlines + next_text_strip
 
         if not children_only:
             convert_fn = getattr(self, 'convert_%s' % node.name, None)
@@ -216,7 +222,7 @@ class MarkdownConverter(object):
 
     def underline(self, text, pad_char):
         text = (text or '').rstrip()
-        return '%s\n%s\n\n' % (text, pad_char * len(text)) if text else ''
+        return '\n\n%s\n%s\n\n' % (text, pad_char * len(text)) if text else ''
 
     def convert_a(self, el, text, convert_as_inline):
         prefix, suffix, text = chomp(text)
@@ -277,8 +283,8 @@ class MarkdownConverter(object):
             return self.underline(text, line)
         hashes = '#' * n
         if style == ATX_CLOSED:
-            return '%s %s %s\n\n' % (hashes, text, hashes)
-        return '%s %s\n\n' % (hashes, text)
+            return '\n%s %s %s\n\n' % (hashes, text, hashes)
+        return '\n%s %s\n\n' % (hashes, text)
 
     def convert_hr(self, el, text, convert_as_inline):
         return '\n\n---\n\n'
@@ -313,7 +319,7 @@ class MarkdownConverter(object):
         if nested:
             # remove trailing newline if nested
             return '\n' + self.indent(text, 1).rstrip()
-        return text + ('\n' if before_paragraph else '')
+        return '\n\n' + text + ('\n' if before_paragraph else '')
 
     convert_ul = convert_list
     convert_ol = convert_list
@@ -344,7 +350,7 @@ class MarkdownConverter(object):
                         width=self.options['wrap_width'],
                         break_long_words=False,
                         break_on_hyphens=False)
-        return '%s\n\n' % text if text else ''
+        return '\n\n%s\n\n' % text if text else ''
 
     def convert_pre(self, el, text, convert_as_inline):
         if not text:
