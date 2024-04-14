@@ -202,13 +202,36 @@ class MarkdownConverter(object):
     def escape(self, text):
         if not text:
             return ''
+
         if self.options['escape_misc']:
-            text = re.sub(r'([\\&<`[>~#=+|-])', r'\\\1', text)
-            text = re.sub(r'([0-9])([.)])', r'\1\\\2', text)
+            # add escaping to all '<', '[', '\', '|' characters
+            text = re.sub(r'([<[\\|])', r'\\\1', text)
+
+            # add escaping to '#' characters with Markdown significance
+            text = re.sub(r'^(#+ )', r'\\\1', text, flags=re.MULTILINE)
+            # add escaping to '&' characters that could be misinterpreted as HTML entities
+            text = re.sub(r'(&)(?=#?\w+;)', r'\\\1', text)
+            # add escaping to '+' characters with Markdown significance
+            text = re.sub(r'^( *)(\+ )', r'\1\\\2', text, flags=re.MULTILINE)
+            # add escaping to '-' characters with Markdown significance
+            text = re.sub(r'(^ *|(?<!-)(?=-{2,3}(?!-)))(-)', r'\1\\\2', text, flags=re.MULTILINE)
+            # add escaping to '=' characters with Markdown significance
+            text = re.sub(r'(^=+$|(?<!=)={2,}(?!=))', r'\\\1', text, flags=re.MULTILINE)
+            # add escaping to '>' characters with Markdown significance
+            text = re.sub(r'^( *)(> )', r'\1\\\2', text, flags=re.MULTILINE)
+            # add escaping to '`' characters with Markdown significance
+            text = re.sub(r'(^`{3,}|`)', r'\\\1', text, flags=re.MULTILINE)
+            # add escaping to '~' characters with Markdown significance
+            text = re.sub(r'(^~{3,}|~)', r'\\\1', text, flags=re.MULTILINE)
+            # add escaping to avoid mis-inferred Markdown ordered list items
+            text = re.sub(r'^( *\d+)([.)] )', r'\1\\\2', text, flags=re.MULTILINE)
+
+        # these are separately controlled for legacy reasons
         if self.options['escape_asterisks']:
             text = text.replace('*', r'\*')
         if self.options['escape_underscores']:
             text = text.replace('_', r'\_')
+
         return text
 
     def indent(self, text, level):
