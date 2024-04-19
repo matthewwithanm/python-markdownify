@@ -84,7 +84,7 @@ strong_em_symbol
   *emphasized* texts. Either of these symbols can be chosen by the options
   ``ASTERISK`` (default) or ``UNDERSCORE`` respectively.
 
-sub_symbol, sup_symbol, sub_symbol_after, sup_symbol_after
+sub_symbol, sup_symbol
   Define the chars that surround ``<sub>`` and ``<sup>`` text. Defaults to an
   empty string, because this is non-standard behavior. Could be something like
   ``~`` and ``^`` to result in ``~sub~`` and ``^sup^``.  If the value starts
