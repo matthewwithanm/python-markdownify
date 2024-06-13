@@ -23,7 +23,7 @@ setup(
     author_email='m@tthewwithanm.com',
     url='http://github.com/matthewwithanm/python-markdownify',
     download_url='http://github.com/matthewwithanm/python-markdownify/tarball/master',
-    packages=find_packages(),
+    packages=find_packages(exclude=("tests",)),
     zip_safe=False,
     include_package_data=True,
     install_requires=[
