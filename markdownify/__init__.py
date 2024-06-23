@@ -383,13 +383,13 @@ class MarkdownConverter(object):
 
     def convert_td(self, el, text, convert_as_inline):
         colspan = 1
-        if 'colspan' in el.attrs:
+        if 'colspan' in el.attrs and el['colspan'].isdigit():
             colspan = int(el['colspan'])
         return ' ' + text.strip().replace("\n", " ") + ' |' * colspan
 
     def convert_th(self, el, text, convert_as_inline):
         colspan = 1
-        if 'colspan' in el.attrs:
+        if 'colspan' in el.attrs and el['colspan'].isdigit():
             colspan = int(el['colspan'])
         return ' ' + text.strip().replace("\n", " ") + ' |' * colspan
 
@@ -406,7 +406,7 @@ class MarkdownConverter(object):
             # first row and is headline: print headline underline
             full_colspan = 0
             for cell in cells:
-                if "colspan" in cell.attrs:
+                if 'colspan' in cell.attrs and cell['colspan'].isdigit():
                     full_colspan += int(cell["colspan"])
                 else:
                     full_colspan += 1
