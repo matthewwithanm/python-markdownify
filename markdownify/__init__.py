@@ -326,7 +326,7 @@ class MarkdownConverter(object):
     def convert_li(self, el, text, convert_as_inline):
         parent = el.parent
         if parent is not None and parent.name == 'ol':
-            if parent.get("start"):
+            if parent.get("start") and str(parent.get("start")).isnumeric():
                 start = int(parent.get("start"))
             else:
                 start = 1
