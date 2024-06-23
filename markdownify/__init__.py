@@ -43,17 +43,22 @@ def abstract_inline_conversion(markup_fn):
     """
     This abstracts all simple inline tags like b, em, del, ...
     Returns a function that wraps the chomped text in a pair of the string
-    that is returned by markup_fn. markup_fn is necessary to allow for
+    that is returned by markup_fn, with '/' inserted in the string used after
+    the text if it looks like an HTML tag. markup_fn is necessary to allow for
     references to self.strong_em_symbol etc.
     """
     def implementation(self, el, text, convert_as_inline):
         markup = markup_fn(self)
+        if markup.startswith('<') and markup.endswith('>'):
+            markup_after = '</' + markup[1:]
+        else:
+            markup_after = markup
         if el.find_parent(['pre', 'code', 'kbd', 'samp']):
             return text
         prefix, suffix, text = chomp(text)
         if not text:
             return ''
-        return '%s%s%s%s%s' % (prefix, markup, text, markup, suffix)
+        return '%s%s%s%s%s' % (prefix, markup, text, markup_after, suffix)
     return implementation
 
 

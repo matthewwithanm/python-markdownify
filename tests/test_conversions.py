@@ -268,11 +268,13 @@ def test_strong_em_symbol():
 def test_sub():
     assert md('<sub>foo</sub>') == 'foo'
     assert md('<sub>foo</sub>', sub_symbol='~') == '~foo~'
+    assert md('<sub>foo</sub>', sub_symbol='<sub>') == '<sub>foo</sub>'
 
 
 def test_sup():
     assert md('<sup>foo</sup>') == 'foo'
     assert md('<sup>foo</sup>', sup_symbol='^') == '^foo^'
+    assert md('<sup>foo</sup>', sup_symbol='<sup>') == '<sup>foo</sup>'
 
 
 def test_lang():
