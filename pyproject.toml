@@ -4,6 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "markdownify"
+version = "0.13.0"
 authors = [{name = "Matthew Tretter", email = "m@tthewwithanm.com"}]
 description = "Convert HTML to markdown."
 readme = "README.rst"
@@ -25,7 +26,6 @@ dependencies = [
     "beautifulsoup4>=4.9,<5",
     "six>=1.15,<2"
 ]
-dynamic = ["version"]
 
 [project.urls]
 Homepage = "http://github.com/matthewwithanm/python-markdownify"
