@@ -12,7 +12,7 @@ def test_underscore():
 
 
 def test_xml_entities():
-    assert md('&amp;') == '&'
+    assert md('&amp;') == r'\&'
 
 
 def test_named_entities():
@@ -25,4 +25,23 @@ def test_hexadecimal_entities():
 
 
 def test_single_escaping_entities():
-    assert md('&amp;amp;') == '&amp;'
+    assert md('&amp;amp;') == r'\&amp;'
+
+
+def text_misc():
+    assert md('\\*') == r'\\\*'
+    assert md('<foo>') == r'\<foo\>'
+    assert md('# foo') == r'\# foo'
+    assert md('> foo') == r'\> foo'
+    assert md('~~foo~~') == r'\~\~foo\~\~'
+    assert md('foo\n===\n') == 'foo\n\\=\\=\\=\n'
+    assert md('---\n') == '\\-\\-\\-\n'
+    assert md('+ x\n+ y\n') == '\\+ x\n\\+ y\n'
+    assert md('`x`') == r'\`x\`'
+    assert md('[text](link)') == r'\[text](link)'
+    assert md('1. x') == r'1\. x'
+    assert md('not a number. x') == r'not a number. x'
+    assert md('1) x') == r'1\) x'
+    assert md('not a number) x') == r'not a number) x'
+    assert md('|not table|') == r'\|not table\|'
+    assert md(r'\ <foo> &amp;amp; | ` `', escape_misc=False) == r'\ <foo> &amp; | ` `'

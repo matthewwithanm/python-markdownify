@@ -1,8 +1,8 @@
 |build| |version| |license| |downloads|
 
-.. |build| image:: https://img.shields.io/github/workflow/status/matthewwithanm/python-markdownify/Python%20application/develop
+.. |build| image:: https://img.shields.io/github/actions/workflow/status/matthewwithanm/python-markdownify/python-app.yml?branch=develop
     :alt: GitHub Workflow Status
-    :target: https://github.com/matthewwithanm/python-markdownify/actions?query=workflow%3A%22Python+application%22
+    :target: https://github.com/matthewwithanm/python-markdownify/actions/workflows/python-app.yml?query=workflow%3A%22Python+application%22
 
 .. |version| image:: https://img.shields.io/pypi/v/markdownify
     :alt: Pypi version
@@ -87,7 +87,11 @@ strong_em_symbol
 sub_symbol, sup_symbol
   Define the chars that surround ``<sub>`` and ``<sup>`` text. Defaults to an
   empty string, because this is non-standard behavior. Could be something like
-  ``~`` and ``^`` to result in ``~sub~`` and ``^sup^``.
+  ``~`` and ``^`` to result in ``~sub~`` and ``^sup^``.  If the value starts
+  with ``<`` and ends with ``>``, it is treated as an HTML tag and a ``/`` is
+  inserted after the ``<`` in the string used after the text; this allows
+  specifying ``<sub>`` to use raw HTML in the output for subscripts, for
+  example.
 
 newline_style
   Defines the style of marking linebreaks (``<br>``) in markdown. The default
@@ -121,6 +125,11 @@ escape_asterisks
 
 escape_underscores
   If set to ``False``, do not escape ``_`` to ``\_`` in text.
+  Defaults to ``True``.
+
+escape_misc
+  If set to ``False``, do not escape miscellaneous punctuation characters
+  that sometimes have Markdown significance in text.
   Defaults to ``True``.
 
 keep_inline_images_in
