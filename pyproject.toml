@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "markdownify"
-version = "0.13.0"
+version = "0.13.1"
 authors = [{name = "Matthew Tretter", email = "m@tthewwithanm.com"}]
 description = "Convert HTML to markdown."
 readme = "README.rst"
