@@ -12,7 +12,7 @@ def test_underscore():
 
 
 def test_xml_entities():
-    assert md('&amp;') == r'\&'
+    assert md('&amp;') == r'&'
 
 
 def test_named_entities():
@@ -28,20 +28,77 @@ def test_single_escaping_entities():
     assert md('&amp;amp;') == r'\&amp;'
 
 
-def text_misc():
-    assert md('\\*') == r'\\\*'
-    assert md('<foo>') == r'\<foo\>'
-    assert md('# foo') == r'\# foo'
-    assert md('> foo') == r'\> foo'
-    assert md('~~foo~~') == r'\~\~foo\~\~'
-    assert md('foo\n===\n') == 'foo\n\\=\\=\\=\n'
-    assert md('---\n') == '\\-\\-\\-\n'
-    assert md('+ x\n+ y\n') == '\\+ x\n\\+ y\n'
-    assert md('`x`') == r'\`x\`'
-    assert md('[text](link)') == r'\[text](link)'
-    assert md('1. x') == r'1\. x'
-    assert md('not a number. x') == r'not a number. x'
-    assert md('1) x') == r'1\) x'
-    assert md('not a number) x') == r'not a number) x'
-    assert md('|not table|') == r'\|not table\|'
-    assert md(r'\ <foo> &amp;amp; | ` `', escape_misc=False) == r'\ <foo> &amp; | ` `'
+def test_escape_misc_chars():
+    assert md('[yes](link)') == '\\[yes](link)'
+    assert md('&lt;yes&gt;') == '\\<yes>'
+    assert md('\\yes') == '\\\\yes'
+    assert md('*yes') == '\\*yes'
+
+    assert md('\\ &lt;foo> &amp;amp; | ` `', escape_misc=False) == '\\ <foo> &amp; | ` `'
+
+
+def test_escape_misc_hash():
+    assert md('# yes\n## yes') == '\\# yes\n\\## yes'
+    assert md(' # no\n ## no') == ' # no\n ## no'
+
+
+def test_escape_misc_ampersand():
+    assert md('&amp;yes;') == '\\&yes;'
+    assert md('& no') == '& no'
+
+
+def test_escape_misc_plus():
+    assert md('+ yes\n + yes\n') == '\\+ yes\n \\+ yes\n'
+    assert md('no+no\nno + no\n') == 'no+no\nno + no\n'
+
+
+def test_escape_misc_hyphen():
+    assert md('---\n') == '\\---\n'
+    assert md('- yes\n - yes') == '\\- yes\n \\- yes'
+    assert md('no-\n') == 'no-\n'
+    assert md('yes--\n') == 'yes\\--\n'
+    assert md('yes---\n') == 'yes\\---\n'
+    assert md('no----\n') == 'no----\n'
+
+
+def test_escape_misc_equals():
+    assert md('yes\n=\n') == 'yes\n\\=\n'
+    assert md('yes\n===\n') == 'yes\n\\===\n'
+    assert md('no\n =\n') == 'no\n =\n'
+    assert md('no=no') == 'no=no'
+    assert md('yes==yes') == 'yes\\==yes'
+    assert md('yes===yes') == 'yes\\===yes'
+
+
+def test_escape_misc_greaterthan():
+    assert md('> yes\n > yes') == '\\> yes\n \\> yes'
+    assert md('>no\n >no') == '>no\n >no'
+
+
+def test_escape_misc_backtick():
+    assert md('```\n```yes') == '\\```\n\\```yes'
+    assert md('``````\n``````yes') == '\\``````\n\\``````yes'
+    assert md('`yes`\n `yes`') == '\\`yes\\`\n \\`yes\\`'
+
+
+def test_escape_misc_pipe():
+    assert md('|') == '\\|'
+    assert md('|-|') == '\\|-\\|'
+    assert md('| ---- |') == '\\| ---- \\|'
+    assert md('|yes|') == '\\|yes\\|'
+    assert md('| yes |') == '\\| yes \\|'
+
+
+def test_escape_misc_tilde():
+    assert md(' ~yes~') == ' \\~yes\\~'
+    assert md(' ~~yes~~') == ' \\~\\~yes\\~\\~'
+    assert md('~~~\n~~~yes\n') == '\\~~~\n\\~~~yes\n'
+
+
+def test_escape_misc_listitems():
+    assert md('1. yes\n 1. yes') == '1\\. yes\n 1\\. yes'
+    assert md('1) yes\n 1) yes') == '1\\) yes\n 1\\) yes'
+    assert md('1.no\n 1.no') == '1.no\n 1.no'
+    assert md('1)no\n 1)no') == '1)no\n 1)no'
+    assert md('no1. x\n no1. y') == 'no1. x\n no1. y'
+    assert md('no1) x\n no1) y') == 'no1) x\n no1) y'
