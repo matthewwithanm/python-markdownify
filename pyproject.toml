@@ -42,4 +42,7 @@ include-package-data = true
 include = ["markdownify", "markdownify.*"]
 namespaces = false
 
+[tool.setuptools.package-data]
+"markdownify" = ["py.typed"]
+
 [tool.setuptools_scm]
