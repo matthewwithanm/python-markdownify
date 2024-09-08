@@ -22,10 +22,27 @@ classifiers = [
     "Topic :: Utilities",
     "Typing :: Typed",
 ]
+keywords = ["markdown", "html", "beautifulsoup", "converter", "text-processing"]
 
 dependencies = [
     "beautifulsoup4>=4.12.3",
 ]
+
+[project.scripts]
+html_to_markdown = "html_to_markdown.__main__:cli"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build]
+skip-excluded-dirs = true
+
+[tool.hatch.build.targets.sdist]
+only-include = ["html_to_markdown"]
+
+[tool.hatch.build.targets.wheel]
+only-include = ["html_to_markdown"]
 
 [tool.pdm]
 distribution = true

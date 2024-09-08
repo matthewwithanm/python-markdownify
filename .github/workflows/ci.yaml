@@ -31,9 +31,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-      with:
-        # we need the entire history here because we use commits from the past for testing.
-        fetch-depth: 0
     - uses: pdm-project/setup-pdm@v4
       with:
         python-version: '3.9'
