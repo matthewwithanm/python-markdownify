@@ -235,20 +235,6 @@ def _convert_pre(
     return f"\n```{code_language}\n{text}\n```\n"
 
 
-def _convert_sub(*, text: str, sub_symbol: str) -> str:
-    prefix, suffix, text = chomp(text)
-    if not text:
-        return ""
-    return f"{prefix}{sub_symbol}{text}{sub_symbol}{suffix}"
-
-
-def _convert_sup(*, text: str, sup_symbol: str) -> str:
-    prefix, suffix, text = chomp(text)
-    if not text:
-        return ""
-    return f"{prefix}{sup_symbol}{text}{sup_symbol}{suffix}"
-
-
 def _convert_td(*, tag: Tag, text: str) -> str:
     colspan = _get_colspan(tag)
     return " " + text.strip().replace("\n", " ") + " |" * colspan
@@ -382,8 +368,8 @@ def create_converters_map(
         "s": _wrapper(_create_inline_converter("~~")),
         "strong": _wrapper(_create_inline_converter(strong_em_symbol * 2)),
         "samp": _wrapper(_create_inline_converter("`")),
-        "sub": _wrapper(partial(_convert_sub, sub_symbol=sub_symbol)),
-        "sup": _wrapper(partial(_convert_sup, sup_symbol=sup_symbol)),
+        "sub": _wrapper(_create_inline_converter(sub_symbol)),
+        "sup": _wrapper(_create_inline_converter(sup_symbol)),
         "table": _wrapper(lambda text: f"\n\n{text}\n"),
         "caption": _wrapper(lambda text: f"{text}\n"),
         "figcaption": _wrapper(lambda text: f"\n\n{text}\n\n"),
