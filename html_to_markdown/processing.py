@@ -9,6 +9,8 @@ from html_to_markdown.converters import ConvertsMap, create_converters_map
 from html_to_markdown.utils import escape
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
+
     from bs4 import PageElement
 
 SupportedTag = Literal[
@@ -62,7 +64,7 @@ def _process_tag(
     bullets: str,
     code_language: str,
     code_language_callback: Callable[[Any], str] | None,
-    convert: list[str] | None,
+    convert: Iterable[str] | None,
     convert_as_inline: bool = False,
     converters_map: ConvertsMap | None = None,
     default_title: bool,
@@ -70,9 +72,9 @@ def _process_tag(
     escape_misc: bool,
     escape_underscores: bool,
     heading_style: str,
-    keep_inline_images_in: list[str] | None,
+    keep_inline_images_in: Iterable[str] | None,
     newline_style: str,
-    strip: list[str] | None,
+    strip: Iterable[str] | None,
     strong_em_symbol: str,
     sub_symbol: str,
     sup_symbol: str,
@@ -94,12 +96,11 @@ def _process_tag(
             sup_symbol=sup_symbol,
             wrap=wrap,
             wrap_width=wrap_width,
-            convert_as_inline=convert_as_inline,
         )
 
     text = ""
     is_heading = html_heading_re.match(tag.name) is not None
-    is_cell = tag.name in ["td", "th"]
+    is_cell = tag.name in {"td", "th"}
     convert_children_as_inline = convert_as_inline or is_heading or is_cell
 
     if _is_nested_tag(tag):
@@ -110,7 +111,7 @@ def _process_tag(
                 or _is_nested_tag(el.previous_sibling)
                 or _is_nested_tag(el.next_sibling)
             )
-            if isinstance(el, NavigableString) and el.strip() == "" and can_extract:
+            if can_extract and isinstance(el, NavigableString) and not el.strip():
                 el.extract()
 
     for el in filter(lambda value: not isinstance(value, (Comment, Doctype)), tag.children):
@@ -145,8 +146,8 @@ def _process_tag(
 
     tag_name: SupportedTag | None = tag.name.lower() if tag.name.lower() in converters_map else None
 
-    if tag_name and _should_convert_tag(tag=tag.name, strip=strip, convert=convert):
-        return converters_map[tag_name](tag=tag, text=text)
+    if tag_name and _should_convert_tag(tag_name=tag.name, strip=strip, convert=convert):
+        return converters_map[tag_name](tag=tag, text=text, convert_as_inline=convert_as_inline)
 
     return text
 
@@ -179,12 +180,11 @@ def _process_text(
     return text
 
 
-def _should_convert_tag(*, tag: str, strip: set | None, convert: set | None) -> bool:
-    tag = tag.lower()
-    if strip:
-        return tag not in strip
-    if convert:
-        return tag in convert
+def _should_convert_tag(*, tag_name: str, strip: Iterable[str] | None, convert: Iterable[str] | None) -> bool:
+    if strip is not None:
+        return tag_name not in strip
+    if convert is not None:
+        return tag_name in convert
     return True
 
 
@@ -196,15 +196,15 @@ def convert_to_markdown(
     bullets: str = "*+-",
     code_language: str = "",
     code_language_callback: Callable[[Any], str] | None = None,
-    convert: list[str] | None = None,
+    convert: Iterable[str] | None = None,
     default_title: bool = False,
     escape_asterisks: bool = True,
     escape_misc: bool = True,
     escape_underscores: bool = True,
     heading_style: Literal["underlined", "atx", "atx_closed"] = UNDERLINED,
-    keep_inline_images_in: list[str] | None = None,
+    keep_inline_images_in: Iterable[str] | None = None,
     newline_style: Literal["spaces", "backslash"] = SPACES,
-    strip: list[str] | None = None,
+    strip: Iterable[str] | None = None,
     strong_em_symbol: Literal["*", "_"] = ASTERISK,
     sub_symbol: str = "",
     sup_symbol: str = "",

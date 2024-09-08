@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from functools import partial
 from inspect import getfullargspec
 from textwrap import fill
@@ -62,11 +62,11 @@ def _create_inline_converter(markup_prefix: str) -> Callable[[Tag, str], str]:
     """
 
     def implementation(*, tag: Tag, text: str) -> str:
-        if not text:
-            return ""
-
         if tag.find_parent(["pre", "code", "kbd", "samp"]):
             return text
+
+        if not text.strip():
+            return ""
 
         markup_suffix = markup_prefix
         if markup_prefix.startswith("<") and markup_prefix.endswith(">"):
@@ -109,26 +109,29 @@ def _convert_br(*, convert_as_inline: bool, newline_style: str) -> str:
     return "\\\n" if newline_style.lower() == BACKSLASH else "  \n"
 
 
-def _convert_hn(*, n: int, heading_style: str, text: str, convert_as_inline: bool) -> str:
+def _convert_hn(
+    *, n: int, heading_style: Literal["atx", "atx_closed", "underlined"], text: str, convert_as_inline: bool
+) -> str:
     if convert_as_inline:
         return text
 
-    style = heading_style.lower()
     text = text.strip()
-    if style == UNDERLINED and n <= 2:
-        line = "=" if n == 1 else "-"
-        return underline(text=text, pad_char=line)
+    if heading_style == UNDERLINED and n <= 2:
+        return underline(text=text, pad_char="=" if n == 1 else "-")
 
     hashes = "#" * n
-    return f"{hashes} {text} {hashes}\n\n" if style == ATX_CLOSED else f"{hashes} {text}\n\n"
+    if heading_style == ATX_CLOSED:
+        return f"{hashes} {text} {hashes}\n\n"
+
+    return f"{hashes} {text}\n\n"
 
 
-def _convert_img(*, tag: Tag, convert_as_inline: bool, keep_inline_images_in: list) -> str:
+def _convert_img(*, tag: Tag, convert_as_inline: bool, keep_inline_images_in: Iterable[str] | None) -> str:
     alt = tag.attrs.get("alt", None) or ""
     src = tag.attrs.get("src", None) or ""
     title = tag.attrs.get("title", None) or ""
     title_part = ' "{}"'.format(title.replace('"', r"\"")) if title else ""
-    if convert_as_inline and tag.parent.name not in keep_inline_images_in:
+    if convert_as_inline and tag.parent.name not in (keep_inline_images_in or []):
         return alt
 
     return f"![{alt}]({src}{title_part})"
@@ -139,19 +142,25 @@ def _convert_list(*, tag: Tag, text: str) -> str:
     before_paragraph = False
     if tag.next_sibling and getattr(tag.next_sibling, "name", None) not in {"ul", "ol"}:
         before_paragraph = True
+
     while tag:
         if tag.name == "li":
             nested = True
             break
+
         tag = tag.parent
-    return f"\n{indent(text=text, level=1).rstrip()}" if nested else text + ("\n" if before_paragraph else "")
+
+    if nested:
+        return "\n" + indent(text=text, level=1).rstrip()
+
+    return text + ("\n" if before_paragraph else "")
 
 
 def _convert_li(*, tag: Tag, text: str, bullets: str) -> str:
     parent = tag.parent
-    if parent and parent.name == "ol":
-        start = int(parent.get("start", "1"))
-        bullet = f"{start + parent.index(tag)}."
+    if parent is not None and parent.name == "ol":
+        start = int(parent.get("start")) if parent.get("start") and str(parent.get("start")).isnumeric() else 1
+        bullet = "%s." % (start + parent.index(tag))
     else:
         depth = -1
         while tag:
@@ -159,14 +168,21 @@ def _convert_li(*, tag: Tag, text: str, bullets: str) -> str:
                 depth += 1
             tag = tag.parent
         bullet = bullets[depth % len(bullets)]
-    return f"{bullet} {text.strip()}\n"
+    return "{} {}\n".format(bullet, (text or "").strip())
 
 
 def _convert_p(*, wrap: bool, text: str, convert_as_inline: bool, wrap_width: int) -> str:
     if convert_as_inline:
         return text
+
     if wrap:
-        text = fill(text, width=wrap_width, break_long_words=False, break_on_hyphens=False)
+        text = fill(
+            text,
+            width=wrap_width,
+            break_long_words=False,
+            break_on_hyphens=False,
+        )
+
     return f"{text}\n\n" if text else ""
 
 
@@ -195,25 +211,47 @@ def _convert_sup(*, text: str, sup_symbol: str) -> str:
 
 
 def _convert_td(*, tag: Tag, text: str) -> str:
-    colspan = int(tag.get("colspan", "1"))
-    return (" " + text.strip().replace("\n", " ") + " |") * colspan
+    colspan = 1
+    if "colspan" in tag.attrs and tag["colspan"].isdigit():
+        colspan = int(tag["colspan"])
+    return " " + text.strip().replace("\n", " ") + " |" * colspan
 
 
 def _convert_th(*, tag: Tag, text: str) -> str:
-    colspan = int(tag.get("colspan", "1"))
-    return (" " + text.strip().replace("\n", " ") + " |") * colspan
+    colspan = 1
+    if "colspan" in tag.attrs and tag["colspan"].isdigit():
+        colspan = int(tag["colspan"])
+    return " " + text.strip().replace("\n", " ") + " |" * colspan
 
 
 def _convert_tr(*, tag: Tag, text: str) -> str:
     cells = tag.find_all(["td", "th"])
-    is_head_row = all(cell.name == "th" for cell in cells)
-    overline = underline = ""
-    if is_head_row and not tag.previous_sibling:
-        full_colspan = sum(int(cell.get("colspan", 1)) for cell in cells)
-        underline = f"| {' | '.join(['---'] * full_colspan)} |\n"
-    elif not tag.previous_sibling and tag.parent.name in {"table", "tbody"}:
-        overline = f"| {' | '.join([''] * len(cells))} |\n| {' | '.join(['---'] * len(cells))} |\n"
-    return f"{overline}|{text}\n{underline}"
+    is_headrow = (
+        all(cell.name == "th" for cell in cells)
+        or (not tag.previous_sibling and tag.parent.name != "tbody")
+        or (not tag.previous_sibling and tag.parent.name == "tbody" and len(tag.parent.parent.find_all(["thead"])) < 1)
+    )
+    overline = ""
+    underline = ""
+    if is_headrow and not tag.previous_sibling:
+        # first row and is headline: print headline underline
+        full_colspan = 0
+        for cell in cells:
+            if "colspan" in cell.attrs and cell["colspan"].isdigit():
+                full_colspan += int(cell["colspan"])
+            else:
+                full_colspan += 1
+        underline += "| " + " | ".join(["---"] * full_colspan) + " |" + "\n"
+    elif not tag.previous_sibling and (
+        tag.parent.name == "table" or (tag.parent.name == "tbody" and not tag.parent.previous_sibling)
+    ):
+        # first row, not headline, and:
+        # - the parent is table or
+        # - the parent is tbody at the beginning of a table.
+        # print empty headline above this row
+        overline += "| " + " | ".join([""] * len(cells)) + " |" + "\n"
+        overline += "| " + " | ".join(["---"] * len(cells)) + " |" + "\n"
+    return overline + "|" + text + "\n" + underline
 
 
 def create_converters_map(
@@ -223,14 +261,13 @@ def create_converters_map(
     code_language_callback: Callable[[Any], str] | None,
     default_title: bool,
     heading_style: str,
-    keep_inline_images_in: list[str] | None,
+    keep_inline_images_in: Iterable[str] | None,
     newline_style: str,
     strong_em_symbol: str,
     sub_symbol: str,
     sup_symbol: str,
     wrap: bool,
     wrap_width: int,
-    convert_as_inline: bool,
 ) -> ConvertsMap:
     """Create a mapping of HTML elements to their corresponding conversion functions.
 
@@ -248,7 +285,6 @@ def create_converters_map(
         sup_symbol: The symbol to use for superscript text.
         wrap: Whether to wrap text.
         wrap_width: The width to wrap text at.
-        convert_as_inline: Whether to convert elements as inline elements.
 
     Returns:
         A mapping of HTML elements to their corresponding conversion functions
@@ -257,55 +293,57 @@ def create_converters_map(
     def _wrapper(func: Callable) -> Callable[[str, Tag], str]:
         spec = getfullargspec(func)
 
-        def _inner(*, text: str, tag: Tag) -> str:
+        def _inner(*, text: str, tag: Tag, convert_as_inline: bool) -> str:
             if spec.kwonlyargs:
                 kwargs = {}
                 if "tag" in spec.kwonlyargs:
                     kwargs["tag"] = tag
                 if "text" in spec.kwonlyargs:
                     kwargs["text"] = text
+                if "convert_as_inline" in spec.kwonlyargs:
+                    kwargs["convert_as_inline"] = convert_as_inline
                 return func(**kwargs)
             return func(text)
 
         return _inner
 
     return {
-        "a": partial(_convert_a, auto_links=auto_links, default_title=default_title),
+        "a": _wrapper(partial(_convert_a, auto_links=auto_links, default_title=default_title)),
         "b": _wrapper(partial(_create_inline_converter(2 * strong_em_symbol))),
-        "blockquote": _wrapper(partial(_convert_blockquote, convert_as_inline=convert_as_inline)),
-        "br": _wrapper(partial(_convert_br, convert_as_inline=convert_as_inline, newline_style=newline_style)),
-        "code": _create_inline_converter("`"),
-        "del": _create_inline_converter("~~"),
-        "em": _create_inline_converter(strong_em_symbol),
-        "h1": _wrapper(partial(_convert_hn, n=1, heading_style=heading_style, convert_as_inline=convert_as_inline)),
-        "h2": _wrapper(partial(_convert_hn, n=2, heading_style=heading_style, convert_as_inline=convert_as_inline)),
-        "h3": _wrapper(partial(_convert_hn, n=3, heading_style=heading_style, convert_as_inline=convert_as_inline)),
-        "h4": _wrapper(partial(_convert_hn, n=4, heading_style=heading_style, convert_as_inline=convert_as_inline)),
-        "h5": _wrapper(partial(_convert_hn, n=5, heading_style=heading_style, convert_as_inline=convert_as_inline)),
-        "h6": _wrapper(partial(_convert_hn, n=6, heading_style=heading_style, convert_as_inline=convert_as_inline)),
+        "blockquote": _wrapper(partial(_convert_blockquote)),
+        "br": _wrapper(partial(_convert_br, newline_style=newline_style)),
+        "code": _wrapper(_create_inline_converter("`")),
+        "del": _wrapper(_create_inline_converter("~~")),
+        "em": _wrapper(_create_inline_converter(strong_em_symbol)),
+        "h1": _wrapper(partial(_convert_hn, n=1, heading_style=heading_style)),
+        "h2": _wrapper(partial(_convert_hn, n=2, heading_style=heading_style)),
+        "h3": _wrapper(partial(_convert_hn, n=3, heading_style=heading_style)),
+        "h4": _wrapper(partial(_convert_hn, n=4, heading_style=heading_style)),
+        "h5": _wrapper(partial(_convert_hn, n=5, heading_style=heading_style)),
+        "h6": _wrapper(partial(_convert_hn, n=6, heading_style=heading_style)),
         "hr": _wrapper(lambda _: "\n\n---\n\n"),
         "i": _wrapper(partial(_create_inline_converter(strong_em_symbol))),
-        "img": _wrapper(
-            partial(_convert_img, convert_as_inline=convert_as_inline, keep_inline_images_in=keep_inline_images_in)
+        "img": _wrapper(partial(_convert_img, keep_inline_images_in=keep_inline_images_in)),
+        "list": _wrapper(_convert_list),
+        "ul": _wrapper(_convert_list),
+        "ol": _wrapper(_convert_list),
+        "li": _wrapper(partial(_convert_li, bullets=bullets)),
+        "p": _wrapper(partial(_convert_p, wrap=wrap, wrap_width=wrap_width)),
+        "pre": _wrapper(
+            partial(_convert_pre, code_language=code_language, code_language_callback=code_language_callback)
         ),
-        "list": _convert_list,
-        "ul": _convert_list,
-        "ol": _convert_list,
-        "li": partial(_convert_li, bullets=bullets),
-        "p": _wrapper(partial(_convert_p, wrap=wrap, wrap_width=wrap_width, convert_as_inline=convert_as_inline)),
-        "pre": partial(_convert_pre, code_language=code_language, code_language_callback=code_language_callback),
         "script": _wrapper(lambda _: ""),
         "style": _wrapper(lambda _: ""),
-        "s": _create_inline_converter("~~"),
-        "strong": _create_inline_converter(strong_em_symbol * 2),
-        "samp": _create_inline_converter("`"),
-        "sub": _create_inline_converter(sub_symbol),
-        "sup": _create_inline_converter(sup_symbol),
+        "s": _wrapper(_create_inline_converter("~~")),
+        "strong": _wrapper(_create_inline_converter(strong_em_symbol * 2)),
+        "samp": _wrapper(_create_inline_converter("`")),
+        "sub": _wrapper(_create_inline_converter(sub_symbol)),
+        "sup": _wrapper(_create_inline_converter(sup_symbol)),
         "table": _wrapper(lambda text: f"\n\n{text}\n"),
         "caption": _wrapper(lambda text: f"{text}\n"),
         "figcaption": _wrapper(lambda text: f"\n\n{text}\n\n"),
-        "td": _convert_td,
-        "th": _convert_th,
-        "tr": _convert_tr,
-        "kbd": _create_inline_converter("`"),
+        "td": _wrapper(_convert_td),
+        "th": _wrapper(_convert_th),
+        "tr": _wrapper(_convert_tr),
+        "kbd": _wrapper(_create_inline_converter("`")),
     }
