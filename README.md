@@ -7,7 +7,7 @@ Python 3.9 and offering strong typing.
 
 - The refactored codebase uses a strict functional approach - no classes are involved.
 - There is full typing with strict MyPy adherence in place.
-- All original tests pass.
+- The `convert_to_markdown` allows passing a pre-configured instance of `Beautifulsoup`.
 - This library releases follows standard semver. Its version v1.0.0 was branched from markdownify's v0.13.1, at which
   point versioning is no longer aligned.
 
