@@ -32,7 +32,7 @@ def test_a() -> None:
     assert (
         convert_to_markdown(
             '<a href="https://community.kde.org/Get_Involved">https://community.kde.org/Get_Involved</a>',
-            auto_links=False,
+            autolinks=False,
         )
         == "[https://community.kde.org/Get\\_Involved](https://community.kde.org/Get_Involved)"
     )
@@ -65,9 +65,9 @@ def test_a_shortcut() -> None:
     assert text == "<http://google.com>"
 
 
-def test_a_no_auto_links() -> None:
+def test_a_no_autolinks() -> None:
     assert (
-        convert_to_markdown('<a href="https://google.com">https://google.com</a>', auto_links=False)
+        convert_to_markdown('<a href="https://google.com">https://google.com</a>', autolinks=False)
         == "[https://google.com](https://google.com)"
     )
 

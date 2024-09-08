@@ -95,7 +95,7 @@ def _get_colspan(tag: Tag) -> int:
     return colspan
 
 
-def _convert_a(*, tag: Tag, text: str, auto_links: bool, default_title: bool) -> str:
+def _convert_a(*, tag: Tag, text: str, autolinks: bool, default_title: bool) -> str:
     prefix, suffix, text = chomp(text)
     if not text:
         return ""
@@ -103,7 +103,7 @@ def _convert_a(*, tag: Tag, text: str, auto_links: bool, default_title: bool) ->
     href = tag.get("href")
     title = tag.get("title")
 
-    if auto_links and text.replace(r"\_", "_") == href and not title and not default_title:
+    if autolinks and text.replace(r"\_", "_") == href and not title and not default_title:
         return f"<{href}>"
 
     if default_title and not title:
@@ -282,7 +282,7 @@ def _convert_tr(*, tag: Tag, text: str) -> str:
 
 
 def create_converters_map(
-    auto_links: bool,
+    autolinks: bool,
     bullets: str,
     code_language: str,
     code_language_callback: Callable[[Tag], str] | None,
@@ -299,7 +299,7 @@ def create_converters_map(
     """Create a mapping of HTML elements to their corresponding conversion functions.
 
     Args:
-        auto_links: Whether to convert URLs into links.
+        autolinks: Whether to convert URLs into links.
         bullets: The bullet characters to use for unordered lists.
         code_language: The default code language to use.
         code_language_callback: A callback to get the code language.
@@ -335,7 +335,7 @@ def create_converters_map(
         return cast(Callable[[str, Tag], T], _inner)
 
     return {
-        "a": _wrapper(partial(_convert_a, auto_links=auto_links, default_title=default_title)),
+        "a": _wrapper(partial(_convert_a, autolinks=autolinks, default_title=default_title)),
         "b": _wrapper(partial(_create_inline_converter(2 * strong_em_symbol))),
         "blockquote": _wrapper(partial(_convert_blockquote)),
         "br": _wrapper(partial(_convert_br, newline_style=newline_style)),

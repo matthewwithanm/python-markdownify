@@ -103,11 +103,12 @@ def cli(argv: list[str]) -> None:
     parser.add_argument("--wrap-width", type=int, default=80)
 
     args = parser.parse_args(argv)
+
     result = convert_to_markdown(
         args.html.read(),
         strip=args.strip,
         convert=args.convert,
-        auto_links=args.autolinks,
+        autolinks=args.autolinks,
         default_title=args.default_title,
         heading_style=args.heading_style,
         bullets=args.bullets,
@@ -122,6 +123,7 @@ def cli(argv: list[str]) -> None:
         wrap=args.wrap,
         wrap_width=args.wrap_width,
     )
+
     print(result)  # noqa: T201
 
 

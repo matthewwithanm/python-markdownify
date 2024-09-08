@@ -77,7 +77,7 @@ def _is_nested_tag(el: PageElement) -> bool:
 def _process_tag(
     tag: Tag,
     *,
-    auto_links: bool,
+    autolinks: bool,
     bullets: str,
     code_language: str,
     code_language_callback: Callable[[Any], str] | None,
@@ -100,7 +100,7 @@ def _process_tag(
 ) -> str:
     if converters_map is None:
         converters_map = create_converters_map(
-            auto_links=auto_links,
+            autolinks=autolinks,
             bullets=bullets,
             code_language=code_language,
             code_language_callback=code_language_callback,
@@ -149,7 +149,7 @@ def _process_tag(
                 escape_asterisks=escape_asterisks,
                 escape_underscores=escape_underscores,
                 converters_map=converters_map,
-                auto_links=auto_links,
+                autolinks=autolinks,
                 bullets=bullets,
                 code_language=code_language,
                 code_language_callback=code_language_callback,
@@ -221,7 +221,7 @@ def convert_to_markdown(
     html: str,
     *,
     soup: BeautifulSoup | None = None,
-    auto_links: bool = True,
+    autolinks: bool = True,
     bullets: str = "*+-",
     code_language: str = "",
     code_language_callback: Callable[[Any], str] | None = None,
@@ -246,7 +246,7 @@ def convert_to_markdown(
     Args:
         html: The HTML to convert.
         soup: The BeautifulSoup object to convert.
-        auto_links: Whether to convert links to Markdown.
+        autolinks: Whether to convert links to Markdown.
         bullets: The bullet characters to use for unordered lists.
         code_language: The default code language to use.
         code_language_callback: A callback function to determine the code language.
@@ -275,7 +275,7 @@ def convert_to_markdown(
         soup = BeautifulSoup(html, "html.parser")
 
     return _process_tag(
-        auto_links=auto_links,
+        autolinks=autolinks,
         bullets=bullets,
         code_language=code_language,
         code_language_callback=code_language_callback,
