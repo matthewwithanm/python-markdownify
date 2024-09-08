@@ -3,8 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from html_to_markdown import convert_to_markdown
-from html_to_markdown.constants import ATX, UNDERSCORE
-from html_to_markdown.converters import ATX_CLOSED, BACKSLASH
+from html_to_markdown.constants import ATX, ATX_CLOSED, BACKSLASH, UNDERSCORE
 
 if TYPE_CHECKING:
     from bs4.element import Tag
@@ -15,7 +14,10 @@ def inline_tests(tag: str, markup: str) -> None:
     assert convert_to_markdown(f"foo <{tag}>Hello</{tag}> bar") == f"foo {markup}Hello{markup} bar"
     assert convert_to_markdown(f"foo<{tag}> Hello</{tag}> bar") == f"foo {markup}Hello{markup} bar"
     assert convert_to_markdown(f"foo <{tag}>Hello </{tag}>bar") == f"foo {markup}Hello{markup} bar"
-    assert convert_to_markdown(f"foo <{tag}></{tag}> bar") in ["foo  bar", "foo bar"]  # Either is OK
+    assert convert_to_markdown(f"foo <{tag}></{tag}> bar") in [
+        "foo  bar",
+        "foo bar",
+    ]  # Either is OK
 
 
 def test_a() -> None:
@@ -220,7 +222,8 @@ def test_hn_nested_img() -> None:
         )
         assert (
             convert_to_markdown(
-                '<h3>A <img src="/path/to/img.jpg" ' + image_attributes + "/> B</h3>", keep_inline_images_in=["h3"]
+                '<h3>A <img src="/path/to/img.jpg" ' + image_attributes + "/> B</h3>",
+                keep_inline_images_in=["h3"],
             )
             == "### A ![" + markdown + "](/path/to/img.jpg" + title + ") B\n\n"
         )
@@ -267,7 +270,11 @@ def test_p() -> None:
     assert convert_to_markdown("<p>123456789 123456789</p>") == "123456789 123456789\n\n"
     assert convert_to_markdown("<p>123456789 123456789</p>", wrap=True, wrap_width=10) == "123456789\n123456789\n\n"
     assert (
-        convert_to_markdown('<p><a href="https://example.com">Some long link</a></p>', wrap=True, wrap_width=10)
+        convert_to_markdown(
+            '<p><a href="https://example.com">Some long link</a></p>',
+            wrap=True,
+            wrap_width=10,
+        )
         == "[Some long\nlink](https://example.com)\n\n"
     )
     assert (
@@ -275,7 +282,12 @@ def test_p() -> None:
         == "12345\\\n67890\n\n"
     )
     assert (
-        convert_to_markdown("<p>12345678901<br />12345</p>", wrap=True, wrap_width=10, newline_style=BACKSLASH)
+        convert_to_markdown(
+            "<p>12345678901<br />12345</p>",
+            wrap=True,
+            wrap_width=10,
+            newline_style=BACKSLASH,
+        )
         == "12345678901\\\n12345\n\n"
     )
 
@@ -364,19 +376,23 @@ def test_lang_callback() -> None:
         return el["class"][0] if el.has_attr("class") else None
 
     assert (
-        convert_to_markdown('<pre class="python">test\n    foo\nbar</pre>', code_language_callback=callback)
+        convert_to_markdown(
+            '<pre class="python">test\n    foo\nbar</pre>',
+            code_language_callback=callback,  # type: ignore[arg-type]
+        )
         == "\n```python\ntest\n    foo\nbar\n```\n"
     )
     assert (
         convert_to_markdown(
-            '<pre class="javascript"><code>test\n    foo\nbar</code></pre>', code_language_callback=callback
+            '<pre class="javascript"><code>test\n    foo\nbar</code></pre>',
+            code_language_callback=callback,  # type: ignore[arg-type]
         )
         == "\n```javascript\ntest\n    foo\nbar\n```\n"
     )
     assert (
         convert_to_markdown(
             '<pre class="javascript"><code class="javascript">test\n    foo\nbar</code></pre>',
-            code_language_callback=callback,
+            code_language_callback=callback,  # type: ignore[arg-type]
         )
         == "\n```javascript\ntest\n    foo\nbar\n```\n"
     )

@@ -412,14 +412,16 @@ def test_nested_ols() -> None:
 def test_ul() -> None:
     assert convert_to_markdown("<ul><li>a</li><li>b</li></ul>") == "* a\n* b\n"
     assert (
-        convert_to_markdown("""<ul>
+        convert_to_markdown(
+            """<ul>
      <li>
              a
      </li>
      <li> b </li>
      <li>   c
      </li>
- </ul>""")
+ </ul>"""
+        )
         == "* a\n* b\n* c\n"
     )
 

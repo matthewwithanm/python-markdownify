@@ -1,10 +1,16 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Callable, Literal
+from typing import TYPE_CHECKING, Any, Callable, Literal, cast
 
 from bs4 import BeautifulSoup, Comment, Doctype, NavigableString, Tag
 
-from html_to_markdown.constants import ASTERISK, SPACES, UNDERLINED, html_heading_re, whitespace_re
+from html_to_markdown.constants import (
+    ASTERISK,
+    SPACES,
+    UNDERLINED,
+    html_heading_re,
+    whitespace_re,
+)
 from html_to_markdown.converters import ConvertsMap, create_converters_map
 from html_to_markdown.utils import escape
 
@@ -54,7 +60,18 @@ SupportedTag = Literal[
 
 
 def _is_nested_tag(el: PageElement) -> bool:
-    return isinstance(el, Tag) and el.name in {"ol", "ul", "li", "table", "thead", "tbody", "tfoot", "tr", "td", "th"}
+    return isinstance(el, Tag) and el.name in {
+        "ol",
+        "ul",
+        "li",
+        "table",
+        "thead",
+        "tbody",
+        "tfoot",
+        "tr",
+        "td",
+        "th",
+    }
 
 
 def _process_tag(
@@ -71,7 +88,7 @@ def _process_tag(
     escape_asterisks: bool,
     escape_misc: bool,
     escape_underscores: bool,
-    heading_style: str,
+    heading_style: Literal["atx", "atx_closed", "underlined"],
     keep_inline_images_in: Iterable[str] | None,
     newline_style: str,
     strip: Iterable[str] | None,
@@ -117,9 +134,12 @@ def _process_tag(
     for el in filter(lambda value: not isinstance(value, (Comment, Doctype)), tag.children):
         if isinstance(el, NavigableString):
             text += _process_text(
-                el=el, escape_misc=escape_misc, escape_asterisks=escape_asterisks, escape_underscores=escape_underscores
+                el=el,
+                escape_misc=escape_misc,
+                escape_asterisks=escape_asterisks,
+                escape_underscores=escape_underscores,
             )
-        else:
+        elif isinstance(el, Tag):
             text += _process_tag(
                 tag=el,
                 convert_as_inline=convert_children_as_inline,
@@ -144,10 +164,12 @@ def _process_tag(
                 wrap_width=wrap_width,
             )
 
-    tag_name: SupportedTag | None = tag.name.lower() if tag.name.lower() in converters_map else None
+    tag_name: SupportedTag | None = cast(SupportedTag, tag.name.lower()) if tag.name.lower() in converters_map else None
 
     if tag_name and _should_convert_tag(tag_name=tag.name, strip=strip, convert=convert):
-        return converters_map[tag_name](tag=tag, text=text, convert_as_inline=convert_as_inline)
+        return converters_map[tag_name](  # type: ignore[call-arg]
+            tag=tag, text=text, convert_as_inline=convert_as_inline
+        )
 
     return text
 
@@ -168,13 +190,20 @@ def _process_text(
     # escape special characters if we're not inside a preformatted or code element
     if not el.find_parent(["pre", "code", "kbd", "samp"]):
         text = escape(
-            text=text, escape_misc=escape_misc, escape_asterisks=escape_asterisks, escape_underscores=escape_underscores
+            text=text,
+            escape_misc=escape_misc,
+            escape_asterisks=escape_asterisks,
+            escape_underscores=escape_underscores,
         )
 
     # remove trailing whitespaces if any of the following condition is true:
     # - current text node is the last node in li
     # - current text node is followed by an embedded list
-    if el.parent.name == "li" and (not el.next_sibling or getattr(el.next_sibling, "name", None) in {"ul", "ol"}):
+    if (
+        el.parent
+        and el.parent.name == "li"
+        and (not el.next_sibling or getattr(el.next_sibling, "name", None) in {"ul", "ol"})
+    ):
         text = text.rstrip()
 
     return text

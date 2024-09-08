@@ -4,11 +4,16 @@ from collections.abc import Iterable, Mapping
 from functools import partial
 from inspect import getfullargspec
 from textwrap import fill
-from typing import Any, Callable, Literal
+from typing import Any, Callable, Literal, TypeVar, cast
 
 from bs4.element import Tag
 
-from html_to_markdown.constants import ATX_CLOSED, BACKSLASH, UNDERLINED, line_beginning_re
+from html_to_markdown.constants import (
+    ATX_CLOSED,
+    BACKSLASH,
+    UNDERLINED,
+    line_beginning_re,
+)
 from html_to_markdown.utils import chomp, indent, underline
 
 SupportedElements = Literal[
@@ -52,6 +57,8 @@ SupportedElements = Literal[
 
 ConvertsMap = Mapping[SupportedElements, Callable[[str, Tag], str]]
 
+T = TypeVar("T")
+
 
 def _create_inline_converter(markup_prefix: str) -> Callable[[Tag, str], str]:
     """This abstracts all simple inline tags like b, em, del, ...
@@ -76,10 +83,19 @@ def _create_inline_converter(markup_prefix: str) -> Callable[[Tag, str], str]:
 
         return f"{prefix}{markup_prefix}{text}{markup_suffix}{suffix}"
 
-    return implementation
+    return cast(Callable[[Tag, str], str], implementation)
 
 
-def _convert_a(*, tag: Tag, text: str, auto_links: bool, default_title: str) -> str:
+def _get_colspan(tag: Tag) -> int:
+    colspan = 1
+
+    if "colspan" in tag.attrs and isinstance(tag["colspan"], str) and tag["colspan"].isdigit():
+        colspan = int(tag["colspan"])
+
+    return colspan
+
+
+def _convert_a(*, tag: Tag, text: str, auto_links: bool, default_title: bool) -> str:
     prefix, suffix, text = chomp(text)
     if not text:
         return ""
@@ -93,7 +109,7 @@ def _convert_a(*, tag: Tag, text: str, auto_links: bool, default_title: str) -> 
     if default_title and not title:
         title = href
 
-    title_part = ' "{}"'.format(title.replace('"', r"\"")) if title else ""
+    title_part = ' "{}"'.format(title.replace('"', r"\"")) if isinstance(title, str) else ""
     return f"{prefix}[{text}]({href}{title_part}){suffix}" if href else text
 
 
@@ -110,7 +126,11 @@ def _convert_br(*, convert_as_inline: bool, newline_style: str) -> str:
 
 
 def _convert_hn(
-    *, n: int, heading_style: Literal["atx", "atx_closed", "underlined"], text: str, convert_as_inline: bool
+    *,
+    n: int,
+    heading_style: Literal["atx", "atx_closed", "underlined"],
+    text: str,
+    convert_as_inline: bool,
 ) -> str:
     if convert_as_inline:
         return text
@@ -131,7 +151,8 @@ def _convert_img(*, tag: Tag, convert_as_inline: bool, keep_inline_images_in: It
     src = tag.attrs.get("src", None) or ""
     title = tag.attrs.get("title", None) or ""
     title_part = ' "{}"'.format(title.replace('"', r"\"")) if title else ""
-    if convert_as_inline and tag.parent.name not in (keep_inline_images_in or []):
+    parent_name = tag.parent.name if tag.parent else ""
+    if convert_as_inline and parent_name not in (keep_inline_images_in or []):
         return alt
 
     return f"![{alt}]({src}{title_part})"
@@ -139,6 +160,7 @@ def _convert_img(*, tag: Tag, convert_as_inline: bool, keep_inline_images_in: It
 
 def _convert_list(*, tag: Tag, text: str) -> str:
     nested = False
+
     before_paragraph = False
     if tag.next_sibling and getattr(tag.next_sibling, "name", None) not in {"ul", "ol"}:
         before_paragraph = True
@@ -146,6 +168,9 @@ def _convert_list(*, tag: Tag, text: str) -> str:
     while tag:
         if tag.name == "li":
             nested = True
+            break
+
+        if not tag.parent:
             break
 
         tag = tag.parent
@@ -159,14 +184,22 @@ def _convert_list(*, tag: Tag, text: str) -> str:
 def _convert_li(*, tag: Tag, text: str, bullets: str) -> str:
     parent = tag.parent
     if parent is not None and parent.name == "ol":
-        start = int(parent.get("start")) if parent.get("start") and str(parent.get("start")).isnumeric() else 1
+        start = (
+            int(cast(str, parent["start"]))
+            if isinstance(parent.get("start"), str) and str(parent.get("start")).isnumeric()
+            else 1
+        )
         bullet = "%s." % (start + parent.index(tag))
     else:
         depth = -1
         while tag:
             if tag.name == "ul":
                 depth += 1
+            if not tag.parent:
+                break
+
             tag = tag.parent
+
         bullet = bullets[depth % len(bullets)]
     return "{} {}\n".format(bullet, (text or "").strip())
 
@@ -186,7 +219,13 @@ def _convert_p(*, wrap: bool, text: str, convert_as_inline: bool, wrap_width: in
     return f"{text}\n\n" if text else ""
 
 
-def _convert_pre(*, tag: Tag, text: str, code_language: str, code_language_callback: Callable) -> str:
+def _convert_pre(
+    *,
+    tag: Tag,
+    text: str,
+    code_language: str,
+    code_language_callback: Callable[[Tag], str] | None,
+) -> str:
     if not text:
         return ""
 
@@ -211,25 +250,27 @@ def _convert_sup(*, text: str, sup_symbol: str) -> str:
 
 
 def _convert_td(*, tag: Tag, text: str) -> str:
-    colspan = 1
-    if "colspan" in tag.attrs and tag["colspan"].isdigit():
-        colspan = int(tag["colspan"])
+    colspan = _get_colspan(tag)
     return " " + text.strip().replace("\n", " ") + " |" * colspan
 
 
 def _convert_th(*, tag: Tag, text: str) -> str:
-    colspan = 1
-    if "colspan" in tag.attrs and tag["colspan"].isdigit():
-        colspan = int(tag["colspan"])
+    colspan = _get_colspan(tag)
     return " " + text.strip().replace("\n", " ") + " |" * colspan
 
 
 def _convert_tr(*, tag: Tag, text: str) -> str:
     cells = tag.find_all(["td", "th"])
+    parent_name = tag.parent.name if tag.parent else ""
+    tag_grand_parent = tag.parent.parent if tag.parent else None
     is_headrow = (
         all(cell.name == "th" for cell in cells)
-        or (not tag.previous_sibling and tag.parent.name != "tbody")
-        or (not tag.previous_sibling and tag.parent.name == "tbody" and len(tag.parent.parent.find_all(["thead"])) < 1)
+        or (not tag.previous_sibling and parent_name != "tbody")
+        or (
+            not tag.previous_sibling
+            and parent_name == "tbody"
+            and (not tag_grand_parent or len(tag_grand_parent.find_all(["thead"])) < 1)
+        )
     )
     overline = ""
     underline = ""
@@ -243,7 +284,7 @@ def _convert_tr(*, tag: Tag, text: str) -> str:
                 full_colspan += 1
         underline += "| " + " | ".join(["---"] * full_colspan) + " |" + "\n"
     elif not tag.previous_sibling and (
-        tag.parent.name == "table" or (tag.parent.name == "tbody" and not tag.parent.previous_sibling)
+        parent_name == "table" or (parent_name == "tbody" and not cast(Tag, tag.parent).previous_sibling)
     ):
         # first row, not headline, and:
         # - the parent is table or
@@ -258,9 +299,9 @@ def create_converters_map(
     auto_links: bool,
     bullets: str,
     code_language: str,
-    code_language_callback: Callable[[Any], str] | None,
+    code_language_callback: Callable[[Tag], str] | None,
     default_title: bool,
-    heading_style: str,
+    heading_style: Literal["atx", "atx_closed", "underlined"],
     keep_inline_images_in: Iterable[str] | None,
     newline_style: str,
     strong_em_symbol: str,
@@ -290,12 +331,12 @@ def create_converters_map(
         A mapping of HTML elements to their corresponding conversion functions
     """
 
-    def _wrapper(func: Callable) -> Callable[[str, Tag], str]:
+    def _wrapper(func: Callable[..., T]) -> Callable[[str, Tag], T]:
         spec = getfullargspec(func)
 
-        def _inner(*, text: str, tag: Tag, convert_as_inline: bool) -> str:
+        def _inner(*, text: str, tag: Tag, convert_as_inline: bool) -> T:
             if spec.kwonlyargs:
-                kwargs = {}
+                kwargs: dict[str, Any] = {}
                 if "tag" in spec.kwonlyargs:
                     kwargs["tag"] = tag
                 if "text" in spec.kwonlyargs:
@@ -305,7 +346,7 @@ def create_converters_map(
                 return func(**kwargs)
             return func(text)
 
-        return _inner
+        return cast(Callable[[str, Tag], T], _inner)
 
     return {
         "a": _wrapper(partial(_convert_a, auto_links=auto_links, default_title=default_title)),
@@ -330,15 +371,19 @@ def create_converters_map(
         "li": _wrapper(partial(_convert_li, bullets=bullets)),
         "p": _wrapper(partial(_convert_p, wrap=wrap, wrap_width=wrap_width)),
         "pre": _wrapper(
-            partial(_convert_pre, code_language=code_language, code_language_callback=code_language_callback)
+            partial(
+                _convert_pre,
+                code_language=code_language,
+                code_language_callback=code_language_callback,
+            )
         ),
         "script": _wrapper(lambda _: ""),
         "style": _wrapper(lambda _: ""),
         "s": _wrapper(_create_inline_converter("~~")),
         "strong": _wrapper(_create_inline_converter(strong_em_symbol * 2)),
         "samp": _wrapper(_create_inline_converter("`")),
-        "sub": _wrapper(_create_inline_converter(sub_symbol)),
-        "sup": _wrapper(_create_inline_converter(sup_symbol)),
+        "sub": _wrapper(partial(_convert_sub, sub_symbol=sub_symbol)),
+        "sup": _wrapper(partial(_convert_sup, sup_symbol=sup_symbol)),
         "table": _wrapper(lambda text: f"\n\n{text}\n"),
         "caption": _wrapper(lambda text: f"{text}\n"),
         "figcaption": _wrapper(lambda text: f"\n\n{text}\n\n"),

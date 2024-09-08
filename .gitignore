@@ -11,6 +11,7 @@
 .pdm.toml
 .python-version
 .ruff_cache/
+.pytest_cache/
 .tox/
 .venv/
 .vscode/
