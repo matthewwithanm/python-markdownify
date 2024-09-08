@@ -1,45 +1,119 @@
-[build-system]
-requires = ["setuptools>=61.2", "setuptools_scm[toml]>=3.4.3"]
-build-backend = "setuptools.build_meta"
-
 [project]
-name = "markdownify"
-version = "0.13.1"
-authors = [{name = "Matthew Tretter", email = "m@tthewwithanm.com"}]
-description = "Convert HTML to markdown."
-readme = "README.rst"
+name = "html-to-markdown"
+version = "1.0.0"
+description = "Convert HTML to markdown"
+authors = [{ name = "Na'aman Hirschfeld", email = "nhirschfeld@gmail.com" }]
+requires-python = ">=3.9"
+readme = "README.md"
+license = { text = "MIT" }
 classifiers = [
-    "Environment :: Web Environment",
-    "Framework :: Django",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
-    "Programming Language :: Python :: 2.5",
-    "Programming Language :: Python :: 2.6",
-    "Programming Language :: Python :: 2.7",
-    "Programming Language :: Python :: 3.6",
-    "Programming Language :: Python :: 3.7",
-    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Text Processing :: Markup :: HTML",
+    "Topic :: Text Processing :: Markup :: Markdown",
+    "Topic :: Text Processing :: Markup",
+    "Topic :: Text Processing",
     "Topic :: Utilities",
+    "Typing :: Typed",
 ]
+
 dependencies = [
-    "beautifulsoup4>=4.9,<5",
-    "six>=1.15,<2"
+    "beautifulsoup4>=4.12.3",
 ]
 
-[project.urls]
-Homepage = "http://github.com/matthewwithanm/python-markdownify"
-Download = "http://github.com/matthewwithanm/python-markdownify/tarball/master"
+[tool.pdm]
+distribution = true
 
-[project.scripts]
-markdownify = "markdownify.main:main"
+[tool.pdm.dev-dependencies]
+dev = [
+    "covdefaults>=2.3.0",
+    "pre-commit>=3.7.0",
+    "pytest>=8.1.1",
+    "ruff>=0.4.0",
+    "pytest-mock>=3.14.0",
+    "pytest-cov>=5.0.0",
+    "types-beautifulsoup4>=4.12.0.20240907",
+]
 
-[tool.setuptools]
-zip-safe = false
-include-package-data = true
+[tool.pdm.scripts]
+setup = { composite = [
+    "pre-commit install --install-hooks",
+    "pre-commit install --hook-type commit-msg",
+    "pdm install"
+] }
+lint = "pre-commit run --all-files"
+test.cmd = "pytest"
+test.env = { "PYTHONPATH" = "." }
+coverage.cmd = "pytest --disable-warnings --cov --cov-report xml"
+coverage.env = { "PYTHONPATH" = "." }
 
-[tool.setuptools.packages.find]
-include = ["markdownify", "markdownify.*"]
-namespaces = false
+# linters configuration below
+[tool.ruff]
+line-length = 120
+target-version = "py39"
+lint.select = ["ALL"]
+lint.ignore = [
+    "ANN401", # dynamically typed ANY
+    "D100", # # pydocstyle - missing docstring in public module
+    "D104", # pydocstyle - missing docstring in public package
+    "D107", # pydocstyle - missing docstring in __init__
+    "D205", # pydocstyle - 1 blank line required between summary line and description
+    "E501", # pycodestyle line too long, handled by ruff format
+    "EM", # Exception messages,
+    "FIX", # we allow todo and fixme comments
+    "PLR2004", # Magic variables, we allow them
+    "TD", # we allow todo and fixme comments
+    "TRY", # Try except block, rules are too strict
+    "COM812", # Conflicts with formatter
+    "ISC001", # Conflicts with formatter
+    "FBT", # Boolean Args
+]
+src = ["html_to_markdown", "tests"]
 
-[tool.setuptools_scm]
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.*" = ["S", "D", "PT006", "PT013", "PD"]
+
+[tool.ruff.format]
+docstring-code-format = true
+docstring-code-line-length = 120
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.isort]
+known-first-party = ["html_to_markdown", "tests"]
+
+[tool.ruff.lint.pylint]
+max-args = 25
+max-returns = 10
+
+[tool.mypy]
+packages = ["html_to_markdown", "tests"]
+python_version = "3.9"
+implicit_reexport = false
+show_error_codes = true
+strict = true
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_any_generics = false
+disallow_untyped_decorators = false
+
+[tool.coverage.run]
+omit = ["tests/*"]
+plugins = ["covdefaults"]
+source = ["html_to_markdown"]
+
+[tool.coverage.report]
+exclude_lines = ['if TYPE_CHECKING:']
+fail_under = 100
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"

@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+    - main
+  push:
+    branches:
+    - main
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: pdm-project/setup-pdm@v4
+      with:
+        python-version: '3.9'
+        cache: true
+    - name: Install Dependencies
+      run: pdm install
+    - name: Load Cached Pre-Commit Dependencies
+      id: cached-pre-commit-dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pre-commit/
+        key: pre-commit-4|${{ env.pythonLocation }}|${{ hashFiles('.pre-commit-config.yaml') }}
+    - name: Lint
+      run: pdm run pre-commit run --show-diff-on-failure --color=always --all-files
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        # we need the entire history here because we use commits from the past for testing.
+        fetch-depth: 0
+    - uses: pdm-project/setup-pdm@v4
+      with:
+        python-version: '3.9'
+        cache: true
+    - name: Install
+      run: pdm install
+    - name: Test
+      run: pdm run test

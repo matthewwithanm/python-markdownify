@@ -1,0 +1,12 @@
+LICENSE
+README.md
+pyproject.toml
+html_to_markdown/__init__.py
+html_to_markdown/converters.py
+html_to_markdown/processing.py
+html_to_markdown/utils.py
+html_to_markdown.egg-info/PKG-INFO
+html_to_markdown.egg-info/SOURCES.txt
+html_to_markdown.egg-info/dependency_links.txt
+html_to_markdown.egg-info/requires.txt
+html_to_markdown.egg-info/top_level.txt
