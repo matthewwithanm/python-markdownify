@@ -6,6 +6,8 @@ on:
 
 jobs:
   release:
+    permissions:
+      id-token: write
     runs-on: ubuntu-latest
     environment: pypi
     steps:
