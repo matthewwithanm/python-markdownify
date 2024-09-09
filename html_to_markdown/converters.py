@@ -55,7 +55,7 @@ SupportedElements = Literal[
     "kbd",
 ]
 
-ConvertsMap = Mapping[SupportedElements, Callable[[str, Tag], str]]
+ConverterssMap = Mapping[SupportedElements, Callable[[str, Tag], str]]
 
 T = TypeVar("T")
 
@@ -147,9 +147,9 @@ def _convert_hn(
 
 
 def _convert_img(*, tag: Tag, convert_as_inline: bool, keep_inline_images_in: Iterable[str] | None) -> str:
-    alt = tag.attrs.get("alt", None) or ""
-    src = tag.attrs.get("src", None) or ""
-    title = tag.attrs.get("title", None) or ""
+    alt = tag.attrs.get("alt", "")
+    src = tag.attrs.get("src", "")
+    title = tag.attrs.get("title", "")
     title_part = ' "{}"'.format(title.replace('"', r"\"")) if title else ""
     parent_name = tag.parent.name if tag.parent else ""
     if convert_as_inline and parent_name not in (keep_inline_images_in or []):
@@ -295,7 +295,7 @@ def create_converters_map(
     sup_symbol: str,
     wrap: bool,
     wrap_width: int,
-) -> ConvertsMap:
+) -> ConverterssMap:
     """Create a mapping of HTML elements to their corresponding conversion functions.
 
     Args:

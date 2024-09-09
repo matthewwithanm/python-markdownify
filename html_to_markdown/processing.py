@@ -11,7 +11,7 @@ from html_to_markdown.constants import (
     html_heading_re,
     whitespace_re,
 )
-from html_to_markdown.converters import ConvertsMap, create_converters_map
+from html_to_markdown.converters import ConverterssMap, create_converters_map
 from html_to_markdown.utils import escape
 
 if TYPE_CHECKING:
@@ -76,45 +76,15 @@ def _is_nested_tag(el: PageElement) -> bool:
 
 def _process_tag(
     tag: Tag,
+    converters_map: ConverterssMap,
     *,
-    autolinks: bool,
-    bullets: str,
-    code_language: str,
-    code_language_callback: Callable[[Any], str] | None,
     convert: Iterable[str] | None,
     convert_as_inline: bool = False,
-    converters_map: ConvertsMap | None = None,
-    default_title: bool,
     escape_asterisks: bool,
     escape_misc: bool,
     escape_underscores: bool,
-    heading_style: Literal["atx", "atx_closed", "underlined"],
-    keep_inline_images_in: Iterable[str] | None,
-    newline_style: str,
     strip: Iterable[str] | None,
-    strong_em_symbol: str,
-    sub_symbol: str,
-    sup_symbol: str,
-    wrap: bool,
-    wrap_width: int,
 ) -> str:
-    if converters_map is None:
-        converters_map = create_converters_map(
-            autolinks=autolinks,
-            bullets=bullets,
-            code_language=code_language,
-            code_language_callback=code_language_callback,
-            default_title=default_title,
-            heading_style=heading_style,
-            keep_inline_images_in=keep_inline_images_in,
-            newline_style=newline_style,
-            strong_em_symbol=strong_em_symbol,
-            sub_symbol=sub_symbol,
-            sup_symbol=sup_symbol,
-            wrap=wrap,
-            wrap_width=wrap_width,
-        )
-
     text = ""
     is_heading = html_heading_re.match(tag.name) is not None
     is_cell = tag.name in {"td", "th"}
@@ -141,27 +111,14 @@ def _process_tag(
             )
         elif isinstance(el, Tag):
             text += _process_tag(
-                tag=el,
+                el,
+                converters_map,
                 convert_as_inline=convert_children_as_inline,
-                strip=strip,
                 convert=convert,
-                escape_misc=escape_misc,
                 escape_asterisks=escape_asterisks,
+                escape_misc=escape_misc,
                 escape_underscores=escape_underscores,
-                converters_map=converters_map,
-                autolinks=autolinks,
-                bullets=bullets,
-                code_language=code_language,
-                code_language_callback=code_language_callback,
-                default_title=default_title,
-                heading_style=heading_style,
-                keep_inline_images_in=keep_inline_images_in,
-                newline_style=newline_style,
-                strong_em_symbol=strong_em_symbol,
-                sub_symbol=sub_symbol,
-                sup_symbol=sup_symbol,
-                wrap=wrap,
-                wrap_width=wrap_width,
+                strip=strip,
             )
 
     tag_name: SupportedTag | None = cast(SupportedTag, tag.name.lower()) if tag.name.lower() in converters_map else None
@@ -218,9 +175,8 @@ def _should_convert_tag(*, tag_name: str, strip: Iterable[str] | None, convert: 
 
 
 def convert_to_markdown(
-    html: str,
+    source: str | BeautifulSoup,
     *,
-    soup: BeautifulSoup | None = None,
     autolinks: bool = True,
     bullets: str = "*+-",
     code_language: str = "",
@@ -244,55 +200,58 @@ def convert_to_markdown(
     """Convert HTML to Markdown.
 
     Args:
-        html: The HTML to convert.
-        soup: The BeautifulSoup object to convert.
-        autolinks: Whether to convert links to Markdown.
-        bullets: The bullet characters to use for unordered lists.
-        code_language: The default code language to use.
-        code_language_callback: A callback function to determine the code language.
-        convert: The HTML elements to convert.
-        default_title: Whether to use the default title.
-        escape_asterisks: Whether to escape asterisks.
-        escape_misc: Whether to escape miscellaneous characters.
-        escape_underscores: Whether to escape underscores.
-        heading_style: The style to use for headings.
-        keep_inline_images_in: The tags to keep inline images in.
-        newline_style: The style to use for newlines.
-        strip: The HTML elements to strip.
-        strong_em_symbol: The symbol to use for strong and emphasis.
-        sub_symbol: The symbol to use for subscript.
-        sup_symbol: The symbol to use for superscript.
-        wrap: Whether to wrap text.
-        wrap_width: The width to wrap text at.
-        convert_as_inline: Whether to convert elements as inline.
+        source: An HTML document or a an initialized instance of BeautifulSoup.
+        autolinks: Automatically convert valid URLs into Markdown links. Defaults to True.
+        bullets: A string of characters to use for bullet points in lists. Defaults to '*+-'.
+        code_language: Default language identifier for fenced code blocks. Defaults to an empty string.
+        code_language_callback: Function to dynamically determine the language for code blocks.
+        convert: A list of tag names to convert to Markdown. If None, all supported tags are converted.
+        default_title: Use the default title when converting certain elements (e.g., links). Defaults to False.
+        escape_asterisks: Escape asterisks (*) to prevent unintended Markdown formatting. Defaults to True.
+        escape_misc: Escape miscellaneous characters to prevent conflicts in Markdown. Defaults to True.
+        escape_underscores: Escape underscores (_) to prevent unintended italic formatting. Defaults to True.
+        heading_style: The style to use for Markdown headings. Defaults to "underlined".
+        keep_inline_images_in: Tags in which inline images should be preserved. Defaults to None.
+        newline_style: Style for handling newlines in text content. Defaults to "spaces".
+        strip: Tags to strip from the output. Defaults to None.
+        strong_em_symbol: Symbol to use for strong/emphasized text. Defaults to "*".
+        sub_symbol: Custom symbol for subscript text. Defaults to an empty string.
+        sup_symbol: Custom symbol for superscript text. Defaults to an empty string.
+        wrap: Wrap text to the specified width. Defaults to False.
+        wrap_width: The number of characters at which to wrap text. Defaults to 80.
+        convert_as_inline: Treat the content as inline elements (no block elements like paragraphs). Defaults to False.
 
     Returns:
-        The Markdown.
+        str: A string of Markdown-formatted text converted from the given HTML.
     """
-    if soup is None:
+    if isinstance(source, str):
         from bs4 import BeautifulSoup
 
-        soup = BeautifulSoup(html, "html.parser")
+        source = BeautifulSoup(source, "html.parser")
 
-    return _process_tag(
+    converters_map = create_converters_map(
         autolinks=autolinks,
         bullets=bullets,
         code_language=code_language,
         code_language_callback=code_language_callback,
-        convert=convert,
-        convert_as_inline=convert_as_inline,
         default_title=default_title,
-        escape_asterisks=escape_asterisks,
-        escape_misc=escape_misc,
-        escape_underscores=escape_underscores,
         heading_style=heading_style,
         keep_inline_images_in=keep_inline_images_in,
         newline_style=newline_style,
-        strip=strip,
         strong_em_symbol=strong_em_symbol,
         sub_symbol=sub_symbol,
         sup_symbol=sup_symbol,
-        tag=soup,
         wrap=wrap,
         wrap_width=wrap_width,
+    )
+
+    return _process_tag(
+        source,
+        converters_map,
+        convert=convert,
+        convert_as_inline=convert_as_inline,
+        escape_asterisks=escape_asterisks,
+        escape_misc=escape_misc,
+        escape_underscores=escape_underscores,
+        strip=strip,
     )

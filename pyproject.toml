@@ -1,6 +1,6 @@
 [project]
 name = "html-to-markdown"
-version = "1.0.0"
+version = "1.1.0"
 description = "Convert HTML to markdown"
 authors = [{ name = "Na'aman Hirschfeld", email = "nhirschfeld@gmail.com" }]
 requires-python = ">=3.9"
@@ -95,7 +95,7 @@ lint.ignore = [
 src = ["html_to_markdown", "tests"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**/*.*" = ["S", "D", "PT006", "PT013", "PD"]
+"tests/**/*.*" = ["S", "D", "PT006", "PT013", "PD", "ARG"]
 
 [tool.ruff.format]
 docstring-code-format = true
