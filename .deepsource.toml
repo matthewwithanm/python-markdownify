@@ -1,7 +1,11 @@
 version = 1
 
-[[analyzers]]
-name = "python"
+test_patterns = ["tests/*.py"]
+exclude_patterns = [".venv", ".git", ".github", ".vscode", ".idea", "dist"]
 
-  [analyzers.meta]
-  runtime_version = "3.x.x"
+  [[analyzers]]
+name = "python"
+dependency_file_paths = ["pyproject.toml"]
+
+[analyzers.meta]
+runtime_version = "3.x.x"
