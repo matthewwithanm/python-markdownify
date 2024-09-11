@@ -1,7 +1,53 @@
-from markdownify import markdownify as md
+import pytest
 
 
-table = """<table>
+@pytest.fixture
+def nested_uls() -> str:
+    return """
+    <ul>
+        <li>1
+            <ul>
+                <li>a
+                    <ul>
+                        <li>I</li>
+                        <li>II</li>
+                        <li>III</li>
+                    </ul>
+                </li>
+                <li>b</li>
+                <li>c</li>
+            </ul>
+        </li>
+        <li>2</li>
+        <li>3</li>
+    </ul>"""
+
+
+@pytest.fixture
+def nested_ols() -> str:
+    return """
+    <ol>
+        <li>1
+            <ol>
+                <li>a
+                    <ol>
+                        <li>I</li>
+                        <li>II</li>
+                        <li>III</li>
+                    </ol>
+                </li>
+                <li>b</li>
+                <li>c</li>
+            </ol>
+        </li>
+        <li>2</li>
+        <li>3</li>
+    </ul>"""
+
+
+@pytest.fixture
+def table() -> str:
+    return """<table>
     <tr>
         <th>Firstname</th>
         <th>Lastname</th>
@@ -20,7 +66,9 @@ table = """<table>
 </table>"""
 
 
-table_with_html_content = """<table>
+@pytest.fixture
+def table_with_html_content() -> str:
+    return """<table>
     <tr>
         <th>Firstname</th>
         <th>Lastname</th>
@@ -39,7 +87,9 @@ table_with_html_content = """<table>
 </table>"""
 
 
-table_with_paragraphs = """<table>
+@pytest.fixture
+def table_with_paragraphs() -> str:
+    return """<table>
     <tr>
         <th>Firstname</th>
         <th><p>Lastname</p></th>
@@ -57,7 +107,10 @@ table_with_paragraphs = """<table>
     </tr>
 </table>"""
 
-table_with_linebreaks = """<table>
+
+@pytest.fixture
+def table_with_linebreaks() -> str:
+    return """<table>
     <tr>
         <th>Firstname</th>
         <th>Lastname</th>
@@ -78,7 +131,9 @@ table_with_linebreaks = """<table>
 </table>"""
 
 
-table_with_header_column = """<table>
+@pytest.fixture
+def table_with_header_column() -> str:
+    return """<table>
     <tr>
         <th>Firstname</th>
         <th>Lastname</th>
@@ -97,7 +152,9 @@ table_with_header_column = """<table>
 </table>"""
 
 
-table_head_body = """<table>
+@pytest.fixture
+def table_head_body() -> str:
+    return """<table>
     <thead>
         <tr>
             <th>Firstname</th>
@@ -119,7 +176,10 @@ table_head_body = """<table>
     </tbody>
 </table>"""
 
-table_head_body_missing_head = """<table>
+
+@pytest.fixture
+def table_head_body_missing_head() -> str:
+    return """<table>
     <thead>
         <tr>
             <td>Firstname</td>
@@ -141,7 +201,10 @@ table_head_body_missing_head = """<table>
     </tbody>
 </table>"""
 
-table_missing_text = """<table>
+
+@pytest.fixture
+def table_missing_text() -> str:
+    return """<table>
     <thead>
         <tr>
             <th></th>
@@ -163,7 +226,10 @@ table_missing_text = """<table>
     </tbody>
 </table>"""
 
-table_missing_head = """<table>
+
+@pytest.fixture
+def table_missing_head() -> str:
+    return """<table>
     <tr>
         <td>Firstname</td>
         <td>Lastname</td>
@@ -181,7 +247,10 @@ table_missing_head = """<table>
     </tr>
 </table>"""
 
-table_body = """<table>
+
+@pytest.fixture
+def table_body() -> str:
+    return """<table>
     <tbody>
         <tr>
             <td>Firstname</td>
@@ -201,7 +270,10 @@ table_body = """<table>
     </tbody>
 </table>"""
 
-table_with_caption = """TEXT<table><caption>Caption</caption>
+
+@pytest.fixture
+def table_with_caption() -> str:
+    return """TEXT<table><caption>Caption</caption>
     <tbody><tr><td>Firstname</td>
             <td>Lastname</td>
             <td>Age</td>
@@ -209,7 +281,10 @@ table_with_caption = """TEXT<table><caption>Caption</caption>
     </tbody>
 </table>"""
 
-table_with_colspan = """<table>
+
+@pytest.fixture
+def table_with_colspan() -> str:
+    return """<table>
     <tr>
         <th colspan="2">Name</th>
         <th>Age</th>
@@ -226,7 +301,10 @@ table_with_colspan = """<table>
     </tr>
 </table>"""
 
-table_with_undefined_colspan = """<table>
+
+@pytest.fixture
+def table_with_undefined_colspan() -> str:
+    return """<table>
     <tr>
         <th colspan="undefined">Name</th>
         <th>Age</th>
@@ -236,19 +314,3 @@ table_with_undefined_colspan = """<table>
         <td>Smith</td>
     </tr>
 </table>"""
-
-
-def test_table():
-    assert md(table) == '\n\n| Firstname | Lastname | Age |\n| --- | --- | --- |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |\n\n'
-    assert md(table_with_html_content) == '\n\n| Firstname | Lastname | Age |\n| --- | --- | --- |\n| **Jill** | *Smith* | [50](#) |\n| Eve | Jackson | 94 |\n\n'
-    assert md(table_with_paragraphs) == '\n\n| Firstname | Lastname | Age |\n| --- | --- | --- |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |\n\n'
-    assert md(table_with_linebreaks) == '\n\n| Firstname | Lastname | Age |\n| --- | --- | --- |\n| Jill | Smith  Jackson | 50 |\n| Eve | Jackson  Smith | 94 |\n\n'
-    assert md(table_with_header_column) == '\n\n| Firstname | Lastname | Age |\n| --- | --- | --- |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |\n\n'
-    assert md(table_head_body) == '\n\n| Firstname | Lastname | Age |\n| --- | --- | --- |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |\n\n'
-    assert md(table_head_body_missing_head) == '\n\n| Firstname | Lastname | Age |\n| --- | --- | --- |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |\n\n'
-    assert md(table_missing_text) == '\n\n|  | Lastname | Age |\n| --- | --- | --- |\n| Jill |  | 50 |\n| Eve | Jackson | 94 |\n\n'
-    assert md(table_missing_head) == '\n\n| Firstname | Lastname | Age |\n| --- | --- | --- |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |\n\n'
-    assert md(table_body) == '\n\n| Firstname | Lastname | Age |\n| --- | --- | --- |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |\n\n'
-    assert md(table_with_caption) == 'TEXT\n\nCaption\n| Firstname | Lastname | Age |\n| --- | --- | --- |\n\n'
-    assert md(table_with_colspan) == '\n\n| Name | | Age |\n| --- | --- | --- |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |\n\n'
-    assert md(table_with_undefined_colspan) == '\n\n| Name | Age |\n| --- | --- |\n| Jill | Smith |\n\n'
