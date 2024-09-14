@@ -208,7 +208,7 @@ class MarkdownConverter(object):
         if not text:
             return ''
         if self.options['escape_misc']:
-            text = re.sub(r'([\\&<`[>~#=+|-])', r'\\\1', text)
+            text = re.sub(r'([\\&<`[\]>~#=+|-])', r'\\\1', text)
             text = re.sub(r'([0-9])([.)])', r'\1\\\2', text)
         if self.options['escape_asterisks']:
             text = text.replace('*', r'\*')
