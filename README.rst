@@ -87,7 +87,11 @@ strong_em_symbol
 sub_symbol, sup_symbol
   Define the chars that surround ``<sub>`` and ``<sup>`` text. Defaults to an
   empty string, because this is non-standard behavior. Could be something like
-  ``~`` and ``^`` to result in ``~sub~`` and ``^sup^``.
+  ``~`` and ``^`` to result in ``~sub~`` and ``^sup^``.  If the value starts
+  with ``<`` and ends with ``>``, it is treated as an HTML tag and a ``/`` is
+  inserted after the ``<`` in the string used after the text; this allows
+  specifying ``<sub>`` to use raw HTML in the output for subscripts, for
+  example.
 
 newline_style
   Defines the style of marking linebreaks (``<br>``) in markdown. The default
