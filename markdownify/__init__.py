@@ -208,8 +208,20 @@ class MarkdownConverter(object):
         if not text:
             return ''
         if self.options['escape_misc']:
-            text = re.sub(r'([\\&<`[>~#=+|-])', r'\\\1', text)
-            text = re.sub(r'([0-9])([.)])', r'\1\\\2', text)
+            text = re.sub(r'([\\&<`[>~=+|])', r'\\\1', text)
+            # A sequence of one or more consecutive '-', preceded and
+            # followed by whitespace or start/end of fragment, might
+            # be confused with an underline of a header, or with a
+            # list marker.
+            text = re.sub(r'(\s|^)(-+(?:\s|$))', r'\1\\\2', text)
+            # A sequence of up to six consecutive '#', preceded and
+            # followed by whitespace or start/end of fragment, might
+            # be confused with an ATX heading.
+            text = re.sub(r'(\s|^)(#{1,6}(?:\s|$))', r'\1\\\2', text)
+            # '.' or ')' preceded by up to nine digits might be
+            # confused with a list item.
+            text = re.sub(r'((?:\s|^)[0-9]{1,9})([.)](?:\s|$))', r'\1\\\2',
+                          text)
         if self.options['escape_asterisks']:
             text = text.replace('*', r'\*')
         if self.options['escape_underscores']:
