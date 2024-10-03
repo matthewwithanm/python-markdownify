@@ -47,10 +47,11 @@ def test_ol():
     assert md('<ol start="-1"><li>a</li><li>b</li></ol>') == '\n\n1. a\n2. b\n'
     assert md('<ol start="foo"><li>a</li><li>b</li></ol>') == '\n\n1. a\n2. b\n'
     assert md('<ol start="1.5"><li>a</li><li>b</li></ol>') == '\n\n1. a\n2. b\n'
+    assert md('<ol start="1234"><li><p>first para</p><p>second para</p></li><li><p>third para</p><p>fourth para</p></li></ol>') == '\n\n1234. first para\n      \n      second para\n1235. third para\n      \n      fourth para\n'
 
 
 def test_nested_ols():
-    assert md(nested_ols) == '\n\n1. 1\n\t1. a\n\t\t1. I\n\t\t2. II\n\t\t3. III\n\t2. b\n\t3. c\n2. 2\n3. 3\n'
+    assert md(nested_ols) == '\n\n1. 1\n   1. a\n      1. I\n      2. II\n      3. III\n   2. b\n   3. c\n2. 2\n3. 3\n'
 
 
 def test_ul():
@@ -63,6 +64,7 @@ def test_ul():
      <li>   c
      </li>
  </ul>""") == '\n\n* a\n* b\n* c\n'
+    assert md('<ul><li><p>first para</p><p>second para</p></li><li><p>third para</p><p>fourth para</p></li></ul>') == '\n\n* first para\n  \n  second para\n* third para\n  \n  fourth para\n'
 
 
 def test_inline_ul():
@@ -75,11 +77,11 @@ def test_nested_uls():
     Nested ULs should alternate bullet characters.
 
     """
-    assert md(nested_uls) == '\n\n* 1\n\t+ a\n\t\t- I\n\t\t- II\n\t\t- III\n\t+ b\n\t+ c\n* 2\n* 3\n'
+    assert md(nested_uls) == '\n\n* 1\n  + a\n    - I\n    - II\n    - III\n  + b\n  + c\n* 2\n* 3\n'
 
 
 def test_bullets():
-    assert md(nested_uls, bullets='-') == '\n\n- 1\n\t- a\n\t\t- I\n\t\t- II\n\t\t- III\n\t- b\n\t- c\n- 2\n- 3\n'
+    assert md(nested_uls, bullets='-') == '\n\n- 1\n  - a\n    - I\n    - II\n    - III\n  - b\n  - c\n- 2\n- 3\n'
 
 
 def test_li_text():
