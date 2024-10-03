@@ -244,8 +244,8 @@ class MarkdownConverter(object):
             text = text.replace('_', r'\_')
         return text
 
-    def indent(self, text, level):
-        return line_beginning_re.sub('\t' * level, text) if text else ''
+    def indent(self, text, columns):
+        return line_beginning_re.sub(' ' * columns, text) if text else ''
 
     def underline(self, text, pad_char):
         text = (text or '').rstrip()
@@ -346,7 +346,7 @@ class MarkdownConverter(object):
             el = el.parent
         if nested:
             # remove trailing newline if nested
-            return '\n' + self.indent(text, 1).rstrip()
+            return '\n' + text.rstrip()
         return '\n\n' + text + ('\n' if before_paragraph else '')
 
     convert_ul = convert_list
@@ -368,7 +368,12 @@ class MarkdownConverter(object):
                 el = el.parent
             bullets = self.options['bullets']
             bullet = bullets[depth % len(bullets)]
-        return '%s %s\n' % (bullet, (text or '').strip())
+        bullet = bullet + ' '
+        text = (text or '').strip()
+        text = self.indent(text, len(bullet))
+        if text:
+            text = bullet + text[len(bullet):]
+        return '%s\n' % text
 
     def convert_p(self, el, text, convert_as_inline):
         if convert_as_inline:
