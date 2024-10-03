@@ -7,7 +7,8 @@ import six
 convert_heading_re = re.compile(r'convert_h(\d+)')
 line_beginning_re = re.compile(r'^', re.MULTILINE)
 whitespace_re = re.compile(r'[\t ]+')
-all_whitespace_re = re.compile(r'[\s]+')
+all_whitespace_re = re.compile(r'[\t \r\n]+')
+newline_whitespace_re = re.compile(r'[\t \r\n]*[\r\n][\t \r\n]*')
 html_heading_re = re.compile(r'h[1-6]')
 
 
@@ -168,7 +169,11 @@ class MarkdownConverter(object):
 
         # normalize whitespace if we're not inside a preformatted element
         if not el.find_parent('pre'):
-            text = whitespace_re.sub(' ', text)
+            if self.options['wrap']:
+                text = all_whitespace_re.sub(' ', text)
+            else:
+                text = newline_whitespace_re.sub('\n', text)
+                text = whitespace_re.sub(' ', text)
 
         # escape special characters if we're not inside a preformatted or code element
         if not el.find_parent(['pre', 'code', 'kbd', 'samp']):
@@ -286,6 +291,7 @@ class MarkdownConverter(object):
         if style == UNDERLINED and n <= 2:
             line = '=' if n == 1 else '-'
             return self.underline(text, line)
+        text = all_whitespace_re.sub(' ', text)
         hashes = '#' * n
         if style == ATX_CLOSED:
             return '\n%s %s %s\n\n' % (hashes, text, hashes)
@@ -351,10 +357,21 @@ class MarkdownConverter(object):
         if convert_as_inline:
             return text
         if self.options['wrap']:
-            text = fill(text,
-                        width=self.options['wrap_width'],
-                        break_long_words=False,
-                        break_on_hyphens=False)
+            # Preserve newlines (and preceding whitespace) resulting
+            # from <br> tags.  Newlines in the input have already been
+            # replaced by spaces.
+            lines = text.split('\n')
+            new_lines = []
+            for line in lines:
+                line = line.lstrip()
+                line_no_trailing = line.rstrip()
+                trailing = line[len(line_no_trailing):]
+                line = fill(line,
+                            width=self.options['wrap_width'],
+                            break_long_words=False,
+                            break_on_hyphens=False)
+                new_lines.append(line + trailing)
+            text = '\n'.join(new_lines)
         return '\n\n%s\n\n' % text if text else ''
 
     def convert_pre(self, el, text, convert_as_inline):
