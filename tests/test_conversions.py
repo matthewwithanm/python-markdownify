@@ -1,4 +1,4 @@
-from markdownify import markdownify as md, ATX, ATX_CLOSED, BACKSLASH, UNDERSCORE
+from markdownify import markdownify as md, ATX, ATX_CLOSED, BACKSLASH, SPACES, UNDERSCORE
 
 
 def inline_tests(tag, markup):
@@ -113,6 +113,7 @@ def test_em():
 
 def test_header_with_space():
     assert md('<h3>\n\nHello</h3>') == '\n### Hello\n\n'
+    assert md('<h3>Hello\n\n\nWorld</h3>') == '\n### Hello World\n\n'
     assert md('<h4>\n\nHello</h4>') == '\n#### Hello\n\n'
     assert md('<h5>\n\nHello</h5>') == '\n##### Hello\n\n'
     assert md('<h5>\n\nHello\n\n</h5>') == '\n##### Hello\n\n'
@@ -174,7 +175,7 @@ def test_hn_nested_img():
         ("alt='Alt Text' title='Optional title'", "Alt Text", " \"Optional title\""),
     ]
     for image_attributes, markdown, title in image_attributes_to_markdown:
-        assert md('<h3>A <img src="/path/to/img.jpg" ' + image_attributes + '/> B</h3>') == '\n### A ' + markdown + ' B\n\n'
+        assert md('<h3>A <img src="/path/to/img.jpg" ' + image_attributes + '/> B</h3>') == '\n### A' + (' ' + markdown + ' ' if markdown else ' ') + 'B\n\n'
         assert md('<h3>A <img src="/path/to/img.jpg" ' + image_attributes + '/> B</h3>', keep_inline_images_in=['h3']) == '\n### A ![' + markdown + '](/path/to/img.jpg' + title + ') B\n\n'
 
 
@@ -214,10 +215,20 @@ def test_kbd():
 def test_p():
     assert md('<p>hello</p>') == '\n\nhello\n\n'
     assert md('<p>123456789 123456789</p>') == '\n\n123456789 123456789\n\n'
+    assert md('<p>123456789\n\n\n123456789</p>') == '\n\n123456789\n123456789\n\n'
+    assert md('<p>123456789\n\n\n123456789</p>', wrap=True, wrap_width=80) == '\n\n123456789 123456789\n\n'
     assert md('<p>123456789 123456789</p>', wrap=True, wrap_width=10) == '\n\n123456789\n123456789\n\n'
     assert md('<p><a href="https://example.com">Some long link</a></p>', wrap=True, wrap_width=10) == '\n\n[Some long\nlink](https://example.com)\n\n'
     assert md('<p>12345<br />67890</p>', wrap=True, wrap_width=10, newline_style=BACKSLASH) == '\n\n12345\\\n67890\n\n'
+    assert md('<p>12345<br />67890</p>', wrap=True, wrap_width=50, newline_style=BACKSLASH) == '\n\n12345\\\n67890\n\n'
+    assert md('<p>12345<br />67890</p>', wrap=True, wrap_width=10, newline_style=SPACES) == '\n\n12345  \n67890\n\n'
+    assert md('<p>12345<br />67890</p>', wrap=True, wrap_width=50, newline_style=SPACES) == '\n\n12345  \n67890\n\n'
     assert md('<p>12345678901<br />12345</p>', wrap=True, wrap_width=10, newline_style=BACKSLASH) == '\n\n12345678901\\\n12345\n\n'
+    assert md('<p>12345678901<br />12345</p>', wrap=True, wrap_width=50, newline_style=BACKSLASH) == '\n\n12345678901\\\n12345\n\n'
+    assert md('<p>12345678901<br />12345</p>', wrap=True, wrap_width=10, newline_style=SPACES) == '\n\n12345678901  \n12345\n\n'
+    assert md('<p>12345678901<br />12345</p>', wrap=True, wrap_width=50, newline_style=SPACES) == '\n\n12345678901  \n12345\n\n'
+    assert md('<p>1234 5678 9012<br />67890</p>', wrap=True, wrap_width=10, newline_style=BACKSLASH) == '\n\n1234 5678\n9012\\\n67890\n\n'
+    assert md('<p>1234 5678 9012<br />67890</p>', wrap=True, wrap_width=10, newline_style=SPACES) == '\n\n1234 5678\n9012  \n67890\n\n'
     assert md('First<p>Second</p><p>Third</p>Fourth') == 'First\n\nSecond\n\nThird\n\nFourth'
 
 
