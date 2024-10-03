@@ -66,7 +66,7 @@ def test_blockquote_with_paragraph():
 
 def test_blockquote_nested():
     text = md('<blockquote>And she was like <blockquote>Hello</blockquote></blockquote>')
-    assert text == '\n> And she was like \n> > Hello\n\n'
+    assert text == '\n> And she was like\n> > Hello\n\n'
 
 
 def test_br():
@@ -136,7 +136,7 @@ def test_hn():
 
 
 def test_hn_chained():
-    assert md('<h1>First</h1>\n<h2>Second</h2>\n<h3>Third</h3>', heading_style=ATX) == '\n# First\n\n\n## Second\n\n\n### Third\n\n'
+    assert md('<h1>First</h1>\n<h2>Second</h2>\n<h3>Third</h3>', heading_style=ATX) == '\n# First\n\n## Second\n\n### Third\n\n'
     assert md('X<h1>First</h1>', heading_style=ATX) == 'X\n# First\n\n'
     assert md('X<h1>First</h1>', heading_style=ATX_CLOSED) == 'X\n# First #\n\n'
     assert md('X<h1>First</h1>') == 'X\n\nFirst\n=====\n\n'
@@ -196,7 +196,7 @@ def test_head():
 def test_hr():
     assert md('Hello<hr>World') == 'Hello\n\n---\n\nWorld'
     assert md('Hello<hr />World') == 'Hello\n\n---\n\nWorld'
-    assert md('<p>Hello</p>\n<hr>\n<p>World</p>') == '\n\nHello\n\n\n---\n\n\nWorld\n\n'
+    assert md('<p>Hello</p>\n<hr>\n<p>World</p>') == '\n\nHello\n\n---\n\nWorld\n\n'
 
 
 def test_i():
@@ -303,3 +303,13 @@ def test_lang_callback():
     assert md('<pre class="python">test\n    foo\nbar</pre>', code_language_callback=callback) == '\n```python\ntest\n    foo\nbar\n```\n'
     assert md('<pre class="javascript"><code>test\n    foo\nbar</code></pre>', code_language_callback=callback) == '\n```javascript\ntest\n    foo\nbar\n```\n'
     assert md('<pre class="javascript"><code class="javascript">test\n    foo\nbar</code></pre>', code_language_callback=callback) == '\n```javascript\ntest\n    foo\nbar\n```\n'
+
+
+def test_spaces():
+    assert md('<p> a b </p> <p> c d </p>') == '\n\na b\n\nc d\n\n'
+    assert md('<p> <i>a</i> </p>') == '\n\n*a*\n\n'
+    assert md('test <p> again </p>') == 'test\n\nagain\n\n'
+    assert md('test <blockquote> text </blockquote> after') == 'test\n> text\n\nafter'
+    assert md(' <ol> <li> x </li> <li> y </li> </ol> ') == '\n\n1. x\n2. y\n'
+    assert md(' <ul> <li> x </li> <li> y </li> </ol> ') == '\n\n* x\n* y\n'
+    assert md('test <pre> foo </pre> bar') == 'test\n```\n foo \n```\nbar'
