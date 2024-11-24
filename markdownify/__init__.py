@@ -67,7 +67,7 @@ def _todict(obj):
     return dict((k, getattr(obj, k)) for k in dir(obj) if not k.startswith('_'))
 
 
-def remove_whitespace_inside(el):
+def should_remove_whitespace_inside(el):
     """Return to remove whitespace immediately inside a block-level element."""
     if not el or not el.name:
         return False
@@ -79,9 +79,9 @@ def remove_whitespace_inside(el):
                        'tr', 'td', 'th')
 
 
-def remove_whitespace_outside(el):
+def should_remove_whitespace_outside(el):
     """Return to remove whitespace immediately outside a block-level element."""
-    return remove_whitespace_inside(el) or (el and el.name == 'pre')
+    return should_remove_whitespace_inside(el) or (el and el.name == 'pre')
 
 
 class MarkdownConverter(object):
@@ -139,17 +139,17 @@ class MarkdownConverter(object):
 
         # Remove whitespace-only textnodes just before, after or
         # inside block-level elements.
-        remove_inside = remove_whitespace_inside(node)
+        should_remove_inside = should_remove_whitespace_inside(node)
         for el in node.children:
             # Only extract (remove) whitespace-only text node if any of the
             # conditions is true:
             # - el is the first element in its parent (block-level)
             # - el is the last element in its parent (block-level)
             # - el is adjacent to a block-level node
-            can_extract = (remove_inside and (not el.previous_sibling
-                                              or not el.next_sibling)
-                           or remove_whitespace_outside(el.previous_sibling)
-                           or remove_whitespace_outside(el.next_sibling))
+            can_extract = (should_remove_inside and (not el.previous_sibling
+                                                     or not el.next_sibling)
+                           or should_remove_whitespace_outside(el.previous_sibling)
+                           or should_remove_whitespace_outside(el.next_sibling))
             if (isinstance(el, NavigableString)
                     and six.text_type(el).strip() == ''
                     and can_extract):
@@ -195,12 +195,12 @@ class MarkdownConverter(object):
         # remove leading whitespace at the start or just after a
         # block-level element; remove traliing whitespace at the end
         # or just before a block-level element.
-        if (remove_whitespace_outside(el.previous_sibling)
-                or (remove_whitespace_inside(el.parent)
+        if (should_remove_whitespace_outside(el.previous_sibling)
+                or (should_remove_whitespace_inside(el.parent)
                     and not el.previous_sibling)):
             text = text.lstrip()
-        if (remove_whitespace_outside(el.next_sibling)
-                or (remove_whitespace_inside(el.parent)
+        if (should_remove_whitespace_outside(el.next_sibling)
+                or (should_remove_whitespace_inside(el.parent)
                     and not el.next_sibling)):
             text = text.rstrip()
 
