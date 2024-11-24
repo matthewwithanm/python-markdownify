@@ -315,6 +315,9 @@ class MarkdownConverter(object):
         if convert_as_inline:
             return text
 
+        # prevent MemoryErrors in case of very large n
+        n = max(1, min(6, n))
+
         style = self.options['heading_style'].lower()
         text = text.strip()
         if style == UNDERLINED and n <= 2:
