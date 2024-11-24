@@ -133,6 +133,8 @@ def test_hn():
     assert md('<h4>Hello</h4>') == '\n#### Hello\n\n'
     assert md('<h5>Hello</h5>') == '\n##### Hello\n\n'
     assert md('<h6>Hello</h6>') == '\n###### Hello\n\n'
+    assert md('<h10>Hello</h10>') == md('<h6>Hello</h6>')
+    assert md('<hn>Hello</hn>') == md('Hello')
 
 
 def test_hn_chained():

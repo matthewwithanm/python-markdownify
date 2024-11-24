@@ -213,7 +213,7 @@ class MarkdownConverter(object):
             n = int(m.group(1))
 
             def convert_tag(el, text, convert_as_inline):
-                return self.convert_hn(n, el, text, convert_as_inline)
+                return self._convert_hn(n, el, text, convert_as_inline)
 
             convert_tag.__name__ = 'convert_h%s' % n
             setattr(self, convert_tag.__name__, convert_tag)
@@ -311,9 +311,13 @@ class MarkdownConverter(object):
 
     convert_kbd = convert_code
 
-    def convert_hn(self, n, el, text, convert_as_inline):
+    def _convert_hn(self, n, el, text, convert_as_inline):
+        """ Method name prefixed with _ to prevent <hn> to call this """
         if convert_as_inline:
             return text
+
+        # prevent MemoryErrors in case of very large n
+        n = max(1, min(6, n))
 
         style = self.options['heading_style'].lower()
         text = text.strip()
