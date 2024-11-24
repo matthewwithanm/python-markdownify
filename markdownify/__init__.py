@@ -94,7 +94,7 @@ class MarkdownConverter(object):
         default_title = False
         escape_asterisks = True
         escape_underscores = True
-        escape_misc = True
+        escape_misc = False
         heading_style = UNDERLINED
         keep_inline_images_in = []
         newline_style = SPACES

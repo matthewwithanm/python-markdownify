@@ -128,9 +128,9 @@ escape_underscores
   Defaults to ``True``.
 
 escape_misc
-  If set to ``False``, do not escape miscellaneous punctuation characters
+  If set to ``True``, escape miscellaneous punctuation characters
   that sometimes have Markdown significance in text.
-  Defaults to ``True``.
+  Defaults to ``False``.
 
 keep_inline_images_in
   Images are converted to their alt-text when the images are located inside
