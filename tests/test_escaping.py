@@ -1,3 +1,5 @@
+import warnings
+from bs4 import MarkupResemblesLocatorWarning
 from markdownify import markdownify as md
 
 
@@ -29,6 +31,9 @@ def test_single_escaping_entities():
 
 
 def test_misc():
+    # ignore the bs4 warning that "1.2" or "*" looks like a filename
+    warnings.filterwarnings("ignore", category=MarkupResemblesLocatorWarning)
+
     assert md('\\*') == r'\\\*'
     assert md('&lt;foo>') == r'\<foo\>'
     assert md('# foo') == r'\# foo'
