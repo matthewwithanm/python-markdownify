@@ -102,6 +102,7 @@ class MarkdownConverter(object):
         strong_em_symbol = ASTERISK
         sub_symbol = ''
         sup_symbol = ''
+        table_header_fallback = True
         wrap = False
         wrap_width = 80
 
@@ -516,15 +517,21 @@ class MarkdownConverter(object):
 
     def convert_tr(self, el, text, convert_as_inline):
         cells = el.find_all(['td', 'th'])
-        is_headrow = (
-            all([cell.name == 'th' for cell in cells])
-            or (not el.previous_sibling and not el.parent.name == 'tbody')
+        is_headrow = all([cell.name == 'th' for cell in cells])
+        is_head_row_missing = (
+            (not el.previous_sibling and not el.parent.name == 'tbody')
             or (not el.previous_sibling and el.parent.name == 'tbody' and len(el.parent.parent.find_all(['thead'])) < 1)
         )
         overline = ''
         underline = ''
-        if is_headrow and not el.previous_sibling:
-            # first row and is headline: print headline underline
+        if ((is_headrow
+             or (is_head_row_missing
+                 and self.options['table_header_fallback']))
+                and not el.previous_sibling):
+            # first row and:
+            # - is headline or
+            # - headline is missing and fallback is enabled
+            # print headline underline
             full_colspan = 0
             for cell in cells:
                 if 'colspan' in cell.attrs and cell['colspan'].isdigit():
@@ -532,13 +539,16 @@ class MarkdownConverter(object):
                 else:
                     full_colspan += 1
             underline += '| ' + ' | '.join(['---'] * full_colspan) + ' |' + '\n'
-        elif (not el.previous_sibling
-              and (el.parent.name == 'table'
-                   or (el.parent.name == 'tbody'
-                       and not el.parent.previous_sibling))):
+        elif ((is_head_row_missing
+               and not self.options['table_header_fallback'])
+              or (not el.previous_sibling
+                  and (el.parent.name == 'table'
+                       or (el.parent.name == 'tbody'
+                           and not el.parent.previous_sibling)))):
+            # headline is missing and fallback is disabled or:
             # first row, not headline, and:
-            # - the parent is table or
-            # - the parent is tbody at the beginning of a table.
+            #   - the parent is table or
+            #   - the parent is tbody at the beginning of a table.
             # print empty headline above this row
             overline += '| ' + ' | '.join([''] * len(cells)) + ' |' + '\n'
             overline += '| ' + ' | '.join(['---'] * len(cells)) + ' |' + '\n'

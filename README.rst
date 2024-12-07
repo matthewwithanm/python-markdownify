@@ -139,6 +139,11 @@ keep_inline_images_in
   that should be allowed to contain inline images, for example ``['td']``.
   Defaults to an empty list.
 
+table_header_fallback
+  If set to ``False``, when a table header is missing, it will create an empty 
+  row as the header instead of using the first row of the table. 
+  Defaults to ``True``.
+
 wrap, wrap_width
   If ``wrap`` is set to ``True``, all text paragraphs are wrapped at
   ``wrap_width`` characters. Defaults to ``False`` and ``80``.
