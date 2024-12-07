@@ -283,8 +283,17 @@ def test_table():
 
 
 def test_no_table_header_fallback():
+    assert md(table, table_header_fallback=False) == '\n\n| Firstname | Lastname | Age |\n| --- | --- | --- |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |\n\n'
+    assert md(table_with_html_content, table_header_fallback=False) == '\n\n| Firstname | Lastname | Age |\n| --- | --- | --- |\n| **Jill** | *Smith* | [50](#) |\n| Eve | Jackson | 94 |\n\n'
+    assert md(table_with_paragraphs, table_header_fallback=False) == '\n\n| Firstname | Lastname | Age |\n| --- | --- | --- |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |\n\n'
+    assert md(table_with_linebreaks, table_header_fallback=False) == '\n\n| Firstname | Lastname | Age |\n| --- | --- | --- |\n| Jill | Smith Jackson | 50 |\n| Eve | Jackson Smith | 94 |\n\n'
+    assert md(table_with_header_column, table_header_fallback=False) == '\n\n| Firstname | Lastname | Age |\n| --- | --- | --- |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |\n\n'
     assert md(table_head_body, table_header_fallback=False) == '\n\n| Firstname | Lastname | Age |\n| --- | --- | --- |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |\n\n'
     assert md(table_head_body_multiple_head, table_header_fallback=False) == '\n\n|  |  |  |\n| --- | --- | --- |\n| Creator | Editor | Server |\n| Operator | Manager | Engineer |\n| Bob | Oliver | Tom |\n| Thomas | Lucas | Ethan |\n\n'
     assert md(table_head_body_missing_head, table_header_fallback=False) == '\n\n| Firstname | Lastname | Age |\n| --- | --- | --- |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |\n\n'
     assert md(table_missing_text, table_header_fallback=False) == '\n\n|  | Lastname | Age |\n| --- | --- | --- |\n| Jill |  | 50 |\n| Eve | Jackson | 94 |\n\n'
     assert md(table_missing_head, table_header_fallback=False) == '\n\n|  |  |  |\n| --- | --- | --- |\n| Firstname | Lastname | Age |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |\n\n'
+    assert md(table_body, table_header_fallback=False) == '\n\n|  |  |  |\n| --- | --- | --- |\n| Firstname | Lastname | Age |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |\n\n'
+    assert md(table_with_caption, table_header_fallback=False) == 'TEXT\n\nCaption\n|  |  |  |\n| --- | --- | --- |\n| Firstname | Lastname | Age |\n\n'
+    assert md(table_with_colspan, table_header_fallback=False) == '\n\n| Name | | Age |\n| --- | --- | --- |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |\n\n'
+    assert md(table_with_undefined_colspan, table_header_fallback=False) == '\n\n| Name | Age |\n| --- | --- |\n| Jill | Smith |\n\n'
