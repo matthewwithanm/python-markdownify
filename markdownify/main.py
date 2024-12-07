@@ -67,7 +67,7 @@ def main(argv=sys.argv[1:]):
                         "contain inline images.")
     parser.add_argument('--no-table-header-fallback', dest='table_header_fallback',
                         action='store_false',
-                        help="Create an empty row as the header if a table header is missing.")
+                        help="Create an empty row as the header if a table header (defined by '<thead>' or '<th>') is missing.")
     parser.add_argument('-w', '--wrap', action='store_true',
                         help="Wrap all text paragraphs at --wrap-width characters.")
     parser.add_argument('--wrap-width', type=int, default=80)

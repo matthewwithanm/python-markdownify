@@ -140,8 +140,8 @@ keep_inline_images_in
   Defaults to an empty list.
 
 table_header_fallback
-  If set to ``False``, when a table header is missing, it will create an empty 
-  row as the header instead of using the first row of the table. 
+  If set to ``False``, when a table header (defined by ``<thead>`` or ``<th>``) is missing, 
+  it will create an empty row as the header instead of using the first row of the table. 
   Defaults to ``True``.
 
 wrap, wrap_width

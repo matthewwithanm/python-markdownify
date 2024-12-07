@@ -517,7 +517,12 @@ class MarkdownConverter(object):
 
     def convert_tr(self, el, text, convert_as_inline):
         cells = el.find_all(['td', 'th'])
-        is_headrow = all([cell.name == 'th' for cell in cells])
+        is_headrow = (
+            all([cell.name == 'th' for cell in cells])
+            or (el.parent.name == 'thead'
+                # avoid multiple tr in thead
+                and len(el.parent.find_all('tr')) == 1)
+        )
         is_head_row_missing = (
             (not el.previous_sibling and not el.parent.name == 'tbody')
             or (not el.previous_sibling and el.parent.name == 'tbody' and len(el.parent.parent.find_all(['thead'])) < 1)
