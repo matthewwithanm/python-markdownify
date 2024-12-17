@@ -126,7 +126,7 @@ class MarkdownConverter(object):
         return self.process_tag(soup, convert_as_inline=False, children_only=True)
 
     def process_tag(self, node, convert_as_inline, children_only=False):
-        text = ''
+        text_parts = []
 
         # markdown headings or cells can't include
         # block elements (elements w/newlines)
@@ -140,19 +140,24 @@ class MarkdownConverter(object):
         # Remove whitespace-only textnodes just before, after or
         # inside block-level elements.
         should_remove_inside = should_remove_whitespace_inside(node)
-        for el in node.children:
-            # Only extract (remove) whitespace-only text node if any of the
-            # conditions is true:
-            # - el is the first element in its parent (block-level)
-            # - el is the last element in its parent (block-level)
-            # - el is adjacent to a block-level node
-            can_extract = (should_remove_inside and (not el.previous_sibling
-                                                     or not el.next_sibling)
-                           or should_remove_whitespace_outside(el.previous_sibling)
-                           or should_remove_whitespace_outside(el.next_sibling))
-            if (isinstance(el, NavigableString)
-                    and six.text_type(el).strip() == ''
-                    and can_extract):
+        children = list(node.children)
+        for i, el in enumerate(children):
+            # Quick type check first to avoid unnecessary function calls
+            if not isinstance(el, NavigableString):
+                continue
+
+            # Check if the text is entirely whitespace first
+            text = six.text_type(el)
+            if text.strip():
+                continue
+
+            # Determine if we can extract based on position and adjacency
+            can_extract = (
+                (should_remove_inside and (i == 0 or i == len(children) - 1)) or (i > 0 and should_remove_whitespace_outside(children[i - 1])) or (i < len(children) - 1 and should_remove_whitespace_outside(children[i + 1]))
+            )
+
+            # Extract if conditions are met
+            if can_extract:
                 el.extract()
 
         # Convert the children first
@@ -160,22 +165,32 @@ class MarkdownConverter(object):
             if isinstance(el, Comment) or isinstance(el, Doctype):
                 continue
             elif isinstance(el, NavigableString):
-                text += self.process_text(el)
+                text_parts.append(self.process_text(el))
             else:
-                text_strip = text.rstrip('\n')
-                newlines_left = len(text) - len(text_strip)
+                # Handle the case when text_parts is not empty
+                if text_parts:
+                    text_strip = text_parts[-1].rstrip('\n')
+                    newlines_left = len(text_parts[-1]) - len(text_strip)
+                else:
+                    text_strip = ''
+                    newlines_left = 0
+
                 next_text = self.process_tag(el, convert_children_as_inline)
                 next_text_strip = next_text.lstrip('\n')
                 newlines_right = len(next_text) - len(next_text_strip)
                 newlines = '\n' * max(newlines_left, newlines_right)
-                text = text_strip + newlines + next_text_strip
+                if text_parts:
+                    text_parts[-1] = text_strip
+                text_parts.append(newlines + next_text_strip)
 
         if not children_only:
             convert_fn = getattr(self, 'convert_%s' % node.name, None)
             if convert_fn and self.should_convert_tag(node.name):
-                text = convert_fn(node, text, convert_as_inline)
+                # Join the text parts before passing to convert_fn
+                text_parts_str = ''.join(text_parts)
+                text_parts = [convert_fn(node, text_parts_str, convert_as_inline)]
 
-        return text
+        return ''.join(text_parts)
 
     def process_text(self, el):
         text = six.text_type(el) or ''

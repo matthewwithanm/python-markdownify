@@ -10,3 +10,4 @@
 build/
 .vscode/settings.json
 .tox/
+.python-version
