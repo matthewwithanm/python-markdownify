@@ -171,6 +171,9 @@ class MarkdownConverter(object):
                 text = text_strip + newlines + next_text_strip
 
         if not children_only:
+            convert_all = getattr(self, 'convert_all', None)
+            if convert_all:
+                text = convert_all(node, text, convert_as_inline)
             convert_fn = getattr(self, 'convert_%s' % node.name, None)
             if convert_fn and self.should_convert_tag(node.name):
                 text = convert_fn(node, text, convert_as_inline)
