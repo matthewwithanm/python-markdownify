@@ -264,6 +264,8 @@ class MarkdownConverter(object):
         return '\n\n%s\n%s\n\n' % (text, pad_char * len(text)) if text else ''
 
     def convert_a(self, el, text, convert_as_inline):
+        if el.find_parent(['pre', 'code', 'kbd', 'samp']):
+            return text
         prefix, suffix, text = chomp(text)
         if not text:
             return ''
