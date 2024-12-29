@@ -219,6 +219,7 @@ def test_p():
     assert md('<p>123456789 123456789</p>') == '\n\n123456789 123456789\n\n'
     assert md('<p>123456789\n\n\n123456789</p>') == '\n\n123456789\n123456789\n\n'
     assert md('<p>123456789\n\n\n123456789</p>', wrap=True, wrap_width=80) == '\n\n123456789 123456789\n\n'
+    assert md('<p>123456789\n\n\n123456789</p>', wrap=True, wrap_width=None) == '\n\n123456789 123456789\n\n'
     assert md('<p>123456789 123456789</p>', wrap=True, wrap_width=10) == '\n\n123456789\n123456789\n\n'
     assert md('<p><a href="https://example.com">Some long link</a></p>', wrap=True, wrap_width=10) == '\n\n[Some long\nlink](https://example.com)\n\n'
     assert md('<p>12345<br />67890</p>', wrap=True, wrap_width=10, newline_style=BACKSLASH) == '\n\n12345\\\n67890\n\n'
