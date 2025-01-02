@@ -8,7 +8,8 @@ from urllib.parse import urlparse
 convert_heading_re = re.compile(r'convert_h(\d+)')
 line_beginning_re = re.compile(r'^', re.MULTILINE)
 whitespace_re = re.compile(r'[\t ]+')
-all_whitespace_re = re.compile(r'[\s]+')
+all_whitespace_re = re.compile(r'[\t \r\n]+')
+newline_whitespace_re = re.compile(r'[\t \r\n]*[\r\n][\t \r\n]*')
 html_heading_re = re.compile(r'h[1-6]')
 
 
@@ -67,6 +68,23 @@ def _todict(obj):
     return dict((k, getattr(obj, k)) for k in dir(obj) if not k.startswith('_'))
 
 
+def should_remove_whitespace_inside(el):
+    """Return to remove whitespace immediately inside a block-level element."""
+    if not el or not el.name:
+        return False
+    if html_heading_re.match(el.name) is not None:
+        return True
+    return el.name in ('p', 'blockquote',
+                       'ol', 'ul', 'li',
+                       'table', 'thead', 'tbody', 'tfoot',
+                       'tr', 'td', 'th')
+
+
+def should_remove_whitespace_outside(el):
+    """Return to remove whitespace immediately outside a block-level element."""
+    return should_remove_whitespace_inside(el) or (el and el.name == 'pre')
+
+
 class MarkdownConverter(object):
     class DefaultOptions:
         autolinks = True
@@ -77,7 +95,7 @@ class MarkdownConverter(object):
         default_title = False
         escape_asterisks = True
         escape_underscores = True
-        escape_misc = True
+        escape_misc = False
         heading_style = UNDERLINED
         keep_inline_images_in = []
         newline_style = SPACES
@@ -121,27 +139,23 @@ class MarkdownConverter(object):
         if not children_only and (isHeading or isCell):
             convert_children_as_inline = True
 
-        # Remove whitespace-only textnodes in purely nested nodes
-        def is_nested_node(el):
-            return el and el.name in ['ol', 'ul', 'li',
-                                      'table', 'thead', 'tbody', 'tfoot',
-                                      'tr', 'td', 'th']
-
-        if is_nested_node(node):
-            for el in node.children:
-                # Only extract (remove) whitespace-only text node if any of the
-                # conditions is true:
-                # - el is the first element in its parent
-                # - el is the last element in its parent
-                # - el is adjacent to an nested node
-                can_extract = (not el.previous_sibling
-                               or not el.next_sibling
-                               or is_nested_node(el.previous_sibling)
-                               or is_nested_node(el.next_sibling))
-                if (isinstance(el, NavigableString)
-                        and six.text_type(el).strip() == ''
-                        and can_extract):
-                    el.extract()
+        # Remove whitespace-only textnodes just before, after or
+        # inside block-level elements.
+        should_remove_inside = should_remove_whitespace_inside(node)
+        for el in node.children:
+            # Only extract (remove) whitespace-only text node if any of the
+            # conditions is true:
+            # - el is the first element in its parent (block-level)
+            # - el is the last element in its parent (block-level)
+            # - el is adjacent to a block-level node
+            can_extract = (should_remove_inside and (not el.previous_sibling
+                                                     or not el.next_sibling)
+                           or should_remove_whitespace_outside(el.previous_sibling)
+                           or should_remove_whitespace_outside(el.next_sibling))
+            if (isinstance(el, NavigableString)
+                    and six.text_type(el).strip() == ''
+                    and can_extract):
+                el.extract()
 
         # Convert the children first
         for el in node.children:
@@ -150,7 +164,13 @@ class MarkdownConverter(object):
             elif isinstance(el, NavigableString):
                 text += self.process_text(el)
             else:
-                text += self.process_tag(el, convert_children_as_inline)
+                text_strip = text.rstrip('\n')
+                newlines_left = len(text) - len(text_strip)
+                next_text = self.process_tag(el, convert_children_as_inline)
+                next_text_strip = next_text.lstrip('\n')
+                newlines_right = len(next_text) - len(next_text_strip)
+                newlines = '\n' * max(newlines_left, newlines_right)
+                text = text_strip + newlines + next_text_strip
 
         if not children_only:
             convert_fn = getattr(self, 'convert_%s' % node.name, None)
@@ -164,18 +184,26 @@ class MarkdownConverter(object):
 
         # normalize whitespace if we're not inside a preformatted element
         if not el.find_parent('pre'):
-            text = whitespace_re.sub(' ', text)
+            if self.options['wrap']:
+                text = all_whitespace_re.sub(' ', text)
+            else:
+                text = newline_whitespace_re.sub('\n', text)
+                text = whitespace_re.sub(' ', text)
 
         # escape special characters if we're not inside a preformatted or code element
         if not el.find_parent(['pre', 'code', 'kbd', 'samp']):
             text = self.escape(text)
 
-        # remove trailing whitespaces if any of the following condition is true:
-        # - current text node is the last node in li
-        # - current text node is followed by an embedded list
-        if (el.parent.name == 'li'
-                and (not el.next_sibling
-                     or el.next_sibling.name in ['ul', 'ol'])):
+        # remove leading whitespace at the start or just after a
+        # block-level element; remove traliing whitespace at the end
+        # or just before a block-level element.
+        if (should_remove_whitespace_outside(el.previous_sibling)
+                or (should_remove_whitespace_inside(el.parent)
+                    and not el.previous_sibling)):
+            text = text.lstrip()
+        if (should_remove_whitespace_outside(el.next_sibling)
+                or (should_remove_whitespace_inside(el.parent)
+                    and not el.next_sibling)):
             text = text.rstrip()
 
         return text
@@ -187,7 +215,7 @@ class MarkdownConverter(object):
             n = int(m.group(1))
 
             def convert_tag(el, text, convert_as_inline):
-                return self.convert_hn(n, el, text, convert_as_inline)
+                return self._convert_hn(n, el, text, convert_as_inline)
 
             convert_tag.__name__ = 'convert_h%s' % n
             setattr(self, convert_tag.__name__, convert_tag)
@@ -210,20 +238,32 @@ class MarkdownConverter(object):
         if not text:
             return ''
         if self.options['escape_misc']:
-            text = re.sub(r'([\\&<`[>~#=+|-])', r'\\\1', text)
-            text = re.sub(r'([0-9])([.)])', r'\1\\\2', text)
+            text = re.sub(r'([\\&<`[>~=+|])', r'\\\1', text)
+            # A sequence of one or more consecutive '-', preceded and
+            # followed by whitespace or start/end of fragment, might
+            # be confused with an underline of a header, or with a
+            # list marker.
+            text = re.sub(r'(\s|^)(-+(?:\s|$))', r'\1\\\2', text)
+            # A sequence of up to six consecutive '#', preceded and
+            # followed by whitespace or start/end of fragment, might
+            # be confused with an ATX heading.
+            text = re.sub(r'(\s|^)(#{1,6}(?:\s|$))', r'\1\\\2', text)
+            # '.' or ')' preceded by up to nine digits might be
+            # confused with a list item.
+            text = re.sub(r'((?:\s|^)[0-9]{1,9})([.)](?:\s|$))', r'\1\\\2',
+                          text)
         if self.options['escape_asterisks']:
             text = text.replace('*', r'\*')
         if self.options['escape_underscores']:
             text = text.replace('_', r'\_')
         return text
 
-    def indent(self, text, level):
-        return line_beginning_re.sub('\t' * level, text) if text else ''
+    def indent(self, text, columns):
+        return line_beginning_re.sub(' ' * columns, text) if text else ''
 
     def underline(self, text, pad_char):
         text = (text or '').rstrip()
-        return '%s\n%s\n\n' % (text, pad_char * len(text)) if text else ''
+        return '\n\n%s\n%s\n\n' % (text, pad_char * len(text)) if text else ''
 
     def convert_a(self, el, text, convert_as_inline):
         prefix, suffix, text = chomp(text)
@@ -248,7 +288,7 @@ class MarkdownConverter(object):
     def convert_blockquote(self, el, text, convert_as_inline):
 
         if convert_as_inline:
-            return text
+            return ' ' + text.strip() + ' '
 
         return '\n' + (line_beginning_re.sub('> ', text.strip()) + '\n\n') if text else ''
 
@@ -273,19 +313,24 @@ class MarkdownConverter(object):
 
     convert_kbd = convert_code
 
-    def convert_hn(self, n, el, text, convert_as_inline):
+    def _convert_hn(self, n, el, text, convert_as_inline):
+        """ Method name prefixed with _ to prevent <hn> to call this """
         if convert_as_inline:
             return text
+
+        # prevent MemoryErrors in case of very large n
+        n = max(1, min(6, n))
 
         style = self.options['heading_style'].lower()
         text = text.strip()
         if style == UNDERLINED and n <= 2:
             line = '=' if n == 1 else '-'
             return self.underline(text, line)
+        text = all_whitespace_re.sub(' ', text)
         hashes = '#' * n
         if style == ATX_CLOSED:
-            return '%s %s %s\n\n' % (hashes, text, hashes)
-        return '%s %s\n\n' % (hashes, text)
+            return '\n%s %s %s\n\n' % (hashes, text, hashes)
+        return '\n%s %s\n\n' % (hashes, text)
 
     def convert_hr(self, el, text, convert_as_inline):
         return '\n\n---\n\n'
@@ -329,8 +374,8 @@ class MarkdownConverter(object):
             el = el.parent
         if nested:
             # remove trailing newline if nested
-            return '\n' + self.indent(text, 1).rstrip()
-        return text + ('\n' if before_paragraph else '')
+            return '\n' + text.rstrip()
+        return '\n\n' + text + ('\n' if before_paragraph else '')
 
     convert_ul = convert_list
     convert_ol = convert_list
@@ -351,17 +396,33 @@ class MarkdownConverter(object):
                 el = el.parent
             bullets = self.options['bullets']
             bullet = bullets[depth % len(bullets)]
-        return '%s %s\n' % (bullet, (text or '').strip())
+        bullet = bullet + ' '
+        text = (text or '').strip()
+        text = self.indent(text, len(bullet))
+        if text:
+            text = bullet + text[len(bullet):]
+        return '%s\n' % text
 
     def convert_p(self, el, text, convert_as_inline):
         if convert_as_inline:
-            return text
+            return ' ' + text.strip() + ' '
         if self.options['wrap']:
-            text = fill(text,
-                        width=self.options['wrap_width'],
-                        break_long_words=False,
-                        break_on_hyphens=False)
-        return '%s\n\n' % text if text else ''
+            # Preserve newlines (and preceding whitespace) resulting
+            # from <br> tags.  Newlines in the input have already been
+            # replaced by spaces.
+            lines = text.split('\n')
+            new_lines = []
+            for line in lines:
+                line = line.lstrip()
+                line_no_trailing = line.rstrip()
+                trailing = line[len(line_no_trailing):]
+                line = fill(line,
+                            width=self.options['wrap_width'],
+                            break_long_words=False,
+                            break_on_hyphens=False)
+                new_lines.append(line + trailing)
+            text = '\n'.join(new_lines)
+        return '\n\n%s\n\n' % text if text else ''
 
     def convert_pre(self, el, text, convert_as_inline):
         if not text:
