@@ -140,9 +140,10 @@ keep_inline_images_in
   Defaults to an empty list.
 
 table_infer_header
-  If set to ``False``, when a table header (defined by ``<thead>`` or ``<th>``) is missing, 
-  it will create an empty row as the header instead of using the first row of the table. 
-  Defaults to ``True``.
+  If set to ``True``, when a table header (defined by ``<thead>`` or ``<th>``) is missing, 
+  it will use the first row of the body as the header.
+  Otherwise it will create an empty row as the header.
+  Defaults to ``False``. 
 
 wrap, wrap_width
   If ``wrap`` is set to ``True``, all text paragraphs are wrapped at

@@ -102,7 +102,7 @@ class MarkdownConverter(object):
         strong_em_symbol = ASTERISK
         sub_symbol = ''
         sup_symbol = ''
-        table_infer_header = True
+        table_infer_header = False
         wrap = False
         wrap_width = 80
 
