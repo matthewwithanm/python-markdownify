@@ -55,17 +55,13 @@ def main(argv=sys.argv[1:]):
     parser.add_argument('--no-escape-underscores', dest='escape_underscores',
                         action='store_false',
                         help="Do not escape '_' to '\\_' in text.")
-    parser.add_argument('--escape-misc', dest='escape_misc',
-                        action='store_true',
-                        help="Escape miscellaneous punctuation characters that sometimes "
-                        "have Markdown significance in text.")
     parser.add_argument('-i', '--keep-inline-images-in', nargs='*',
                         help="Images are converted to their alt-text when the images are "
                         "located inside headlines or table cells. If some inline images "
                         "should be converted to markdown images instead, this option can "
                         "be set to a list of parent tags that should be allowed to "
                         "contain inline images.")
-    parser.add_argument('--no-table-header-fallback', dest='table_header_fallback',
+    parser.add_argument('--no-table-infer-header', dest='table_infer_header',
                         action='store_false',
                         help="Create an empty row as the header if a table header (defined by '<thead>' or '<th>') is missing.")
     parser.add_argument('-w', '--wrap', action='store_true',

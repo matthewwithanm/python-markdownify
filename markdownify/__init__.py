@@ -102,7 +102,7 @@ class MarkdownConverter(object):
         strong_em_symbol = ASTERISK
         sub_symbol = ''
         sup_symbol = ''
-        table_header_fallback = True
+        table_infer_header = True
         wrap = False
         wrap_width = 80
 
@@ -531,11 +531,11 @@ class MarkdownConverter(object):
         underline = ''
         if ((is_headrow
              or (is_head_row_missing
-                 and self.options['table_header_fallback']))
+                 and self.options['table_infer_header']))
                 and not el.previous_sibling):
             # first row and:
             # - is headline or
-            # - headline is missing and fallback is enabled
+            # - headline is missing and header inference is enabled
             # print headline underline
             full_colspan = 0
             for cell in cells:
@@ -545,15 +545,15 @@ class MarkdownConverter(object):
                     full_colspan += 1
             underline += '| ' + ' | '.join(['---'] * full_colspan) + ' |' + '\n'
         elif ((is_head_row_missing
-               and not self.options['table_header_fallback'])
+               and not self.options['table_infer_header'])
               or (not el.previous_sibling
                   and (el.parent.name == 'table'
                        or (el.parent.name == 'tbody'
                            and not el.parent.previous_sibling)))):
-            # headline is missing and fallback is disabled or:
+            # headline is missing and header inference is disabled or:
             # first row, not headline, and:
-            #   - the parent is table or
-            #   - the parent is tbody at the beginning of a table.
+            #  - the parent is table or
+            #  - the parent is tbody at the beginning of a table.
             # print empty headline above this row
             overline += '| ' + ' | '.join([''] * len(cells)) + ' |' + '\n'
             overline += '| ' + ' | '.join(['---'] * len(cells)) + ' |' + '\n'

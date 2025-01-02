@@ -139,7 +139,7 @@ keep_inline_images_in
   that should be allowed to contain inline images, for example ``['td']``.
   Defaults to an empty list.
 
-table_header_fallback
+table_infer_header
   If set to ``False``, when a table header (defined by ``<thead>`` or ``<th>``) is missing, 
   it will create an empty row as the header instead of using the first row of the table. 
   Defaults to ``True``.
