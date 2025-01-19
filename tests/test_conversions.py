@@ -39,6 +39,11 @@ def test_a_no_autolinks():
     assert md('<a href="https://google.com">https://google.com</a>', autolinks=False) == '[https://google.com](https://google.com)'
 
 
+def test_a_in_code():
+    assert md('<code><a href="https://google.com">Google</a></code>') == '`Google`'
+    assert md('<pre><a href="https://google.com">Google</a></pre>') == '\n```\nGoogle\n```\n'
+
+
 def test_b():
     assert md('<b>Hello</b>') == '**Hello**'
 
