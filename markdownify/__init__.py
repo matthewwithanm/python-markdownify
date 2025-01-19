@@ -400,18 +400,19 @@ class MarkdownConverter(object):
             # Preserve newlines (and preceding whitespace) resulting
             # from <br> tags.  Newlines in the input have already been
             # replaced by spaces.
-            lines = text.split('\n')
-            new_lines = []
-            for line in lines:
-                line = line.lstrip()
-                line_no_trailing = line.rstrip()
-                trailing = line[len(line_no_trailing):]
-                line = fill(line,
-                            width=self.options['wrap_width'],
-                            break_long_words=False,
-                            break_on_hyphens=False)
-                new_lines.append(line + trailing)
-            text = '\n'.join(new_lines)
+            if self.options['wrap_width'] is not None:
+                lines = text.split('\n')
+                new_lines = []
+                for line in lines:
+                    line = line.lstrip()
+                    line_no_trailing = line.rstrip()
+                    trailing = line[len(line_no_trailing):]
+                    line = fill(line,
+                                width=self.options['wrap_width'],
+                                break_long_words=False,
+                                break_on_hyphens=False)
+                    new_lines.append(line + trailing)
+                text = '\n'.join(new_lines)
         return '\n\n%s\n\n' % text if text else ''
 
     def convert_pre(self, el, text, convert_as_inline):
