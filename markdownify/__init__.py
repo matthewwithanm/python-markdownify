@@ -172,7 +172,8 @@ class MarkdownConverter(object):
                 text = text_strip + newlines + next_text_strip
 
         if not children_only:
-            convert_fn = getattr(self, 'convert_%s' % node.name, None)
+            fn_name = 'convert_%s' % node.name.translate(''.maketrans(':-', '__'))
+            convert_fn = getattr(self, fn_name, None)
             if convert_fn and self.should_convert_tag(node.name):
                 text = convert_fn(node, text, convert_as_inline)
 
