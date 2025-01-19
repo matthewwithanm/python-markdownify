@@ -41,7 +41,7 @@ def test_a_no_autolinks():
 
 def test_a_in_code():
     assert md('<code><a href="https://google.com">Google</a></code>') == '`Google`'
-    assert md('<pre><a href="https://google.com">Google</a></pre>') == '\n```\nGoogle\n```\n'
+    assert md('<pre><a href="https://google.com">Google</a></pre>') == '\n\n```\nGoogle\n```\n\n'
 
 
 def test_b():
@@ -251,23 +251,27 @@ def test_p():
 
 
 def test_pre():
-    assert md('<pre>test\n    foo\nbar</pre>') == '\n```\ntest\n    foo\nbar\n```\n'
-    assert md('<pre><code>test\n    foo\nbar</code></pre>') == '\n```\ntest\n    foo\nbar\n```\n'
-    assert md('<pre>*this_should_not_escape*</pre>') == '\n```\n*this_should_not_escape*\n```\n'
-    assert md('<pre><span>*this_should_not_escape*</span></pre>') == '\n```\n*this_should_not_escape*\n```\n'
-    assert md('<pre>\t\tthis  should\t\tnot  normalize</pre>') == '\n```\n\t\tthis  should\t\tnot  normalize\n```\n'
-    assert md('<pre><span>\t\tthis  should\t\tnot  normalize</span></pre>') == '\n```\n\t\tthis  should\t\tnot  normalize\n```\n'
-    assert md('<pre>foo<b>\nbar\n</b>baz</pre>') == '\n```\nfoo\nbar\nbaz\n```\n'
-    assert md('<pre>foo<i>\nbar\n</i>baz</pre>') == '\n```\nfoo\nbar\nbaz\n```\n'
-    assert md('<pre>foo\n<i>bar</i>\nbaz</pre>') == '\n```\nfoo\nbar\nbaz\n```\n'
-    assert md('<pre>foo<i>\n</i>baz</pre>') == '\n```\nfoo\nbaz\n```\n'
-    assert md('<pre>foo<del>\nbar\n</del>baz</pre>') == '\n```\nfoo\nbar\nbaz\n```\n'
-    assert md('<pre>foo<em>\nbar\n</em>baz</pre>') == '\n```\nfoo\nbar\nbaz\n```\n'
-    assert md('<pre>foo<code>\nbar\n</code>baz</pre>') == '\n```\nfoo\nbar\nbaz\n```\n'
-    assert md('<pre>foo<strong>\nbar\n</strong>baz</pre>') == '\n```\nfoo\nbar\nbaz\n```\n'
-    assert md('<pre>foo<s>\nbar\n</s>baz</pre>') == '\n```\nfoo\nbar\nbaz\n```\n'
-    assert md('<pre>foo<sup>\nbar\n</sup>baz</pre>', sup_symbol='^') == '\n```\nfoo\nbar\nbaz\n```\n'
-    assert md('<pre>foo<sub>\nbar\n</sub>baz</pre>', sub_symbol='^') == '\n```\nfoo\nbar\nbaz\n```\n'
+    assert md('<pre>test\n    foo\nbar</pre>') == '\n\n```\ntest\n    foo\nbar\n```\n\n'
+    assert md('<pre><code>test\n    foo\nbar</code></pre>') == '\n\n```\ntest\n    foo\nbar\n```\n\n'
+    assert md('<pre>*this_should_not_escape*</pre>') == '\n\n```\n*this_should_not_escape*\n```\n\n'
+    assert md('<pre><span>*this_should_not_escape*</span></pre>') == '\n\n```\n*this_should_not_escape*\n```\n\n'
+    assert md('<pre>\t\tthis  should\t\tnot  normalize</pre>') == '\n\n```\n\t\tthis  should\t\tnot  normalize\n```\n\n'
+    assert md('<pre><span>\t\tthis  should\t\tnot  normalize</span></pre>') == '\n\n```\n\t\tthis  should\t\tnot  normalize\n```\n\n'
+    assert md('<pre>foo<b>\nbar\n</b>baz</pre>') == '\n\n```\nfoo\nbar\nbaz\n```\n\n'
+    assert md('<pre>foo<i>\nbar\n</i>baz</pre>') == '\n\n```\nfoo\nbar\nbaz\n```\n\n'
+    assert md('<pre>foo\n<i>bar</i>\nbaz</pre>') == '\n\n```\nfoo\nbar\nbaz\n```\n\n'
+    assert md('<pre>foo<i>\n</i>baz</pre>') == '\n\n```\nfoo\nbaz\n```\n\n'
+    assert md('<pre>foo<del>\nbar\n</del>baz</pre>') == '\n\n```\nfoo\nbar\nbaz\n```\n\n'
+    assert md('<pre>foo<em>\nbar\n</em>baz</pre>') == '\n\n```\nfoo\nbar\nbaz\n```\n\n'
+    assert md('<pre>foo<code>\nbar\n</code>baz</pre>') == '\n\n```\nfoo\nbar\nbaz\n```\n\n'
+    assert md('<pre>foo<strong>\nbar\n</strong>baz</pre>') == '\n\n```\nfoo\nbar\nbaz\n```\n\n'
+    assert md('<pre>foo<s>\nbar\n</s>baz</pre>') == '\n\n```\nfoo\nbar\nbaz\n```\n\n'
+    assert md('<pre>foo<sup>\nbar\n</sup>baz</pre>', sup_symbol='^') == '\n\n```\nfoo\nbar\nbaz\n```\n\n'
+    assert md('<pre>foo<sub>\nbar\n</sub>baz</pre>', sub_symbol='^') == '\n\n```\nfoo\nbar\nbaz\n```\n\n'
+    assert md('<pre>foo<sub>\nbar\n</sub>baz</pre>', sub_symbol='^') == '\n\n```\nfoo\nbar\nbaz\n```\n\n'
+
+    assert md('foo<pre>bar</pre>baz', sub_symbol='^') == 'foo\n\n```\nbar\n```\n\nbaz'
+    assert md("<p>foo</p>\n<pre>bar</pre>\n</p>baz</p>", sub_symbol="^") == "\n\nfoo\n\n```\nbar\n```\n\nbaz"
 
 
 def test_script():
@@ -310,17 +314,17 @@ def test_sup():
 
 
 def test_lang():
-    assert md('<pre>test\n    foo\nbar</pre>', code_language='python') == '\n```python\ntest\n    foo\nbar\n```\n'
-    assert md('<pre><code>test\n    foo\nbar</code></pre>', code_language='javascript') == '\n```javascript\ntest\n    foo\nbar\n```\n'
+    assert md('<pre>test\n    foo\nbar</pre>', code_language='python') == '\n\n```python\ntest\n    foo\nbar\n```\n\n'
+    assert md('<pre><code>test\n    foo\nbar</code></pre>', code_language='javascript') == '\n\n```javascript\ntest\n    foo\nbar\n```\n\n'
 
 
 def test_lang_callback():
     def callback(el):
         return el['class'][0] if el.has_attr('class') else None
 
-    assert md('<pre class="python">test\n    foo\nbar</pre>', code_language_callback=callback) == '\n```python\ntest\n    foo\nbar\n```\n'
-    assert md('<pre class="javascript"><code>test\n    foo\nbar</code></pre>', code_language_callback=callback) == '\n```javascript\ntest\n    foo\nbar\n```\n'
-    assert md('<pre class="javascript"><code class="javascript">test\n    foo\nbar</code></pre>', code_language_callback=callback) == '\n```javascript\ntest\n    foo\nbar\n```\n'
+    assert md('<pre class="python">test\n    foo\nbar</pre>', code_language_callback=callback) == '\n\n```python\ntest\n    foo\nbar\n```\n\n'
+    assert md('<pre class="javascript"><code>test\n    foo\nbar</code></pre>', code_language_callback=callback) == '\n\n```javascript\ntest\n    foo\nbar\n```\n\n'
+    assert md('<pre class="javascript"><code class="javascript">test\n    foo\nbar</code></pre>', code_language_callback=callback) == '\n\n```javascript\ntest\n    foo\nbar\n```\n\n'
 
 
 def test_spaces():
@@ -330,4 +334,4 @@ def test_spaces():
     assert md('test <blockquote> text </blockquote> after') == 'test\n> text\n\nafter'
     assert md(' <ol> <li> x </li> <li> y </li> </ol> ') == '\n\n1. x\n2. y\n'
     assert md(' <ul> <li> x </li> <li> y </li> </ol> ') == '\n\n* x\n* y\n'
-    assert md('test <pre> foo </pre> bar') == 'test\n```\n foo \n```\nbar'
+    assert md('test <pre> foo </pre> bar') == 'test\n\n```\n foo \n```\n\nbar'
