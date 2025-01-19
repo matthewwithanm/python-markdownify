@@ -124,9 +124,9 @@ class MarkdownConverter(object):
         return self.convert_soup(soup)
 
     def convert_soup(self, soup):
-        return self.process_tag(soup, convert_as_inline=False, children_only=True)
+        return self.process_tag(soup, convert_as_inline=False)
 
-    def process_tag(self, node, convert_as_inline, children_only=False):
+    def process_tag(self, node, convert_as_inline):
         text = ''
 
         # markdown headings or cells can't include
@@ -135,7 +135,7 @@ class MarkdownConverter(object):
         isCell = node.name in ['td', 'th']
         convert_children_as_inline = convert_as_inline
 
-        if not children_only and (isHeading or isCell):
+        if isHeading or isCell:
             convert_children_as_inline = True
 
         # Remove whitespace-only textnodes just before, after or
@@ -171,12 +171,16 @@ class MarkdownConverter(object):
                 newlines = '\n' * max(newlines_left, newlines_right)
                 text = text_strip + newlines + next_text_strip
 
-        if not children_only:
-            fn_name = 'convert_%s' % node.name.translate(''.maketrans(':-', '__'))
-            convert_fn = getattr(self, fn_name, None)
-            if convert_fn and self.should_convert_tag(node.name):
-                text = convert_fn(node, text, convert_as_inline)
+        # apply this tag's final conversion function
+        convert_fn_name = "convert_%s" % re.sub(r"[\[\]:-]", "_", node.name)
+        convert_fn = getattr(self, convert_fn_name, None)
+        if convert_fn and self.should_convert_tag(node.name):
+            text = convert_fn(node, text, convert_as_inline)
 
+        return text
+
+    def convert__document_(self, el, text, convert_as_inline):
+        # for BeautifulSoup objects (where node.name == "[document]"), return content results as-is
         return text
 
     def process_text(self, el):
