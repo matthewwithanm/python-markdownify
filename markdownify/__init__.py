@@ -444,7 +444,7 @@ class MarkdownConverter(object):
         return '\n\n' + text + '\n'
 
     def convert_caption(self, el, text, convert_as_inline):
-        return text + '\n'
+        return text + '\n\n'
 
     def convert_figcaption(self, el, text, convert_as_inline):
         return '\n\n' + text + '\n\n'
