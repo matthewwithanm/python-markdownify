@@ -319,6 +319,38 @@ class MarkdownConverter(object):
 
     convert_kbd = convert_code
 
+    def convert_dd(self, el, text, convert_as_inline):
+        text = (text or '').strip()
+        if convert_as_inline:
+            return ' ' + text + ' '
+        if not text:
+            return '\n'
+
+        # indent definition content lines by four spaces
+        def _indent_for_dd(match):
+            line_content = match.group(1)
+            return '    ' + line_content if line_content else ''
+        text = line_with_content_re.sub(_indent_for_dd, text)
+
+        # insert definition marker into first-line indent whitespace
+        text = ':' + text[1:]
+
+        return '%s\n' % text
+
+    def convert_dt(self, el, text, convert_as_inline):
+        # remove newlines from term text
+        text = (text or '').strip()
+        text = all_whitespace_re.sub(' ', text)
+        if convert_as_inline:
+            return ' ' + text + ' '
+        if not text:
+            return '\n'
+
+        # TODO - format consecutive <dt> elements as directly adjacent lines):
+        #   https://michelf.ca/projects/php-markdown/extra/#def-list
+
+        return '\n%s\n' % text
+
     def _convert_hn(self, n, el, text, convert_as_inline):
         """ Method name prefixed with _ to prevent <hn> to call this """
         if convert_as_inline:
