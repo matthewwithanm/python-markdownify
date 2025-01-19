@@ -101,6 +101,8 @@ class MarkdownConverter(object):
         strip = None
         strong_em_symbol = ASTERISK
         sub_symbol = ''
+        postprocess_fn = None
+        preprocess_fn = None
         sup_symbol = ''
         wrap = False
         wrap_width = 80
@@ -114,6 +116,8 @@ class MarkdownConverter(object):
         self.options = _todict(self.DefaultOptions)
         self.options.update(_todict(self.Options))
         self.options.update(options)
+        self.postprocess_fn = self.options['postprocess_fn']
+        self.preprocess_fn = self.options['preprocess_fn']
         if self.options['strip'] is not None and self.options['convert'] is not None:
             raise ValueError('You may specify either tags to strip or tags to'
                              ' convert, but not both.')
@@ -171,10 +175,16 @@ class MarkdownConverter(object):
                 text = text_strip + newlines + next_text_strip
 
         if not children_only:
+            if self.preprocess_fn and self.should_convert_tag(node.name):
+                text = self.preprocess_fn(node, text, convert_as_inline)
+
             convert_fn = getattr(self, 'convert_%s' % node.name, None)
             if convert_fn and self.should_convert_tag(node.name):
                 text = convert_fn(node, text, convert_as_inline)
 
+            if self.postprocess_fn and self.should_convert_tag(node.name):
+                text = self.postprocess_fn(node, text, convert_as_inline)
+                
         return text
 
     def process_text(self, el):
