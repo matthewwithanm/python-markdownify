@@ -5,7 +5,7 @@ import six
 
 
 convert_heading_re = re.compile(r'convert_h(\d+)')
-line_beginning_re = re.compile(r'^', re.MULTILINE)
+line_with_content_re = re.compile(r'^(.*)', flags=re.MULTILINE)
 whitespace_re = re.compile(r'[\t ]+')
 all_whitespace_re = re.compile(r'[\t \r\n]+')
 newline_whitespace_re = re.compile(r'[\t \r\n]*[\r\n][\t \r\n]*')
@@ -256,9 +256,6 @@ class MarkdownConverter(object):
             text = text.replace('_', r'\_')
         return text
 
-    def indent(self, text, columns):
-        return line_beginning_re.sub(' ' * columns, text) if text else ''
-
     def underline(self, text, pad_char):
         text = (text or '').rstrip()
         return '\n\n%s\n%s\n\n' % (text, pad_char * len(text)) if text else ''
@@ -286,11 +283,20 @@ class MarkdownConverter(object):
     convert_b = abstract_inline_conversion(lambda self: 2 * self.options['strong_em_symbol'])
 
     def convert_blockquote(self, el, text, convert_as_inline):
-
+        # handle some early-exit scenarios
+        text = (text or '').strip()
         if convert_as_inline:
-            return ' ' + text.strip() + ' '
+            return ' ' + text + ' '
+        if not text:
+            return "\n"
 
-        return '\n' + (line_beginning_re.sub('> ', text.strip()) + '\n\n') if text else ''
+        # indent lines with blockquote marker
+        def _indent_for_blockquote(match):
+            line_content = match.group(1)
+            return '> ' + line_content if line_content else '>'
+        text = line_with_content_re.sub(_indent_for_blockquote, text)
+
+        return '\n' + text + '\n\n'
 
     def convert_br(self, el, text, convert_as_inline):
         if convert_as_inline:
@@ -371,6 +377,12 @@ class MarkdownConverter(object):
     convert_ol = convert_list
 
     def convert_li(self, el, text, convert_as_inline):
+        # handle some early-exit scenarios
+        text = (text or '').strip()
+        if not text:
+            return "\n"
+
+        # determine list item bullet character to use
         parent = el.parent
         if parent is not None and parent.name == 'ol':
             if parent.get("start") and str(parent.get("start")).isnumeric():
@@ -387,10 +399,18 @@ class MarkdownConverter(object):
             bullets = self.options['bullets']
             bullet = bullets[depth % len(bullets)]
         bullet = bullet + ' '
-        text = (text or '').strip()
-        text = self.indent(text, len(bullet))
-        if text:
-            text = bullet + text[len(bullet):]
+        bullet_width = len(bullet)
+        bullet_indent = ' ' * bullet_width
+
+        # indent content lines by bullet width
+        def _indent_for_li(match):
+            line_content = match.group(1)
+            return bullet_indent + line_content if line_content else ''
+        text = line_with_content_re.sub(_indent_for_li, text)
+
+        # insert bullet into first-line indent whitespace
+        text = bullet + text[bullet_width:]
+
         return '%s\n' % text
 
     def convert_p(self, el, text, convert_as_inline):
