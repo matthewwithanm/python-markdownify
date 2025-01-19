@@ -367,8 +367,8 @@ class MarkdownConverter(object):
         text = all_whitespace_re.sub(' ', text)
         hashes = '#' * n
         if style == ATX_CLOSED:
-            return '\n%s %s %s\n\n' % (hashes, text, hashes)
-        return '\n%s %s\n\n' % (hashes, text)
+            return '\n\n%s %s %s\n\n' % (hashes, text, hashes)
+        return '\n\n%s %s\n\n' % (hashes, text)
 
     def convert_hr(self, el, text, convert_as_inline):
         return '\n\n---\n\n'
