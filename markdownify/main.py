@@ -61,6 +61,10 @@ def main(argv=sys.argv[1:]):
                         "should be converted to markdown images instead, this option can "
                         "be set to a list of parent tags that should be allowed to "
                         "contain inline images.")
+    parser.add_argument('--table-infer-header', dest='table_infer_header',
+                        action='store_true',
+                        help="When a table has no header row (as indicated by '<thead>' "
+                        "or '<th>'), use the first body row as the header row.")
     parser.add_argument('-w', '--wrap', action='store_true',
                         help="Wrap all text paragraphs at --wrap-width characters.")
     parser.add_argument('--wrap-width', type=int, default=80)

@@ -139,6 +139,11 @@ keep_inline_images_in
   that should be allowed to contain inline images, for example ``['td']``.
   Defaults to an empty list.
 
+table_infer_header
+  Controls handling of tables with no header row (as indicated by ``<thead>``
+  or ``<th>``). When set to ``True``, the first body row is used as the header row.
+  Defaults to ``False``, which leaves the header row empty.
+
 wrap, wrap_width
   If ``wrap`` is set to ``True``, all text paragraphs are wrapped at
   ``wrap_width`` characters. Defaults to ``False`` and ``80``.
