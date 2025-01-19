@@ -62,7 +62,7 @@ def test_blockquote():
 
 def test_blockquote_with_nested_paragraph():
     assert md('<blockquote><p>Hello</p></blockquote>') == '\n> Hello\n\n'
-    assert md('<blockquote><p>Hello</p><p>Hello again</p></blockquote>') == '\n> Hello\n> \n> Hello again\n\n'
+    assert md('<blockquote><p>Hello</p><p>Hello again</p></blockquote>') == '\n> Hello\n>\n> Hello again\n\n'
 
 
 def test_blockquote_with_paragraph():
