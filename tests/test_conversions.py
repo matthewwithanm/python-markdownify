@@ -127,12 +127,12 @@ def test_em():
 
 
 def test_header_with_space():
-    assert md('<h3>\n\nHello</h3>') == '\n### Hello\n\n'
-    assert md('<h3>Hello\n\n\nWorld</h3>') == '\n### Hello World\n\n'
-    assert md('<h4>\n\nHello</h4>') == '\n#### Hello\n\n'
-    assert md('<h5>\n\nHello</h5>') == '\n##### Hello\n\n'
-    assert md('<h5>\n\nHello\n\n</h5>') == '\n##### Hello\n\n'
-    assert md('<h5>\n\nHello   \n\n</h5>') == '\n##### Hello\n\n'
+    assert md('<h3>\n\nHello</h3>') == '\n\n### Hello\n\n'
+    assert md('<h3>Hello\n\n\nWorld</h3>') == '\n\n### Hello World\n\n'
+    assert md('<h4>\n\nHello</h4>') == '\n\n#### Hello\n\n'
+    assert md('<h5>\n\nHello</h5>') == '\n\n##### Hello\n\n'
+    assert md('<h5>\n\nHello\n\n</h5>') == '\n\n##### Hello\n\n'
+    assert md('<h5>\n\nHello   \n\n</h5>') == '\n\n##### Hello\n\n'
 
 
 def test_h1():
@@ -144,24 +144,24 @@ def test_h2():
 
 
 def test_hn():
-    assert md('<h3>Hello</h3>') == '\n### Hello\n\n'
-    assert md('<h4>Hello</h4>') == '\n#### Hello\n\n'
-    assert md('<h5>Hello</h5>') == '\n##### Hello\n\n'
-    assert md('<h6>Hello</h6>') == '\n###### Hello\n\n'
+    assert md('<h3>Hello</h3>') == '\n\n### Hello\n\n'
+    assert md('<h4>Hello</h4>') == '\n\n#### Hello\n\n'
+    assert md('<h5>Hello</h5>') == '\n\n##### Hello\n\n'
+    assert md('<h6>Hello</h6>') == '\n\n###### Hello\n\n'
     assert md('<h10>Hello</h10>') == md('<h6>Hello</h6>')
     assert md('<hn>Hello</hn>') == md('Hello')
 
 
 def test_hn_chained():
-    assert md('<h1>First</h1>\n<h2>Second</h2>\n<h3>Third</h3>', heading_style=ATX) == '\n# First\n\n## Second\n\n### Third\n\n'
-    assert md('X<h1>First</h1>', heading_style=ATX) == 'X\n# First\n\n'
-    assert md('X<h1>First</h1>', heading_style=ATX_CLOSED) == 'X\n# First #\n\n'
+    assert md('<h1>First</h1>\n<h2>Second</h2>\n<h3>Third</h3>', heading_style=ATX) == '\n\n# First\n\n## Second\n\n### Third\n\n'
+    assert md('X<h1>First</h1>', heading_style=ATX) == 'X\n\n# First\n\n'
+    assert md('X<h1>First</h1>', heading_style=ATX_CLOSED) == 'X\n\n# First #\n\n'
     assert md('X<h1>First</h1>') == 'X\n\nFirst\n=====\n\n'
 
 
 def test_hn_nested_tag_heading_style():
-    assert md('<h1>A <p>P</p> C </h1>', heading_style=ATX_CLOSED) == '\n# A P C #\n\n'
-    assert md('<h1>A <p>P</p> C </h1>', heading_style=ATX) == '\n# A P C\n\n'
+    assert md('<h1>A <p>P</p> C </h1>', heading_style=ATX_CLOSED) == '\n\n# A P C #\n\n'
+    assert md('<h1>A <p>P</p> C </h1>', heading_style=ATX) == '\n\n# A P C\n\n'
 
 
 def test_hn_nested_simple_tag():
@@ -177,9 +177,9 @@ def test_hn_nested_simple_tag():
     ]
 
     for tag, markdown in tag_to_markdown:
-        assert md('<h3>A <' + tag + '>' + tag + '</' + tag + '> B</h3>') == '\n### A ' + markdown + ' B\n\n'
+        assert md('<h3>A <' + tag + '>' + tag + '</' + tag + '> B</h3>') == '\n\n### A ' + markdown + ' B\n\n'
 
-    assert md('<h3>A <br>B</h3>', heading_style=ATX) == '\n### A B\n\n'
+    assert md('<h3>A <br>B</h3>', heading_style=ATX) == '\n\n### A B\n\n'
 
     # Nested lists not supported
     # assert md('<h3>A <ul><li>li1</i><li>l2</li></ul></h3>', heading_style=ATX) == '\n### A li1 li2 B\n\n'
@@ -192,18 +192,23 @@ def test_hn_nested_img():
         ("alt='Alt Text' title='Optional title'", "Alt Text", " \"Optional title\""),
     ]
     for image_attributes, markdown, title in image_attributes_to_markdown:
-        assert md('<h3>A <img src="/path/to/img.jpg" ' + image_attributes + '/> B</h3>') == '\n### A' + (' ' + markdown + ' ' if markdown else ' ') + 'B\n\n'
-        assert md('<h3>A <img src="/path/to/img.jpg" ' + image_attributes + '/> B</h3>', keep_inline_images_in=['h3']) == '\n### A ![' + markdown + '](/path/to/img.jpg' + title + ') B\n\n'
+        assert md('<h3>A <img src="/path/to/img.jpg" ' + image_attributes + '/> B</h3>') == '\n\n### A' + (' ' + markdown + ' ' if markdown else ' ') + 'B\n\n'
+        assert md('<h3>A <img src="/path/to/img.jpg" ' + image_attributes + '/> B</h3>', keep_inline_images_in=['h3']) == '\n\n### A ![' + markdown + '](/path/to/img.jpg' + title + ') B\n\n'
 
 
 def test_hn_atx_headings():
-    assert md('<h1>Hello</h1>', heading_style=ATX) == '\n# Hello\n\n'
-    assert md('<h2>Hello</h2>', heading_style=ATX) == '\n## Hello\n\n'
+    assert md('<h1>Hello</h1>', heading_style=ATX) == '\n\n# Hello\n\n'
+    assert md('<h2>Hello</h2>', heading_style=ATX) == '\n\n## Hello\n\n'
 
 
 def test_hn_atx_closed_headings():
-    assert md('<h1>Hello</h1>', heading_style=ATX_CLOSED) == '\n# Hello #\n\n'
-    assert md('<h2>Hello</h2>', heading_style=ATX_CLOSED) == '\n## Hello ##\n\n'
+    assert md('<h1>Hello</h1>', heading_style=ATX_CLOSED) == '\n\n# Hello #\n\n'
+    assert md('<h2>Hello</h2>', heading_style=ATX_CLOSED) == '\n\n## Hello ##\n\n'
+
+
+def test_hn_newlines():
+    assert md("<h1>H1-1</h1>TEXT<h2>H2-2</h2>TEXT<h1>H1-2</h1>TEXT", heading_style=ATX) == '\n\n# H1-1\n\nTEXT\n\n## H2-2\n\nTEXT\n\n# H1-2\n\nTEXT'
+    assert md('<h1>H1-1</h1>\n<p>TEXT</p>\n<h2>H2-2</h2>\n<p>TEXT</p>\n<h1>H1-2</h1>\n<p>TEXT</p>', heading_style=ATX) == '\n\n# H1-1\n\nTEXT\n\n## H2-2\n\nTEXT\n\n# H1-2\n\nTEXT\n\n'
 
 
 def test_head():
