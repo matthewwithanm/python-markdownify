@@ -481,7 +481,7 @@ class MarkdownConverter(object):
         if self.options['code_language_callback']:
             code_language = self.options['code_language_callback'](el) or code_language
 
-        return '\n```%s\n%s\n```\n' % (code_language, text)
+        return '\n\n```%s\n%s\n```\n\n' % (code_language, text)
 
     def convert_script(self, el, text, convert_as_inline):
         return ''
