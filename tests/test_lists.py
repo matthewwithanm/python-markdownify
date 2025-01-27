@@ -1,4 +1,4 @@
-from markdownify import markdownify as md
+from .utils import md
 
 
 nested_uls = """

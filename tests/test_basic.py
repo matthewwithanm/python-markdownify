@@ -1,4 +1,4 @@
-from markdownify import markdownify as md
+from .utils import md
 
 
 def test_single_tag():

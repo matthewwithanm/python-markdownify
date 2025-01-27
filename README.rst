@@ -150,6 +150,13 @@ wrap, wrap_width
   Use with ``newline_style=BACKSLASH`` to keep line breaks in paragraphs.
   A `wrap_width` value of `None` reflows lines to unlimited line length.
 
+strip_document
+  Controls whether leading and/or trailing separation newlines are removed from
+  the final converted document. Supported values are ``LSTRIP`` (leading),
+  ``RSTRIP`` (trailing), ``STRIP`` (both), and ``None`` (neither). Newlines
+  within the document are unaffected.
+  Defaults to ``STRIP``.
+
 Options may be specified as kwargs to the ``markdownify`` function, or as a
 nested ``Options`` class in ``MarkdownConverter`` subclasses.
 
