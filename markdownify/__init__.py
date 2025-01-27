@@ -180,7 +180,10 @@ class MarkdownConverter(object):
         return text
 
     def convert__document_(self, el, text, convert_as_inline):
-        # for BeautifulSoup objects (where node.name == "[document]"), return content results as-is
+        """Final document-level formatting for BeautifulSoup object (node.name == "[document]")"""
+        # remove all leading newlines
+        text = text.lstrip('\n')
+
         return text
 
     def process_text(self, el):
@@ -454,6 +457,7 @@ class MarkdownConverter(object):
     def convert_p(self, el, text, convert_as_inline):
         if convert_as_inline:
             return ' ' + text.strip() + ' '
+        text = text.strip()
         if self.options['wrap']:
             # Preserve newlines (and preceding whitespace) resulting
             # from <br> tags.  Newlines in the input have already been
@@ -500,13 +504,13 @@ class MarkdownConverter(object):
     convert_sup = abstract_inline_conversion(lambda self: self.options['sup_symbol'])
 
     def convert_table(self, el, text, convert_as_inline):
-        return '\n\n' + text + '\n'
+        return '\n\n' + text.strip() + '\n\n'
 
     def convert_caption(self, el, text, convert_as_inline):
-        return text + '\n\n'
+        return text.strip() + '\n\n'
 
     def convert_figcaption(self, el, text, convert_as_inline):
-        return '\n\n' + text + '\n\n'
+        return '\n\n' + text.strip() + '\n\n'
 
     def convert_td(self, el, text, convert_as_inline):
         colspan = 1
