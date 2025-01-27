@@ -1,4 +1,5 @@
-from markdownify import markdownify as md, ATX, ATX_CLOSED, BACKSLASH, SPACES, UNDERSCORE
+from markdownify import ATX, ATX_CLOSED, BACKSLASH, SPACES, UNDERSCORE
+from .utils import md
 
 
 def inline_tests(tag, markup):
@@ -79,11 +80,6 @@ def test_br():
     assert md('a<br />b<br />c', newline_style=BACKSLASH) == 'a\\\nb\\\nc'
 
 
-def test_caption():
-    assert md('TEXT<figure><figcaption>Caption</figcaption><span>SPAN</span></figure>') == 'TEXT\n\nCaption\n\nSPAN'
-    assert md('<figure><span>SPAN</span><figcaption>Caption</figcaption></figure>TEXT') == 'SPAN\n\nCaption\n\nTEXT'
-
-
 def test_code():
     inline_tests('code', '`')
     assert md('<code>*this_should_not_escape*</code>') == '`*this_should_not_escape*`'
@@ -124,6 +120,11 @@ def test_div():
 
 def test_em():
     inline_tests('em', '*')
+
+
+def test_figcaption():
+    assert (md("TEXT<figure><figcaption>\nCaption\n</figcaption><span>SPAN</span></figure>") == "TEXT\n\nCaption\n\nSPAN")
+    assert (md("<figure><span>SPAN</span><figcaption>\nCaption\n</figcaption></figure>TEXT") == "SPAN\n\nCaption\n\nTEXT")
 
 
 def test_header_with_space():
@@ -236,6 +237,7 @@ def test_kbd():
 
 def test_p():
     assert md('<p>hello</p>') == '\n\nhello\n\n'
+    assert md("<p><p>hello</p></p>") == "\n\nhello\n\n"
     assert md('<p>123456789 123456789</p>') == '\n\n123456789 123456789\n\n'
     assert md('<p>123456789\n\n\n123456789</p>') == '\n\n123456789\n123456789\n\n'
     assert md('<p>123456789\n\n\n123456789</p>', wrap=True, wrap_width=80) == '\n\n123456789 123456789\n\n'

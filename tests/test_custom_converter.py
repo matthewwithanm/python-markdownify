@@ -20,8 +20,8 @@ def test_custom_conversion_functions():
     def md(html, **options):
         return UnitTestConverter(**options).convert(html)
 
-    assert md('<img src="/path/to/img.jpg" alt="Alt text" title="Optional title" />') == '![Alt text](/path/to/img.jpg "Optional title")\n\n'
-    assert md('<img src="/path/to/img.jpg" alt="Alt text" />') == '![Alt text](/path/to/img.jpg)\n\n'
+    assert md('<img src="/path/to/img.jpg" alt="Alt text" title="Optional title" />text') == '![Alt text](/path/to/img.jpg "Optional title")\n\ntext'
+    assert md('<img src="/path/to/img.jpg" alt="Alt text" />text') == '![Alt text](/path/to/img.jpg)\n\ntext'
 
     assert md("<custom-tag>text</custom-tag>") == "FUNCTION USED: text"
 

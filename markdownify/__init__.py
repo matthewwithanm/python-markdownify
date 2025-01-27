@@ -26,6 +26,11 @@ BACKSLASH = 'backslash'
 ASTERISK = '*'
 UNDERSCORE = '_'
 
+# Document strip styles
+LSTRIP = 'lstrip'
+RSTRIP = 'rstrip'
+STRIP = 'strip'
+
 
 def chomp(text):
     """
@@ -99,6 +104,7 @@ class MarkdownConverter(object):
         keep_inline_images_in = []
         newline_style = SPACES
         strip = None
+        strip_document = STRIP
         strong_em_symbol = ASTERISK
         sub_symbol = ''
         sup_symbol = ''
@@ -180,7 +186,18 @@ class MarkdownConverter(object):
         return text
 
     def convert__document_(self, el, text, convert_as_inline):
-        # for BeautifulSoup objects (where node.name == "[document]"), return content results as-is
+        """Final document-level formatting for BeautifulSoup object (node.name == "[document]")"""
+        if self.options['strip_document'] == LSTRIP:
+            text = text.lstrip('\n')  # remove leading separation newlines
+        elif self.options['strip_document'] == RSTRIP:
+            text = text.rstrip('\n')  # remove trailing separation newlines
+        elif self.options['strip_document'] == STRIP:
+            text = text.strip('\n')  # remove leading and trailing separation newlines
+        elif self.options['strip_document'] is None:
+            pass  # leave leading and trailing separation newlines as-is
+        else:
+            raise ValueError('Invalid value for strip_document: %s' % self.options['strip_document'])
+
         return text
 
     def process_text(self, el):
@@ -454,6 +471,7 @@ class MarkdownConverter(object):
     def convert_p(self, el, text, convert_as_inline):
         if convert_as_inline:
             return ' ' + text.strip() + ' '
+        text = text.strip()
         if self.options['wrap']:
             # Preserve newlines (and preceding whitespace) resulting
             # from <br> tags.  Newlines in the input have already been
@@ -500,13 +518,13 @@ class MarkdownConverter(object):
     convert_sup = abstract_inline_conversion(lambda self: self.options['sup_symbol'])
 
     def convert_table(self, el, text, convert_as_inline):
-        return '\n\n' + text + '\n'
+        return '\n\n' + text.strip() + '\n\n'
 
     def convert_caption(self, el, text, convert_as_inline):
-        return text + '\n\n'
+        return text.strip() + '\n\n'
 
     def convert_figcaption(self, el, text, convert_as_inline):
-        return '\n\n' + text + '\n\n'
+        return '\n\n' + text.strip() + '\n\n'
 
     def convert_td(self, el, text, convert_as_inline):
         colspan = 1

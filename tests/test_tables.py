@@ -1,4 +1,4 @@
-from markdownify import markdownify as md
+from .utils import md
 
 
 table = """<table>
@@ -228,7 +228,10 @@ table_body = """<table>
     </tbody>
 </table>"""
 
-table_with_caption = """TEXT<table><caption>Caption</caption>
+table_with_caption = """TEXT<table>
+    <caption>
+        Caption
+    </caption>
     <tbody><tr><td>Firstname</td>
             <td>Lastname</td>
             <td>Age</td>
