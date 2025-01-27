@@ -1,4 +1,11 @@
-from markdownify import markdownify as md, ATX, ATX_CLOSED, BACKSLASH, SPACES, UNDERSCORE
+from markdownify import MarkdownConverter, ATX, ATX_CLOSED, BACKSLASH, SPACES, UNDERSCORE
+
+
+def md(html, **options):
+    # disable document-level stripping so separation newlines are included in testing
+    options = {**options, "strip_document": None}
+
+    return MarkdownConverter(**options).convert(html)
 
 
 def inline_tests(tag, markup):
@@ -41,7 +48,7 @@ def test_a_no_autolinks():
 
 def test_a_in_code():
     assert md('<code><a href="https://google.com">Google</a></code>') == '`Google`'
-    assert md('<pre><a href="https://google.com">Google</a></pre>') == '```\nGoogle\n```\n\n'
+    assert md('<pre><a href="https://google.com">Google</a></pre>') == '\n\n```\nGoogle\n```\n\n'
 
 
 def test_b():
@@ -56,22 +63,22 @@ def test_b_spaces():
 
 
 def test_blockquote():
-    assert md('<blockquote>Hello</blockquote>') == '> Hello\n\n'
-    assert md('<blockquote>\nHello\n</blockquote>') == '> Hello\n\n'
+    assert md('<blockquote>Hello</blockquote>') == '\n> Hello\n\n'
+    assert md('<blockquote>\nHello\n</blockquote>') == '\n> Hello\n\n'
 
 
 def test_blockquote_with_nested_paragraph():
-    assert md('<blockquote><p>Hello</p></blockquote>') == '> Hello\n\n'
-    assert md('<blockquote><p>Hello</p><p>Hello again</p></blockquote>') == '> Hello\n>\n> Hello again\n\n'
+    assert md('<blockquote><p>Hello</p></blockquote>') == '\n> Hello\n\n'
+    assert md('<blockquote><p>Hello</p><p>Hello again</p></blockquote>') == '\n> Hello\n>\n> Hello again\n\n'
 
 
 def test_blockquote_with_paragraph():
-    assert md('<blockquote>Hello</blockquote><p>handsome</p>') == '> Hello\n\nhandsome\n\n'
+    assert md('<blockquote>Hello</blockquote><p>handsome</p>') == '\n> Hello\n\nhandsome\n\n'
 
 
 def test_blockquote_nested():
     text = md('<blockquote>And she was like <blockquote>Hello</blockquote></blockquote>')
-    assert text == '> And she was like\n> > Hello\n\n'
+    assert text == '\n> And she was like\n> > Hello\n\n'
 
 
 def test_br():
@@ -100,13 +107,13 @@ def test_code():
 
 
 def test_dl():
-    assert md('<dl><dt>term</dt><dd>definition</dd></dl>') == 'term\n:   definition\n'
-    assert md('<dl><dt><p>te</p><p>rm</p></dt><dd>definition</dd></dl>') == 'te rm\n:   definition\n'
-    assert md('<dl><dt>term</dt><dd><p>definition-p1</p><p>definition-p2</p></dd></dl>') == 'term\n:   definition-p1\n\n    definition-p2\n'
-    assert md('<dl><dt>term</dt><dd><p>definition 1</p></dd><dd><p>definition 2</p></dd></dl>') == 'term\n:   definition 1\n:   definition 2\n'
-    assert md('<dl><dt>term 1</dt><dd>definition 1</dd><dt>term 2</dt><dd>definition 2</dd></dl>') == 'term 1\n:   definition 1\nterm 2\n:   definition 2\n'
-    assert md('<dl><dt>term</dt><dd><blockquote><p>line 1</p><p>line 2</p></blockquote></dd></dl>') == 'term\n:   > line 1\n    >\n    > line 2\n'
-    assert md('<dl><dt>term</dt><dd><ol><li><p>1</p><ul><li>2a</li><li>2b</li></ul></li><li><p>3</p></li></ol></dd></dl>') == 'term\n:   1. 1\n\n       * 2a\n       * 2b\n    2. 3\n'
+    assert md('<dl><dt>term</dt><dd>definition</dd></dl>') == '\nterm\n:   definition\n'
+    assert md('<dl><dt><p>te</p><p>rm</p></dt><dd>definition</dd></dl>') == '\nte rm\n:   definition\n'
+    assert md('<dl><dt>term</dt><dd><p>definition-p1</p><p>definition-p2</p></dd></dl>') == '\nterm\n:   definition-p1\n\n    definition-p2\n'
+    assert md('<dl><dt>term</dt><dd><p>definition 1</p></dd><dd><p>definition 2</p></dd></dl>') == '\nterm\n:   definition 1\n:   definition 2\n'
+    assert md('<dl><dt>term 1</dt><dd>definition 1</dd><dt>term 2</dt><dd>definition 2</dd></dl>') == '\nterm 1\n:   definition 1\nterm 2\n:   definition 2\n'
+    assert md('<dl><dt>term</dt><dd><blockquote><p>line 1</p><p>line 2</p></blockquote></dd></dl>') == '\nterm\n:   > line 1\n    >\n    > line 2\n'
+    assert md('<dl><dt>term</dt><dd><ol><li><p>1</p><ul><li>2a</li><li>2b</li></ul></li><li><p>3</p></li></ol></dd></dl>') == '\nterm\n:   1. 1\n\n       * 2a\n       * 2b\n    2. 3\n'
 
 
 def test_del():
@@ -127,41 +134,41 @@ def test_figcaption():
 
 
 def test_header_with_space():
-    assert md('<h3>\n\nHello</h3>') == '### Hello\n\n'
-    assert md('<h3>Hello\n\n\nWorld</h3>') == '### Hello World\n\n'
-    assert md('<h4>\n\nHello</h4>') == '#### Hello\n\n'
-    assert md('<h5>\n\nHello</h5>') == '##### Hello\n\n'
-    assert md('<h5>\n\nHello\n\n</h5>') == '##### Hello\n\n'
-    assert md('<h5>\n\nHello   \n\n</h5>') == '##### Hello\n\n'
+    assert md('<h3>\n\nHello</h3>') == '\n\n### Hello\n\n'
+    assert md('<h3>Hello\n\n\nWorld</h3>') == '\n\n### Hello World\n\n'
+    assert md('<h4>\n\nHello</h4>') == '\n\n#### Hello\n\n'
+    assert md('<h5>\n\nHello</h5>') == '\n\n##### Hello\n\n'
+    assert md('<h5>\n\nHello\n\n</h5>') == '\n\n##### Hello\n\n'
+    assert md('<h5>\n\nHello   \n\n</h5>') == '\n\n##### Hello\n\n'
 
 
 def test_h1():
-    assert md('<h1>Hello</h1>') == 'Hello\n=====\n\n'
+    assert md('<h1>Hello</h1>') == '\n\nHello\n=====\n\n'
 
 
 def test_h2():
-    assert md('<h2>Hello</h2>') == 'Hello\n-----\n\n'
+    assert md('<h2>Hello</h2>') == '\n\nHello\n-----\n\n'
 
 
 def test_hn():
-    assert md('<h3>Hello</h3>') == '### Hello\n\n'
-    assert md('<h4>Hello</h4>') == '#### Hello\n\n'
-    assert md('<h5>Hello</h5>') == '##### Hello\n\n'
-    assert md('<h6>Hello</h6>') == '###### Hello\n\n'
+    assert md('<h3>Hello</h3>') == '\n\n### Hello\n\n'
+    assert md('<h4>Hello</h4>') == '\n\n#### Hello\n\n'
+    assert md('<h5>Hello</h5>') == '\n\n##### Hello\n\n'
+    assert md('<h6>Hello</h6>') == '\n\n###### Hello\n\n'
     assert md('<h10>Hello</h10>') == md('<h6>Hello</h6>')
     assert md('<hn>Hello</hn>') == md('Hello')
 
 
 def test_hn_chained():
-    assert md('<h1>First</h1>\n<h2>Second</h2>\n<h3>Third</h3>', heading_style=ATX) == '# First\n\n## Second\n\n### Third\n\n'
+    assert md('<h1>First</h1>\n<h2>Second</h2>\n<h3>Third</h3>', heading_style=ATX) == '\n\n# First\n\n## Second\n\n### Third\n\n'
     assert md('X<h1>First</h1>', heading_style=ATX) == 'X\n\n# First\n\n'
     assert md('X<h1>First</h1>', heading_style=ATX_CLOSED) == 'X\n\n# First #\n\n'
     assert md('X<h1>First</h1>') == 'X\n\nFirst\n=====\n\n'
 
 
 def test_hn_nested_tag_heading_style():
-    assert md('<h1>A <p>P</p> C </h1>', heading_style=ATX_CLOSED) == '# A P C #\n\n'
-    assert md('<h1>A <p>P</p> C </h1>', heading_style=ATX) == '# A P C\n\n'
+    assert md('<h1>A <p>P</p> C </h1>', heading_style=ATX_CLOSED) == '\n\n# A P C #\n\n'
+    assert md('<h1>A <p>P</p> C </h1>', heading_style=ATX) == '\n\n# A P C\n\n'
 
 
 def test_hn_nested_simple_tag():
@@ -177,9 +184,9 @@ def test_hn_nested_simple_tag():
     ]
 
     for tag, markdown in tag_to_markdown:
-        assert md('<h3>A <' + tag + '>' + tag + '</' + tag + '> B</h3>') == '### A ' + markdown + ' B\n\n'
+        assert md('<h3>A <' + tag + '>' + tag + '</' + tag + '> B</h3>') == '\n\n### A ' + markdown + ' B\n\n'
 
-    assert md('<h3>A <br>B</h3>', heading_style=ATX) == '### A B\n\n'
+    assert md('<h3>A <br>B</h3>', heading_style=ATX) == '\n\n### A B\n\n'
 
     # Nested lists not supported
     # assert md('<h3>A <ul><li>li1</i><li>l2</li></ul></h3>', heading_style=ATX) == '\n### A li1 li2 B\n\n'
@@ -192,23 +199,23 @@ def test_hn_nested_img():
         ("alt='Alt Text' title='Optional title'", "Alt Text", " \"Optional title\""),
     ]
     for image_attributes, markdown, title in image_attributes_to_markdown:
-        assert md('<h3>A <img src="/path/to/img.jpg" ' + image_attributes + '/> B</h3>') == '### A' + (' ' + markdown + ' ' if markdown else ' ') + 'B\n\n'
-        assert md('<h3>A <img src="/path/to/img.jpg" ' + image_attributes + '/> B</h3>', keep_inline_images_in=['h3']) == '### A ![' + markdown + '](/path/to/img.jpg' + title + ') B\n\n'
+        assert md('<h3>A <img src="/path/to/img.jpg" ' + image_attributes + '/> B</h3>') == '\n\n### A' + (' ' + markdown + ' ' if markdown else ' ') + 'B\n\n'
+        assert md('<h3>A <img src="/path/to/img.jpg" ' + image_attributes + '/> B</h3>', keep_inline_images_in=['h3']) == '\n\n### A ![' + markdown + '](/path/to/img.jpg' + title + ') B\n\n'
 
 
 def test_hn_atx_headings():
-    assert md('<h1>Hello</h1>', heading_style=ATX) == '# Hello\n\n'
-    assert md('<h2>Hello</h2>', heading_style=ATX) == '## Hello\n\n'
+    assert md('<h1>Hello</h1>', heading_style=ATX) == '\n\n# Hello\n\n'
+    assert md('<h2>Hello</h2>', heading_style=ATX) == '\n\n## Hello\n\n'
 
 
 def test_hn_atx_closed_headings():
-    assert md('<h1>Hello</h1>', heading_style=ATX_CLOSED) == '# Hello #\n\n'
-    assert md('<h2>Hello</h2>', heading_style=ATX_CLOSED) == '## Hello ##\n\n'
+    assert md('<h1>Hello</h1>', heading_style=ATX_CLOSED) == '\n\n# Hello #\n\n'
+    assert md('<h2>Hello</h2>', heading_style=ATX_CLOSED) == '\n\n## Hello ##\n\n'
 
 
 def test_hn_newlines():
-    assert md("<h1>H1-1</h1>TEXT<h2>H2-2</h2>TEXT<h1>H1-2</h1>TEXT", heading_style=ATX) == '# H1-1\n\nTEXT\n\n## H2-2\n\nTEXT\n\n# H1-2\n\nTEXT'
-    assert md('<h1>H1-1</h1>\n<p>TEXT</p>\n<h2>H2-2</h2>\n<p>TEXT</p>\n<h1>H1-2</h1>\n<p>TEXT</p>', heading_style=ATX) == '# H1-1\n\nTEXT\n\n## H2-2\n\nTEXT\n\n# H1-2\n\nTEXT\n\n'
+    assert md("<h1>H1-1</h1>TEXT<h2>H2-2</h2>TEXT<h1>H1-2</h1>TEXT", heading_style=ATX) == '\n\n# H1-1\n\nTEXT\n\n## H2-2\n\nTEXT\n\n# H1-2\n\nTEXT'
+    assert md('<h1>H1-1</h1>\n<p>TEXT</p>\n<h2>H2-2</h2>\n<p>TEXT</p>\n<h1>H1-2</h1>\n<p>TEXT</p>', heading_style=ATX) == '\n\n# H1-1\n\nTEXT\n\n## H2-2\n\nTEXT\n\n# H1-2\n\nTEXT\n\n'
 
 
 def test_head():
@@ -218,7 +225,7 @@ def test_head():
 def test_hr():
     assert md('Hello<hr>World') == 'Hello\n\n---\n\nWorld'
     assert md('Hello<hr />World') == 'Hello\n\n---\n\nWorld'
-    assert md('<p>Hello</p>\n<hr>\n<p>World</p>') == 'Hello\n\n---\n\nWorld\n\n'
+    assert md('<p>Hello</p>\n<hr>\n<p>World</p>') == '\n\nHello\n\n---\n\nWorld\n\n'
 
 
 def test_i():
@@ -235,49 +242,49 @@ def test_kbd():
 
 
 def test_p():
-    assert md('<p>hello</p>') == 'hello\n\n'
-    assert md("<p><p>hello</p></p>") == "hello\n\n"
-    assert md('<p>123456789 123456789</p>') == '123456789 123456789\n\n'
-    assert md('<p>123456789\n\n\n123456789</p>') == '123456789\n123456789\n\n'
-    assert md('<p>123456789\n\n\n123456789</p>', wrap=True, wrap_width=80) == '123456789 123456789\n\n'
-    assert md('<p>123456789\n\n\n123456789</p>', wrap=True, wrap_width=None) == '123456789 123456789\n\n'
-    assert md('<p>123456789 123456789</p>', wrap=True, wrap_width=10) == '123456789\n123456789\n\n'
-    assert md('<p><a href="https://example.com">Some long link</a></p>', wrap=True, wrap_width=10) == '[Some long\nlink](https://example.com)\n\n'
-    assert md('<p>12345<br />67890</p>', wrap=True, wrap_width=10, newline_style=BACKSLASH) == '12345\\\n67890\n\n'
-    assert md('<p>12345<br />67890</p>', wrap=True, wrap_width=50, newline_style=BACKSLASH) == '12345\\\n67890\n\n'
-    assert md('<p>12345<br />67890</p>', wrap=True, wrap_width=10, newline_style=SPACES) == '12345  \n67890\n\n'
-    assert md('<p>12345<br />67890</p>', wrap=True, wrap_width=50, newline_style=SPACES) == '12345  \n67890\n\n'
-    assert md('<p>12345678901<br />12345</p>', wrap=True, wrap_width=10, newline_style=BACKSLASH) == '12345678901\\\n12345\n\n'
-    assert md('<p>12345678901<br />12345</p>', wrap=True, wrap_width=50, newline_style=BACKSLASH) == '12345678901\\\n12345\n\n'
-    assert md('<p>12345678901<br />12345</p>', wrap=True, wrap_width=10, newline_style=SPACES) == '12345678901  \n12345\n\n'
-    assert md('<p>12345678901<br />12345</p>', wrap=True, wrap_width=50, newline_style=SPACES) == '12345678901  \n12345\n\n'
-    assert md('<p>1234 5678 9012<br />67890</p>', wrap=True, wrap_width=10, newline_style=BACKSLASH) == '1234 5678\n9012\\\n67890\n\n'
-    assert md('<p>1234 5678 9012<br />67890</p>', wrap=True, wrap_width=10, newline_style=SPACES) == '1234 5678\n9012  \n67890\n\n'
+    assert md('<p>hello</p>') == '\n\nhello\n\n'
+    assert md("<p><p>hello</p></p>") == "\n\nhello\n\n"
+    assert md('<p>123456789 123456789</p>') == '\n\n123456789 123456789\n\n'
+    assert md('<p>123456789\n\n\n123456789</p>') == '\n\n123456789\n123456789\n\n'
+    assert md('<p>123456789\n\n\n123456789</p>', wrap=True, wrap_width=80) == '\n\n123456789 123456789\n\n'
+    assert md('<p>123456789\n\n\n123456789</p>', wrap=True, wrap_width=None) == '\n\n123456789 123456789\n\n'
+    assert md('<p>123456789 123456789</p>', wrap=True, wrap_width=10) == '\n\n123456789\n123456789\n\n'
+    assert md('<p><a href="https://example.com">Some long link</a></p>', wrap=True, wrap_width=10) == '\n\n[Some long\nlink](https://example.com)\n\n'
+    assert md('<p>12345<br />67890</p>', wrap=True, wrap_width=10, newline_style=BACKSLASH) == '\n\n12345\\\n67890\n\n'
+    assert md('<p>12345<br />67890</p>', wrap=True, wrap_width=50, newline_style=BACKSLASH) == '\n\n12345\\\n67890\n\n'
+    assert md('<p>12345<br />67890</p>', wrap=True, wrap_width=10, newline_style=SPACES) == '\n\n12345  \n67890\n\n'
+    assert md('<p>12345<br />67890</p>', wrap=True, wrap_width=50, newline_style=SPACES) == '\n\n12345  \n67890\n\n'
+    assert md('<p>12345678901<br />12345</p>', wrap=True, wrap_width=10, newline_style=BACKSLASH) == '\n\n12345678901\\\n12345\n\n'
+    assert md('<p>12345678901<br />12345</p>', wrap=True, wrap_width=50, newline_style=BACKSLASH) == '\n\n12345678901\\\n12345\n\n'
+    assert md('<p>12345678901<br />12345</p>', wrap=True, wrap_width=10, newline_style=SPACES) == '\n\n12345678901  \n12345\n\n'
+    assert md('<p>12345678901<br />12345</p>', wrap=True, wrap_width=50, newline_style=SPACES) == '\n\n12345678901  \n12345\n\n'
+    assert md('<p>1234 5678 9012<br />67890</p>', wrap=True, wrap_width=10, newline_style=BACKSLASH) == '\n\n1234 5678\n9012\\\n67890\n\n'
+    assert md('<p>1234 5678 9012<br />67890</p>', wrap=True, wrap_width=10, newline_style=SPACES) == '\n\n1234 5678\n9012  \n67890\n\n'
     assert md('First<p>Second</p><p>Third</p>Fourth') == 'First\n\nSecond\n\nThird\n\nFourth'
 
 
 def test_pre():
-    assert md('<pre>test\n    foo\nbar</pre>') == '```\ntest\n    foo\nbar\n```\n\n'
-    assert md('<pre><code>test\n    foo\nbar</code></pre>') == '```\ntest\n    foo\nbar\n```\n\n'
-    assert md('<pre>*this_should_not_escape*</pre>') == '```\n*this_should_not_escape*\n```\n\n'
-    assert md('<pre><span>*this_should_not_escape*</span></pre>') == '```\n*this_should_not_escape*\n```\n\n'
-    assert md('<pre>\t\tthis  should\t\tnot  normalize</pre>') == '```\n\t\tthis  should\t\tnot  normalize\n```\n\n'
-    assert md('<pre><span>\t\tthis  should\t\tnot  normalize</span></pre>') == '```\n\t\tthis  should\t\tnot  normalize\n```\n\n'
-    assert md('<pre>foo<b>\nbar\n</b>baz</pre>') == '```\nfoo\nbar\nbaz\n```\n\n'
-    assert md('<pre>foo<i>\nbar\n</i>baz</pre>') == '```\nfoo\nbar\nbaz\n```\n\n'
-    assert md('<pre>foo\n<i>bar</i>\nbaz</pre>') == '```\nfoo\nbar\nbaz\n```\n\n'
-    assert md('<pre>foo<i>\n</i>baz</pre>') == '```\nfoo\nbaz\n```\n\n'
-    assert md('<pre>foo<del>\nbar\n</del>baz</pre>') == '```\nfoo\nbar\nbaz\n```\n\n'
-    assert md('<pre>foo<em>\nbar\n</em>baz</pre>') == '```\nfoo\nbar\nbaz\n```\n\n'
-    assert md('<pre>foo<code>\nbar\n</code>baz</pre>') == '```\nfoo\nbar\nbaz\n```\n\n'
-    assert md('<pre>foo<strong>\nbar\n</strong>baz</pre>') == '```\nfoo\nbar\nbaz\n```\n\n'
-    assert md('<pre>foo<s>\nbar\n</s>baz</pre>') == '```\nfoo\nbar\nbaz\n```\n\n'
-    assert md('<pre>foo<sup>\nbar\n</sup>baz</pre>', sup_symbol='^') == '```\nfoo\nbar\nbaz\n```\n\n'
-    assert md('<pre>foo<sub>\nbar\n</sub>baz</pre>', sub_symbol='^') == '```\nfoo\nbar\nbaz\n```\n\n'
-    assert md('<pre>foo<sub>\nbar\n</sub>baz</pre>', sub_symbol='^') == '```\nfoo\nbar\nbaz\n```\n\n'
+    assert md('<pre>test\n    foo\nbar</pre>') == '\n\n```\ntest\n    foo\nbar\n```\n\n'
+    assert md('<pre><code>test\n    foo\nbar</code></pre>') == '\n\n```\ntest\n    foo\nbar\n```\n\n'
+    assert md('<pre>*this_should_not_escape*</pre>') == '\n\n```\n*this_should_not_escape*\n```\n\n'
+    assert md('<pre><span>*this_should_not_escape*</span></pre>') == '\n\n```\n*this_should_not_escape*\n```\n\n'
+    assert md('<pre>\t\tthis  should\t\tnot  normalize</pre>') == '\n\n```\n\t\tthis  should\t\tnot  normalize\n```\n\n'
+    assert md('<pre><span>\t\tthis  should\t\tnot  normalize</span></pre>') == '\n\n```\n\t\tthis  should\t\tnot  normalize\n```\n\n'
+    assert md('<pre>foo<b>\nbar\n</b>baz</pre>') == '\n\n```\nfoo\nbar\nbaz\n```\n\n'
+    assert md('<pre>foo<i>\nbar\n</i>baz</pre>') == '\n\n```\nfoo\nbar\nbaz\n```\n\n'
+    assert md('<pre>foo\n<i>bar</i>\nbaz</pre>') == '\n\n```\nfoo\nbar\nbaz\n```\n\n'
+    assert md('<pre>foo<i>\n</i>baz</pre>') == '\n\n```\nfoo\nbaz\n```\n\n'
+    assert md('<pre>foo<del>\nbar\n</del>baz</pre>') == '\n\n```\nfoo\nbar\nbaz\n```\n\n'
+    assert md('<pre>foo<em>\nbar\n</em>baz</pre>') == '\n\n```\nfoo\nbar\nbaz\n```\n\n'
+    assert md('<pre>foo<code>\nbar\n</code>baz</pre>') == '\n\n```\nfoo\nbar\nbaz\n```\n\n'
+    assert md('<pre>foo<strong>\nbar\n</strong>baz</pre>') == '\n\n```\nfoo\nbar\nbaz\n```\n\n'
+    assert md('<pre>foo<s>\nbar\n</s>baz</pre>') == '\n\n```\nfoo\nbar\nbaz\n```\n\n'
+    assert md('<pre>foo<sup>\nbar\n</sup>baz</pre>', sup_symbol='^') == '\n\n```\nfoo\nbar\nbaz\n```\n\n'
+    assert md('<pre>foo<sub>\nbar\n</sub>baz</pre>', sub_symbol='^') == '\n\n```\nfoo\nbar\nbaz\n```\n\n'
+    assert md('<pre>foo<sub>\nbar\n</sub>baz</pre>', sub_symbol='^') == '\n\n```\nfoo\nbar\nbaz\n```\n\n'
 
     assert md('foo<pre>bar</pre>baz', sub_symbol='^') == 'foo\n\n```\nbar\n```\n\nbaz'
-    assert md("<p>foo</p>\n<pre>bar</pre>\n</p>baz</p>", sub_symbol="^") == 'foo\n\n```\nbar\n```\n\nbaz'
+    assert md("<p>foo</p>\n<pre>bar</pre>\n</p>baz</p>", sub_symbol="^") == "\n\nfoo\n\n```\nbar\n```\n\nbaz"
 
 
 def test_script():
@@ -320,24 +327,24 @@ def test_sup():
 
 
 def test_lang():
-    assert md('<pre>test\n    foo\nbar</pre>', code_language='python') == '```python\ntest\n    foo\nbar\n```\n\n'
-    assert md('<pre><code>test\n    foo\nbar</code></pre>', code_language='javascript') == '```javascript\ntest\n    foo\nbar\n```\n\n'
+    assert md('<pre>test\n    foo\nbar</pre>', code_language='python') == '\n\n```python\ntest\n    foo\nbar\n```\n\n'
+    assert md('<pre><code>test\n    foo\nbar</code></pre>', code_language='javascript') == '\n\n```javascript\ntest\n    foo\nbar\n```\n\n'
 
 
 def test_lang_callback():
     def callback(el):
         return el['class'][0] if el.has_attr('class') else None
 
-    assert md('<pre class="python">test\n    foo\nbar</pre>', code_language_callback=callback) == '```python\ntest\n    foo\nbar\n```\n\n'
-    assert md('<pre class="javascript"><code>test\n    foo\nbar</code></pre>', code_language_callback=callback) == '```javascript\ntest\n    foo\nbar\n```\n\n'
-    assert md('<pre class="javascript"><code class="javascript">test\n    foo\nbar</code></pre>', code_language_callback=callback) == '```javascript\ntest\n    foo\nbar\n```\n\n'
+    assert md('<pre class="python">test\n    foo\nbar</pre>', code_language_callback=callback) == '\n\n```python\ntest\n    foo\nbar\n```\n\n'
+    assert md('<pre class="javascript"><code>test\n    foo\nbar</code></pre>', code_language_callback=callback) == '\n\n```javascript\ntest\n    foo\nbar\n```\n\n'
+    assert md('<pre class="javascript"><code class="javascript">test\n    foo\nbar</code></pre>', code_language_callback=callback) == '\n\n```javascript\ntest\n    foo\nbar\n```\n\n'
 
 
 def test_spaces():
-    assert md('<p> a b </p> <p> c d </p>') == 'a b\n\nc d\n\n'
-    assert md('<p> <i>a</i> </p>') == '*a*\n\n'
+    assert md('<p> a b </p> <p> c d </p>') == '\n\na b\n\nc d\n\n'
+    assert md('<p> <i>a</i> </p>') == '\n\n*a*\n\n'
     assert md('test <p> again </p>') == 'test\n\nagain\n\n'
     assert md('test <blockquote> text </blockquote> after') == 'test\n> text\n\nafter'
-    assert md(' <ol> <li> x </li> <li> y </li> </ol> ') == '1. x\n2. y\n'
-    assert md(' <ul> <li> x </li> <li> y </li> </ol> ') == '* x\n* y\n'
+    assert md(' <ol> <li> x </li> <li> y </li> </ol> ') == '\n\n1. x\n2. y\n'
+    assert md(' <ul> <li> x </li> <li> y </li> </ol> ') == '\n\n* x\n* y\n'
     assert md('test <pre> foo </pre> bar') == 'test\n\n```\n foo \n```\n\nbar'

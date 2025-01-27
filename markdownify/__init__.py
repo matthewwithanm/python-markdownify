@@ -26,6 +26,11 @@ BACKSLASH = 'backslash'
 ASTERISK = '*'
 UNDERSCORE = '_'
 
+# Document strip styles
+LSTRIP = 'lstrip'
+RSTRIP = 'rstrip'
+STRIP = 'strip'
+
 
 def chomp(text):
     """
@@ -99,6 +104,7 @@ class MarkdownConverter(object):
         keep_inline_images_in = []
         newline_style = SPACES
         strip = None
+        strip_document = LSTRIP
         strong_em_symbol = ASTERISK
         sub_symbol = ''
         sup_symbol = ''
@@ -181,8 +187,16 @@ class MarkdownConverter(object):
 
     def convert__document_(self, el, text, convert_as_inline):
         """Final document-level formatting for BeautifulSoup object (node.name == "[document]")"""
-        # remove all leading newlines
-        text = text.lstrip('\n')
+        if self.options['strip_document'] == LSTRIP:
+            text = text.lstrip('\n')  # remove leading separation newlines
+        elif self.options['strip_document'] == RSTRIP:
+            text = text.rstrip('\n')  # remove trailing separation newlines
+        elif self.options['strip_document'] == STRIP:
+            text = text.strip('\n')  # remove leading and trailing separation newlines
+        elif self.options['strip_document'] is None:
+            pass  # leave leading and trailing separation newlines as-is
+        else:
+            raise ValueError('Invalid value for strip_document: %s' % self.options['strip_document'])
 
         return text
 

@@ -1,4 +1,11 @@
-from markdownify import markdownify as md
+from markdownify import MarkdownConverter
+
+
+def md(html, **options):
+    # disable document-level stripping so separation newlines are included in testing
+    options = {**options, "strip_document": None}
+
+    return MarkdownConverter(**options).convert(html)
 
 
 def test_chomp():
@@ -14,7 +21,7 @@ def test_chomp():
 
 def test_nested():
     text = md('<p>This is an <a href="http://example.com/">example link</a>.</p>')
-    assert text == 'This is an [example link](http://example.com/).\n\n'
+    assert text == '\n\nThis is an [example link](http://example.com/).\n\n'
 
 
 def test_ignore_comments():

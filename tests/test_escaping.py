@@ -1,6 +1,13 @@
 import warnings
 from bs4 import MarkupResemblesLocatorWarning
-from markdownify import markdownify as md
+from markdownify import MarkdownConverter
+
+
+def md(html, **options):
+    # disable document-level stripping so separation newlines are included in testing
+    options = {**options, "strip_document": None}
+
+    return MarkdownConverter(**options).convert(html)
 
 
 def test_asterisks():
