@@ -2,7 +2,8 @@
 Test whitelisting/blacklisting of specific tags.
 
 """
-from markdownify import markdownify as md, LSTRIP, RSTRIP, STRIP
+from markdownify import markdownify, LSTRIP, RSTRIP, STRIP
+from .utils import md
 
 
 def test_strip():
@@ -26,8 +27,8 @@ def test_do_not_convert():
 
 
 def test_strip_document():
-    assert md("<p>Hello</p>") == "Hello\n\n"  # defaults to LSTRIP
-    assert md("<p>Hello</p>", strip_document=LSTRIP) == "Hello\n\n"
-    assert md("<p>Hello</p>", strip_document=RSTRIP) == "\n\nHello"
-    assert md("<p>Hello</p>", strip_document=STRIP) == "Hello"
-    assert md("<p>Hello</p>", strip_document=None) == "\n\nHello\n\n"
+    assert markdownify("<p>Hello</p>") == "Hello"  # test default of STRIP
+    assert markdownify("<p>Hello</p>", strip_document=LSTRIP) == "Hello\n\n"
+    assert markdownify("<p>Hello</p>", strip_document=RSTRIP) == "\n\nHello"
+    assert markdownify("<p>Hello</p>", strip_document=STRIP) == "Hello"
+    assert markdownify("<p>Hello</p>", strip_document=None) == "\n\nHello\n\n"

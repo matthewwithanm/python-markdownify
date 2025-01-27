@@ -104,7 +104,7 @@ class MarkdownConverter(object):
         keep_inline_images_in = []
         newline_style = SPACES
         strip = None
-        strip_document = LSTRIP
+        strip_document = STRIP
         strong_em_symbol = ASTERISK
         sub_symbol = ''
         sup_symbol = ''

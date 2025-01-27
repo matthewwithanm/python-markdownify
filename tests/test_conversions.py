@@ -1,11 +1,5 @@
-from markdownify import MarkdownConverter, ATX, ATX_CLOSED, BACKSLASH, SPACES, UNDERSCORE
-
-
-def md(html, **options):
-    # disable document-level stripping so separation newlines are included in testing
-    options = {**options, "strip_document": None}
-
-    return MarkdownConverter(**options).convert(html)
+from markdownify import ATX, ATX_CLOSED, BACKSLASH, SPACES, UNDERSCORE
+from .utils import md
 
 
 def inline_tests(tag, markup):

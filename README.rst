@@ -153,9 +153,9 @@ wrap, wrap_width
 strip_document
   Controls whether leading and/or trailing separation newlines are removed from
   the final converted document. Supported values are ``LSTRIP`` (leading),
-  ``RSTRIP`` (trailing), ``STRIP`` (both), and ``None`` (no removal). Newlines
+  ``RSTRIP`` (trailing), ``STRIP`` (both), and ``None`` (neither). Newlines
   within the document are unaffected.
-  Defaults to ``LSTRIP``.
+  Defaults to ``STRIP``.
 
 Options may be specified as kwargs to the ``markdownify`` function, or as a
 nested ``Options`` class in ``MarkdownConverter`` subclasses.
