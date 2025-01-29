@@ -133,7 +133,7 @@ class MarkdownConverter(object):
         return self.process_tag(soup, convert_as_inline=False)
 
     def process_tag(self, node, convert_as_inline):
-        text = ''
+        text_parts = []
 
         # markdown headings or cells can't include
         # block elements (elements w/newlines)
@@ -147,19 +147,38 @@ class MarkdownConverter(object):
         # Remove whitespace-only textnodes just before, after or
         # inside block-level elements.
         should_remove_inside = should_remove_whitespace_inside(node)
-        for el in node.children:
-            # Only extract (remove) whitespace-only text node if any of the
-            # conditions is true:
-            # - el is the first element in its parent (block-level)
-            # - el is the last element in its parent (block-level)
-            # - el is adjacent to a block-level node
-            can_extract = (should_remove_inside and (not el.previous_sibling
-                                                     or not el.next_sibling)
-                           or should_remove_whitespace_outside(el.previous_sibling)
-                           or should_remove_whitespace_outside(el.next_sibling))
-            if (isinstance(el, NavigableString)
-                    and six.text_type(el).strip() == ''
-                    and can_extract):
+        children = list(node.children)
+        for i, el in enumerate(children):
+            # Quick type check first to avoid unnecessary function calls
+            if not isinstance(el, NavigableString):
+                continue
+
+            # Check if the text is entirely whitespace first
+            text = six.text_type(el)
+            if text.strip():
+                continue
+
+            # If first or last element
+            is_at_extreme_position = (
+                should_remove_inside and (i == 0 or i == len(children) - 1)
+            )
+            # True if there is a preceding sibling, and it should have whitespace removed.
+            has_removal_candidate_to_left = (
+                i > 0 and should_remove_whitespace_outside(children[i - 1])
+            )
+            # True if there is a following sibling, and it should have whitespace removed.
+            has_removal_candidate_to_right = (
+                i < len(children) - 1 and should_remove_whitespace_outside(children[i + 1])
+            )
+            # Determine if we can extract based on position and adjacency
+            can_extract = (
+                is_at_extreme_position
+                or has_removal_candidate_to_left
+                or has_removal_candidate_to_right
+            )
+
+            # Extract if conditions are met
+            if can_extract:
                 el.extract()
 
         # Convert the children first
@@ -167,23 +186,56 @@ class MarkdownConverter(object):
             if isinstance(el, Comment) or isinstance(el, Doctype):
                 continue
             elif isinstance(el, NavigableString):
-                text += self.process_text(el)
+                text_parts.append(self.process_text(el))
             else:
-                text_strip = text.rstrip('\n')
-                newlines_left = len(text) - len(text_strip)
+                # 1) Pop trailing newlines from whatever's in text_parts so far
+                text_strip, newlines_left = self.pop_trailing_newlines(text_parts)
+                # 2) Convert the next tag
                 next_text = self.process_tag(el, convert_children_as_inline)
+                # 3) Figure out how many leading newlines in next_text
                 next_text_strip = next_text.lstrip('\n')
                 newlines_right = len(next_text) - len(next_text_strip)
+                # 4) Calculate how many newlines to insert between text_strip and next_text_strip
                 newlines = '\n' * max(newlines_left, newlines_right)
-                text = text_strip + newlines + next_text_strip
+                text_parts.extend([text_strip, newlines, next_text_strip])
 
         # apply this tag's final conversion function
         convert_fn_name = "convert_%s" % re.sub(r"[\[\]:-]", "_", node.name)
         convert_fn = getattr(self, convert_fn_name, None)
         if convert_fn and self.should_convert_tag(node.name):
-            text = convert_fn(node, text, convert_as_inline)
+            # Join the text parts before passing to convert_fn
+            text_parts_str = ''.join(text_parts)
+            text_parts = [convert_fn(node, text_parts_str, convert_as_inline)]
 
-        return text
+        return ''.join(text_parts)
+
+    def pop_trailing_newlines(self, text_parts):
+        """
+        Pops trailing newline text from the end of `parts`. I suspect this function
+        will get refactored with time.
+        Returns: (combined_text_without_trailing_newlines, count_of_newlines_popped)
+        If there is no trailing text in parts, returns ("", 0).
+        """
+
+        newlines_total = 0
+        # 1) First pop off any chunks that are newlines
+        newline_chunks = []
+        while text_parts and text_parts[-1].rstrip('\n') == '':
+            newline_chunks.append(text_parts.pop())
+        if newline_chunks:
+            # Example: if we had ["\n", "\n", "\n"] at the very end
+            all_newlines = ''.join(reversed(newline_chunks))
+            newlines_total += len(all_newlines)
+
+        # 2) Now look at one more chunk which might have some real text + trailing newlines
+        text_without_newline = ''
+        if text_parts:
+            last_chunk = text_parts.pop()
+            stripped = last_chunk.rstrip('\n')
+            newlines_total += (len(last_chunk) - len(stripped))
+            text_without_newline = stripped
+
+        return (text_without_newline, newlines_total)
 
     def convert__document_(self, el, text, convert_as_inline):
         """Final document-level formatting for BeautifulSoup object (node.name == "[document]")"""
