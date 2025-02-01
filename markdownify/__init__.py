@@ -444,7 +444,7 @@ class MarkdownConverter(object):
                 start = int(parent.get("start"))
             else:
                 start = 1
-            bullet = '%s.' % (start + parent.index(el))
+            bullet = '%s.' % (start + len(el.find_previous_siblings('li')))
         else:
             depth = -1
             while el:
