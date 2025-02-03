@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from itertools import chain
 from typing import TYPE_CHECKING, Any, Callable, Literal, cast
 
 from bs4 import BeautifulSoup, Comment, Doctype, NavigableString, Tag
@@ -11,7 +12,7 @@ from html_to_markdown.constants import (
     html_heading_re,
     whitespace_re,
 )
-from html_to_markdown.converters import ConverterssMap, create_converters_map
+from html_to_markdown.converters import ConvertersMap, create_converters_map
 from html_to_markdown.utils import escape
 
 if TYPE_CHECKING:
@@ -76,18 +77,21 @@ def _is_nested_tag(el: PageElement) -> bool:
 
 def _process_tag(
     tag: Tag,
-    converters_map: ConverterssMap,
+    converters_map: ConvertersMap,
     *,
-    convert: Iterable[str] | None,
+    convert: set[str] | None,
     convert_as_inline: bool = False,
     escape_asterisks: bool,
     escape_misc: bool,
     escape_underscores: bool,
-    strip: Iterable[str] | None,
+    strip: set[str] | None,
 ) -> str:
+    should_convert_tag = _should_convert_tag(tag_name=tag.name, strip=strip, convert=convert)
+    tag_name: SupportedTag | None = cast(SupportedTag, tag.name.lower()) if tag.name.lower() in converters_map else None
     text = ""
+
     is_heading = html_heading_re.match(tag.name) is not None
-    is_cell = tag.name in {"td", "th"}
+    is_cell = tag_name in {"td", "th"}
     convert_children_as_inline = convert_as_inline or is_heading or is_cell
 
     if _is_nested_tag(tag):
@@ -121,9 +125,7 @@ def _process_tag(
                 strip=strip,
             )
 
-    tag_name: SupportedTag | None = cast(SupportedTag, tag.name.lower()) if tag.name.lower() in converters_map else None
-
-    if tag_name and _should_convert_tag(tag_name=tag.name, strip=strip, convert=convert):
+    if tag_name and should_convert_tag:
         return converters_map[tag_name](  # type: ignore[call-arg]
             tag=tag, text=text, convert_as_inline=convert_as_inline
         )
@@ -166,12 +168,20 @@ def _process_text(
     return text
 
 
-def _should_convert_tag(*, tag_name: str, strip: Iterable[str] | None, convert: Iterable[str] | None) -> bool:
+def _should_convert_tag(*, tag_name: str, strip: set[str] | None, convert: set[str] | None) -> bool:
     if strip is not None:
         return tag_name not in strip
     if convert is not None:
         return tag_name in convert
     return True
+
+
+def _as_optional_set(value: str | Iterable[str] | None) -> set[str] | None:
+    if value is None:
+        return None
+    if isinstance(value, str):
+        return set(",".split(value))
+    return {*chain(*[v.split(",") for v in value])}
 
 
 def convert_to_markdown(
@@ -181,7 +191,7 @@ def convert_to_markdown(
     bullets: str = "*+-",
     code_language: str = "",
     code_language_callback: Callable[[Any], str] | None = None,
-    convert: Iterable[str] | None = None,
+    convert: str | Iterable[str] | None = None,
     default_title: bool = False,
     escape_asterisks: bool = True,
     escape_misc: bool = True,
@@ -189,7 +199,7 @@ def convert_to_markdown(
     heading_style: Literal["underlined", "atx", "atx_closed"] = UNDERLINED,
     keep_inline_images_in: Iterable[str] | None = None,
     newline_style: Literal["spaces", "backslash"] = SPACES,
-    strip: Iterable[str] | None = None,
+    strip: str | Iterable[str] | None = None,
     strong_em_symbol: Literal["*", "_"] = ASTERISK,
     sub_symbol: str = "",
     sup_symbol: str = "",
@@ -221,13 +231,22 @@ def convert_to_markdown(
         wrap_width: The number of characters at which to wrap text. Defaults to 80.
         convert_as_inline: Treat the content as inline elements (no block elements like paragraphs). Defaults to False.
 
+    Raises:
+        ValueError: If both 'strip' and 'convert' are specified, or when the input HTML is empty.
+
     Returns:
         str: A string of Markdown-formatted text converted from the given HTML.
     """
     if isinstance(source, str):
         from bs4 import BeautifulSoup
 
-        source = BeautifulSoup(source, "html.parser")
+        if "".join(source.split("\n")):
+            source = BeautifulSoup(source, "html.parser")
+        else:
+            raise ValueError("The input HTML is empty.")
+
+    if strip is not None and convert is not None:
+        raise ValueError("Only one of 'strip' and 'convert' can be specified.")
 
     converters_map = create_converters_map(
         autolinks=autolinks,
@@ -248,10 +267,10 @@ def convert_to_markdown(
     return _process_tag(
         source,
         converters_map,
-        convert=convert,
+        convert=_as_optional_set(convert),
         convert_as_inline=convert_as_inline,
         escape_asterisks=escape_asterisks,
         escape_misc=escape_misc,
         escape_underscores=escape_underscores,
-        strip=strip,
+        strip=_as_optional_set(strip),
     )

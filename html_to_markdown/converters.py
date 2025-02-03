@@ -55,17 +55,19 @@ SupportedElements = Literal[
     "kbd",
 ]
 
-ConverterssMap = Mapping[SupportedElements, Callable[[str, Tag], str]]
+ConvertersMap = Mapping[SupportedElements, Callable[[str, Tag], str]]
 
 T = TypeVar("T")
 
 
 def _create_inline_converter(markup_prefix: str) -> Callable[[Tag, str], str]:
-    """This abstracts all simple inline tags like b, em, del, ...
-    Returns a function that wraps the chomped text in a pair of the string
-    that is returned by markup_fn, with '/' inserted in the string used after
-    the text if it looks like an HTML tag. markup_fn is necessary to allow for
-    references to self.strong_em_symbol etc.
+    """Create an inline converter for a markup pattern or tag.
+
+    Args:
+        markup_prefix: The markup prefix to insert.
+
+    Returns:
+        A function that can be used to convert HTML to Markdown.
     """
 
     def implementation(*, tag: Tag, text: str) -> str:
@@ -295,7 +297,7 @@ def create_converters_map(
     sup_symbol: str,
     wrap: bool,
     wrap_width: int,
-) -> ConverterssMap:
+) -> ConvertersMap:
     """Create a mapping of HTML elements to their corresponding conversion functions.
 
     Args:

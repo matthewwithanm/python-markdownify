@@ -1,118 +1,104 @@
+[build-system]
+build-backend = "hatchling.build"
+
+requires = [ "hatchling" ]
+
 [project]
 name = "html-to-markdown"
-version = "1.1.0"
+version = "1.2.0"
 description = "Convert HTML to markdown"
-authors = [{ name = "Na'aman Hirschfeld", email = "nhirschfeld@gmail.com" }]
-requires-python = ">=3.9"
 readme = "README.md"
+keywords = [ "converter", "html", "markdown", "text-extraction", "text-processing" ]
+
 license = { text = "MIT" }
+authors = [ { name = "Na'aman Hirschfeld", email = "nhirschfeld@gmail.com" } ]
+requires-python = ">=3.9"
 classifiers = [
-    "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
-    "Topic :: Text Processing :: Markup :: HTML",
-    "Topic :: Text Processing :: Markup :: Markdown",
-    "Topic :: Text Processing :: Markup",
-    "Topic :: Text Processing",
-    "Topic :: Utilities",
-    "Typing :: Typed",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Text Processing",
+  "Topic :: Text Processing :: Markup",
+  "Topic :: Text Processing :: Markup :: HTML",
+  "Topic :: Text Processing :: Markup :: Markdown",
+  "Topic :: Utilities",
+  "Typing :: Typed",
 ]
-keywords = ["markdown", "html", "beautifulsoup", "converter", "text-processing"]
-
 dependencies = [
-    "beautifulsoup4>=4.12.3",
+  "beautifulsoup4>=4.12.3",
 ]
 
-[project.scripts]
-html_to_markdown = "html_to_markdown.__main__:cli"
-
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+[dependency-groups]
+dev = [
+  "covdefaults>=2.3",
+  "mypy>=1.14.1",
+  "pre-commit>=4.1",
+  "pytest>=8.3.4",
+  "pytest-cov>=6",
+  "pytest-mock>=3.14",
+  "ruff>=0.9.3",
+  "types-beautifulsoup4>=4.12.0.20241020",
+]
 
 [tool.hatch.build]
 skip-excluded-dirs = true
 
 [tool.hatch.build.targets.sdist]
-only-include = ["html_to_markdown"]
+only-include = [ "html_to_markdown" ]
 
 [tool.hatch.build.targets.wheel]
-only-include = ["html_to_markdown"]
+only-include = [ "html_to_markdown" ]
 
-[tool.pdm]
-distribution = true
-
-[tool.pdm.dev-dependencies]
-dev = [
-    "covdefaults>=2.3.0",
-    "pre-commit>=3.7.0",
-    "pytest>=8.1.1",
-    "ruff>=0.4.0",
-    "pytest-mock>=3.14.0",
-    "pytest-cov>=5.0.0",
-    "types-beautifulsoup4>=4.12.0.20240907",
-    "mypy>=1.11.2",
-]
-
-[tool.pdm.scripts]
-setup = { composite = [
-    "pre-commit install --install-hooks",
-    "pre-commit install --hook-type commit-msg",
-    "pdm install"
-] }
-lint = "pre-commit run --all-files"
-test.cmd = "pytest"
-test.env = { "PYTHONPATH" = "." }
-coverage.cmd = "pytest --disable-warnings --cov --cov-report xml"
-coverage.env = { "PYTHONPATH" = "." }
-
-# linters configuration below
 [tool.ruff]
-line-length = 120
 target-version = "py39"
-lint.select = ["ALL"]
+line-length = 120
+src = [ "html_to_markdown", "tests" ]
+
+format.docstring-code-line-length = 120
+format.docstring-code-format = true
+lint.select = [ "ALL" ]
 lint.ignore = [
-    "ANN401", # dynamically typed ANY
-    "D100", # # pydocstyle - missing docstring in public module
-    "D104", # pydocstyle - missing docstring in public package
-    "D107", # pydocstyle - missing docstring in __init__
-    "D205", # pydocstyle - 1 blank line required between summary line and description
-    "E501", # pycodestyle line too long, handled by ruff format
-    "EM", # Exception messages,
-    "FIX", # we allow todo and fixme comments
-    "PLR2004", # Magic variables, we allow them
-    "TD", # we allow todo and fixme comments
-    "TRY", # Try except block, rules are too strict
-    "COM812", # Conflicts with formatter
-    "ISC001", # Conflicts with formatter
-    "FBT", # Boolean Args
+  "ANN401",  # dynamically typed ANY
+  "COM812",  # Conflicts with formatter
+  "D100",    # # pydocstyle - missing docstring in public module
+  "D104",    # pydocstyle - missing docstring in public package
+  "D107",    # pydocstyle - missing docstring in __init__
+  "D205",    # pydocstyle - 1 blank line required between summary line and description
+  "E501",    # pycodestyle line too long, handled by ruff format
+  "EM",      # Exception messages,
+  "FBT",     # Boolean Args
+  "FIX",     # we allow todo and fixme comments
+  "ISC001",  # Conflicts with formatter
+  "PLR0913", # Pylint - too many arguments.
+  "PLR2004", # Magic variables, we allow them
+  "TD",      # we allow todo and fixme comments
+  "TRY",     # Try except block, rules are too strict
 ]
-src = ["html_to_markdown", "tests"]
+lint.per-file-ignores."tests/**/*.*" = [ "ARG", "D", "PD", "PT006", "PT013", "S" ]
+lint.isort.known-first-party = [ "html_to_markdown", "tests" ]
+lint.pydocstyle.convention = "google"
 
-[tool.ruff.lint.per-file-ignores]
-"tests/**/*.*" = ["S", "D", "PT006", "PT013", "PD", "ARG"]
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
 
-[tool.ruff.format]
-docstring-code-format = true
-docstring-code-line-length = 120
+[tool.coverage.run]
+omit = [ "tests/*" ]
+plugins = [ "covdefaults" ]
+source = [ "html_to_markdown" ]
 
-[tool.ruff.lint.pydocstyle]
-convention = "google"
-
-[tool.ruff.lint.isort]
-known-first-party = ["html_to_markdown", "tests"]
-
-[tool.ruff.lint.pylint]
-max-args = 25
-max-returns = 10
+[tool.coverage.report]
+exclude_lines = [ 'if TYPE_CHECKING:' ]
+fail_under = 100
 
 [tool.mypy]
-packages = ["html_to_markdown", "tests"]
+packages = [ "html_to_markdown", "tests" ]
 python_version = "3.9"
 implicit_reexport = false
 show_error_codes = true
@@ -123,15 +109,5 @@ module = "tests.*"
 disallow_any_generics = false
 disallow_untyped_decorators = false
 
-[tool.coverage.run]
-omit = ["tests/*"]
-plugins = ["covdefaults"]
-source = ["html_to_markdown"]
-
-[tool.coverage.report]
-exclude_lines = ['if TYPE_CHECKING:']
-fail_under = 100
-
-[tool.pytest.ini_options]
-asyncio_mode = "auto"
-asyncio_default_fixture_loop_scope = "function"
+[tool.uv]
+default-groups = [ "dev" ]

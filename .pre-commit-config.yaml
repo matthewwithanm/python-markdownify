@@ -1,49 +1,60 @@
-default_language_version:
-  python: python3.9
 repos:
-- repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
-  rev: v9.17.0
-  hooks:
-  - id: commitlint
-    stages: [commit-msg]
-    additional_dependencies: ['@commitlint/config-conventional']
-- repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v4.6.0
-  hooks:
-  - id: name-tests-test
-    args:
-    - --pytest
-    exclude: ^tests/factories|^tests/helpers|^tests/data_fixtures.py
-  - id: trailing-whitespace
-  - id: end-of-file-fixer
-  - id: check-yaml
-  - id: check-toml
-  - id: check-json
-  - id: pretty-format-json
-- repo: https://github.com/codespell-project/codespell
-  rev: v2.3.0
-  hooks:
-  - id: codespell
-    additional_dependencies:
-    - tomli
-- repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
-  rev: v2.14.0
-  hooks:
-  - id: pretty-format-yaml
-    args: [--autofix, --indent, '2']
-- repo: https://github.com/jsh9/pydoclint
-  rev: 0.5.7
-  hooks:
-  - id: pydoclint
-    args: [--style=google, --check-return-types=False, --arg-type-hints-in-docstring=False]
-- repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: v0.6.4
-  hooks:
-  - id: ruff
-    args: [--fix]
-  - id: ruff-format
-- repo: https://github.com/pre-commit/mirrors-mypy
-  rev: v1.11.2      # Use the sha / tag you want to point at
-  hooks:
-  - id: mypy
-    additional_dependencies: [beautifulsoup4, types-beautifulsoup4]
+  - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
+    rev: "v9.20.0"
+    hooks:
+      - id: commitlint
+        stages: [commit-msg]
+        additional_dependencies: ["@commitlint/config-conventional"]
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: name-tests-test
+        args:
+          - --pytest
+        exclude: factories|test_utils|completion.py|test_data
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-toml
+      - id: check-case-conflict
+      - id: detect-private-key
+  - repo: https://github.com/rbubley/mirrors-prettier
+    rev: "v3.4.2"
+    hooks:
+      - id: prettier
+        exclude: ^tests|^.idea|^migrations|^.git
+  - repo: https://github.com/tox-dev/pyproject-fmt
+    rev: "v2.5.0"
+    hooks:
+      - id: pyproject-fmt
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.9.4
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.4.1
+    hooks:
+      - id: codespell
+        exclude: ^tests|^scripts
+        additional_dependencies:
+          - tomli
+  - repo: https://github.com/jsh9/pydoclint
+    rev: 0.6.0
+    hooks:
+      - id: pydoclint
+        args:
+          [
+            --style=google,
+            --check-return-types=False,
+            --arg-type-hints-in-docstring=False,
+          ]
+  - repo: local
+    hooks:
+      - id: mypy
+        name: mypy
+        entry: uv run mypy
+        require_serial: true
+        language: system
+        types: [python]
