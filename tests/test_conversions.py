@@ -114,8 +114,19 @@ def test_del():
     inline_tests('del', '~~')
 
 
-def test_div():
-    assert md('Hello</div> World') == 'Hello World'
+def test_div_section_article():
+    for tag in ['div', 'section', 'article']:
+        assert md(f'<{tag}>456</{tag}>') == '\n\n456\n\n'
+        assert md(f'123<{tag}>456</{tag}>789') == '123\n\n456\n\n789'
+        assert md(f'123<{tag}>\n 456 \n</{tag}>789') == '123\n\n456\n\n789'
+        assert md(f'123<{tag}><p>456</p></{tag}>789') == '123\n\n456\n\n789'
+        assert md(f'123<{tag}>\n<p>456</p>\n</{tag}>789') == '123\n\n456\n\n789'
+        assert md(f'123<{tag}><pre>4 5 6</pre></{tag}>789') == '123\n\n```\n4 5 6\n```\n\n789'
+        assert md(f'123<{tag}>\n<pre>4 5 6</pre>\n</{tag}>789') == '123\n\n```\n4 5 6\n```\n\n789'
+        assert md(f'123<{tag}>4\n5\n6</{tag}>789') == '123\n\n4\n5\n6\n\n789'
+        assert md(f'123<{tag}>\n4\n5\n6\n</{tag}>789') == '123\n\n4\n5\n6\n\n789'
+        assert md(f'123<{tag}>\n<p>\n4\n5\n6\n</p>\n</{tag}>789') == '123\n\n4\n5\n6\n\n789'
+        assert md(f'<{tag}><h1>title</h1>body</{{tag}}>', heading_style=ATX) == '\n\n# title\n\nbody\n\n'
 
 
 def test_em():
