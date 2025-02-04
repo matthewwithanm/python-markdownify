@@ -135,14 +135,13 @@ class MarkdownConverter(object):
     def process_tag(self, node, convert_as_inline):
         text = ''
 
-        # markdown headings or cells can't include
-        # block elements (elements w/newlines)
-        isHeading = html_heading_re.match(node.name) is not None
-        isCell = node.name in ['td', 'th']
-        convert_children_as_inline = convert_as_inline
-
-        if isHeading or isCell:
-            convert_children_as_inline = True
+        # For Markdown headings and table cells, convert children as inline
+        # (so that block element children do not produce newlines).
+        convert_children_as_inline = (
+            convert_as_inline  # propagated from parent
+            or html_heading_re.match(node.name) is not None  # headings
+            or node.name in ['td', 'th']  # table cells
+        )
 
         # Remove whitespace-only textnodes just before, after or
         # inside block-level elements.
