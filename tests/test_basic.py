@@ -6,7 +6,7 @@ def test_single_tag():
 
 
 def test_soup():
-    assert md('<div><span>Hello</div></span>') == 'Hello'
+    assert md('<div><span>Hello</div></span>') == '\n\nHello\n\n'
 
 
 def test_whitespace():
