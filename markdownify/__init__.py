@@ -90,30 +90,37 @@ def should_remove_whitespace_outside(el):
     return should_remove_whitespace_inside(el) or (el and el.name == 'pre')
 
 
-def _is_content_element(el):
-    """Returns True for content (tags and non-whitespace text), else False."""
+def _is_block_content_element(el):
+    """
+    In a block context, returns:
+
+    - True for content elements (tags and non-whitespace text)
+    - False for non-content elements (whitespace text, comments, doctypes)
+    """
     if isinstance(el, Tag):
         return True
+    elif isinstance(el, (Comment, Doctype)):
+        return False  # (subclasses of NavigableString, must test first)
     elif isinstance(el, NavigableString):
         return el.strip() != ''
     else:
         return False
 
 
-def _prev_content_sibling(el):
+def _prev_block_content_sibling(el):
     """Returns the first previous sibling that is a content element, else None."""
     while el is not None:
         el = el.previous_sibling
-        if _is_content_element(el):
+        if _is_block_content_element(el):
             return el
     return None
 
 
-def _next_content_sibling(el):
+def _next_block_content_sibling(el):
     """Returns the first next sibling that is a content element, else None."""
     while el is not None:
         el = el.next_sibling
-        if _is_content_element(el):
+        if _is_block_content_element(el):
             return el
     return None
 
@@ -177,12 +184,13 @@ class MarkdownConverter(object):
         should_remove_inside = should_remove_whitespace_inside(node)
 
         def _can_ignore(el):
-            if isinstance(el, (Comment, Doctype)):
-                # Comment and Doctype elements are always ignored.
-                return True
-            elif isinstance(el, Tag):
+            if isinstance(el, Tag):
                 # Tags are always processed.
                 return False
+            elif isinstance(el, (Comment, Doctype)):
+                # Comment and Doctype elements are always ignored.
+                # (subclasses of NavigableString, must test first)
+                return True
             elif isinstance(el, NavigableString):
                 if six.text_type(el).strip() != '':
                     # Non-whitespace text nodes are always processed.
@@ -191,7 +199,7 @@ class MarkdownConverter(object):
                     # Inside block elements (excluding <pre>), ignore adjacent whitespace elements.
                     return True
                 elif should_remove_whitespace_outside(el.previous_sibling) or should_remove_whitespace_outside(el.next_sibling):
-                    # Outside block elements (including <pre), ignore adjacent whitespace elements.
+                    # Outside block elements (including <pre>), ignore adjacent whitespace elements.
                     return True
                 else:
                     return False
@@ -462,9 +470,9 @@ class MarkdownConverter(object):
 
         nested = False
         before_paragraph = False
-        if next_sibling := _next_content_sibling(el):
-            if next_sibling.name not in ['ul', 'ol']:
-                before_paragraph = True
+        next_sibling = _next_block_content_sibling(el)
+        if next_sibling and next_sibling.name not in ['ul', 'ol']:
+            before_paragraph = True
         while el:
             if el.name == 'li':
                 nested = True
