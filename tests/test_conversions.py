@@ -116,7 +116,7 @@ def test_del():
 
 def test_div_section_article():
     for tag in ['div', 'section', 'article']:
-        assert md(f'<div>456</div>') == '\n\n456\n\n'
+        assert md(f'<{tag}>456</{tag}>') == '\n\n456\n\n'
         assert md(f'123<{tag}>456</{tag}>789') == '123\n\n456\n\n789'
         assert md(f'123<{tag}>\n 456 \n</{tag}>789') == '123\n\n456\n\n789'
         assert md(f'123<{tag}><p>456</p></{tag}>789') == '123\n\n456\n\n789'
