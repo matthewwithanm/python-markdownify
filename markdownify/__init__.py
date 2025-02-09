@@ -53,13 +53,13 @@ def abstract_inline_conversion(markup_fn):
     the text if it looks like an HTML tag. markup_fn is necessary to allow for
     references to self.strong_em_symbol etc.
     """
-    def implementation(self, el, text, convert_as_inline):
+    def implementation(self, el, text, parent_tags):
         markup_prefix = markup_fn(self)
         if markup_prefix.startswith('<') and markup_prefix.endswith('>'):
             markup_suffix = '</' + markup_prefix[1:]
         else:
             markup_suffix = markup_prefix
-        if el.find_parent(['pre', 'code', 'kbd', 'samp']):
+        if '_noformat' in parent_tags:
             return text
         prefix, suffix, text = chomp(text)
         if not text:
@@ -166,18 +166,13 @@ class MarkdownConverter(object):
         return self.convert_soup(soup)
 
     def convert_soup(self, soup):
-        return self.process_tag(soup, convert_as_inline=False)
+        return self.process_tag(soup, parent_tags=set())
 
-    def process_tag(self, node, convert_as_inline):
+    def process_tag(self, node, parent_tags=None):
+        if parent_tags is None:
+            parent_tags = set()
+
         text = ''
-
-        # For Markdown headings and table cells, convert children as inline
-        # (so that block element children do not produce newlines).
-        convert_children_as_inline = (
-            convert_as_inline  # propagated from parent
-            or html_heading_re.match(node.name) is not None  # headings
-            or node.name in ['td', 'th']  # table cells
-        )
 
         # Collect child elements to process, ignoring whitespace-only text elements
         # adjacent to the inner/outer boundaries of block elements.
@@ -208,14 +203,30 @@ class MarkdownConverter(object):
 
         children_to_convert = [child for child in node.children if not _can_ignore(child)]
 
+        # create a copy of this tag's parent context, the update it to include this tag
+        # to propagate down into the children
+        parent_tags_for_children = set(parent_tags)
+        parent_tags_for_children.add(node.name)
+
+        # if this tag is a heading or table cell, add an '_inline' parent pseudo-tag
+        if (
+            html_heading_re.match(node.name) is not None  # headings
+            or node.name in {'td', 'th'}  # table cells
+        ):
+            parent_tags_for_children.add('_inline')
+
+        # if this tag is a preformatted element, add a '_noformat' parent pseudo-tag
+        if node.name in {'pre', 'code', 'kbd', 'samp'}:
+            parent_tags_for_children.add('_noformat')
+
         # Convert the children first
         for el in children_to_convert:
             if isinstance(el, NavigableString):
-                text += self.process_text(el)
+                text += self.process_text(el, parent_tags=parent_tags_for_children)
             else:
                 text_strip = text.rstrip('\n')
                 newlines_left = len(text) - len(text_strip)
-                next_text = self.process_tag(el, convert_children_as_inline)
+                next_text = self.process_tag(el, parent_tags=parent_tags_for_children)
                 next_text_strip = next_text.lstrip('\n')
                 newlines_right = len(next_text) - len(next_text_strip)
                 newlines = '\n' * max(newlines_left, newlines_right)
@@ -225,11 +236,11 @@ class MarkdownConverter(object):
         convert_fn_name = "convert_%s" % re.sub(r"[\[\]:-]", "_", node.name)
         convert_fn = getattr(self, convert_fn_name, None)
         if convert_fn and self.should_convert_tag(node.name):
-            text = convert_fn(node, text, convert_as_inline)
+            text = convert_fn(node, text, parent_tags=parent_tags)
 
         return text
 
-    def convert__document_(self, el, text, convert_as_inline):
+    def convert__document_(self, el, text, parent_tags):
         """Final document-level formatting for BeautifulSoup object (node.name == "[document]")"""
         if self.options['strip_document'] == LSTRIP:
             text = text.lstrip('\n')  # remove leading separation newlines
@@ -244,11 +255,11 @@ class MarkdownConverter(object):
 
         return text
 
-    def process_text(self, el):
+    def process_text(self, el, parent_tags):
         text = six.text_type(el) or ''
 
         # normalize whitespace if we're not inside a preformatted element
-        if not el.find_parent('pre'):
+        if 'pre' not in parent_tags:
             if self.options['wrap']:
                 text = all_whitespace_re.sub(' ', text)
             else:
@@ -256,7 +267,7 @@ class MarkdownConverter(object):
                 text = whitespace_re.sub(' ', text)
 
         # escape special characters if we're not inside a preformatted or code element
-        if not el.find_parent(['pre', 'code', 'kbd', 'samp']):
+        if '_noformat' not in parent_tags:
             text = self.escape(text)
 
         # remove leading whitespace at the start or just after a
@@ -279,8 +290,8 @@ class MarkdownConverter(object):
         if m:
             n = int(m.group(1))
 
-            def convert_tag(el, text, convert_as_inline):
-                return self._convert_hn(n, el, text, convert_as_inline)
+            def convert_tag(el, text, parent_tags):
+                return self._convert_hn(n, el, text, parent_tags)
 
             convert_tag.__name__ = 'convert_h%s' % n
             setattr(self, convert_tag.__name__, convert_tag)
@@ -327,8 +338,8 @@ class MarkdownConverter(object):
         text = (text or '').rstrip()
         return '\n\n%s\n%s\n\n' % (text, pad_char * len(text)) if text else ''
 
-    def convert_a(self, el, text, convert_as_inline):
-        if el.find_parent(['pre', 'code', 'kbd', 'samp']):
+    def convert_a(self, el, text, parent_tags):
+        if '_noformat' in parent_tags:
             return text
         prefix, suffix, text = chomp(text)
         if not text:
@@ -349,10 +360,10 @@ class MarkdownConverter(object):
 
     convert_b = abstract_inline_conversion(lambda self: 2 * self.options['strong_em_symbol'])
 
-    def convert_blockquote(self, el, text, convert_as_inline):
+    def convert_blockquote(self, el, text, parent_tags):
         # handle some early-exit scenarios
         text = (text or '').strip()
-        if convert_as_inline:
+        if '_inline' in parent_tags:
             return ' ' + text + ' '
         if not text:
             return "\n"
@@ -365,8 +376,8 @@ class MarkdownConverter(object):
 
         return '\n' + text + '\n\n'
 
-    def convert_br(self, el, text, convert_as_inline):
-        if convert_as_inline:
+    def convert_br(self, el, text, parent_tags):
+        if '_inline' in parent_tags:
             return ""
 
         if self.options['newline_style'].lower() == BACKSLASH:
@@ -374,16 +385,16 @@ class MarkdownConverter(object):
         else:
             return '  \n'
 
-    def convert_code(self, el, text, convert_as_inline):
-        if el.parent.name == 'pre':
+    def convert_code(self, el, text, parent_tags):
+        if 'pre' in parent_tags:
             return text
         converter = abstract_inline_conversion(lambda self: '`')
-        return converter(self, el, text, convert_as_inline)
+        return converter(self, el, text, parent_tags)
 
     convert_del = abstract_inline_conversion(lambda self: '~~')
 
-    def convert_div(self, el, text, convert_as_inline):
-        if convert_as_inline:
+    def convert_div(self, el, text, parent_tags):
+        if '_inline' in parent_tags:
             return ' ' + text.strip() + ' '
         text = text.strip()
         return '\n\n%s\n\n' % text if text else ''
@@ -396,9 +407,9 @@ class MarkdownConverter(object):
 
     convert_kbd = convert_code
 
-    def convert_dd(self, el, text, convert_as_inline):
+    def convert_dd(self, el, text, parent_tags):
         text = (text or '').strip()
-        if convert_as_inline:
+        if '_inline' in parent_tags:
             return ' ' + text + ' '
         if not text:
             return '\n'
@@ -414,11 +425,11 @@ class MarkdownConverter(object):
 
         return '%s\n' % text
 
-    def convert_dt(self, el, text, convert_as_inline):
+    def convert_dt(self, el, text, parent_tags):
         # remove newlines from term text
         text = (text or '').strip()
         text = all_whitespace_re.sub(' ', text)
-        if convert_as_inline:
+        if '_inline' in parent_tags:
             return ' ' + text + ' '
         if not text:
             return '\n'
@@ -428,9 +439,9 @@ class MarkdownConverter(object):
 
         return '\n%s\n' % text
 
-    def _convert_hn(self, n, el, text, convert_as_inline):
+    def _convert_hn(self, n, el, text, parent_tags):
         """ Method name prefixed with _ to prevent <hn> to call this """
-        if convert_as_inline:
+        if '_inline' in parent_tags:
             return text
 
         # prevent MemoryErrors in case of very large n
@@ -447,46 +458,40 @@ class MarkdownConverter(object):
             return '\n\n%s %s %s\n\n' % (hashes, text, hashes)
         return '\n\n%s %s\n\n' % (hashes, text)
 
-    def convert_hr(self, el, text, convert_as_inline):
+    def convert_hr(self, el, text, parent_tags):
         return '\n\n---\n\n'
 
     convert_i = convert_em
 
-    def convert_img(self, el, text, convert_as_inline):
+    def convert_img(self, el, text, parent_tags):
         alt = el.attrs.get('alt', None) or ''
         src = el.attrs.get('src', None) or ''
         title = el.attrs.get('title', None) or ''
         title_part = ' "%s"' % title.replace('"', r'\"') if title else ''
-        if (convert_as_inline
+        if ('_inline' in parent_tags
                 and el.parent.name not in self.options['keep_inline_images_in']):
             return alt
 
         return '![%s](%s%s)' % (alt, src, title_part)
 
-    def convert_list(self, el, text, convert_as_inline):
+    def convert_list(self, el, text, parent_tags):
 
         # Converting a list to inline is undefined.
-        # Ignoring convert_to_inline for list.
+        # Ignoring inline conversion parents for list.
 
-        nested = False
         before_paragraph = False
         next_sibling = _next_block_content_sibling(el)
         if next_sibling and next_sibling.name not in ['ul', 'ol']:
             before_paragraph = True
-        while el:
-            if el.name == 'li':
-                nested = True
-                break
-            el = el.parent
-        if nested:
-            # remove trailing newline if nested
+        if 'li' in parent_tags:
+            # remove trailing newline if we're in a nested list
             return '\n' + text.rstrip()
         return '\n\n' + text + ('\n' if before_paragraph else '')
 
     convert_ul = convert_list
     convert_ol = convert_list
 
-    def convert_li(self, el, text, convert_as_inline):
+    def convert_li(self, el, text, parent_tags):
         # handle some early-exit scenarios
         text = (text or '').strip()
         if not text:
@@ -523,8 +528,8 @@ class MarkdownConverter(object):
 
         return '%s\n' % text
 
-    def convert_p(self, el, text, convert_as_inline):
-        if convert_as_inline:
+    def convert_p(self, el, text, parent_tags):
+        if '_inline' in parent_tags:
             return ' ' + text.strip() + ' '
         text = text.strip()
         if self.options['wrap']:
@@ -546,7 +551,7 @@ class MarkdownConverter(object):
                 text = '\n'.join(new_lines)
         return '\n\n%s\n\n' % text if text else ''
 
-    def convert_pre(self, el, text, convert_as_inline):
+    def convert_pre(self, el, text, parent_tags):
         if not text:
             return ''
         code_language = self.options['code_language']
@@ -556,10 +561,10 @@ class MarkdownConverter(object):
 
         return '\n\n```%s\n%s\n```\n\n' % (code_language, text)
 
-    def convert_script(self, el, text, convert_as_inline):
+    def convert_script(self, el, text, parent_tags):
         return ''
 
-    def convert_style(self, el, text, convert_as_inline):
+    def convert_style(self, el, text, parent_tags):
         return ''
 
     convert_s = convert_del
@@ -572,28 +577,28 @@ class MarkdownConverter(object):
 
     convert_sup = abstract_inline_conversion(lambda self: self.options['sup_symbol'])
 
-    def convert_table(self, el, text, convert_as_inline):
+    def convert_table(self, el, text, parent_tags):
         return '\n\n' + text.strip() + '\n\n'
 
-    def convert_caption(self, el, text, convert_as_inline):
+    def convert_caption(self, el, text, parent_tags):
         return text.strip() + '\n\n'
 
-    def convert_figcaption(self, el, text, convert_as_inline):
+    def convert_figcaption(self, el, text, parent_tags):
         return '\n\n' + text.strip() + '\n\n'
 
-    def convert_td(self, el, text, convert_as_inline):
+    def convert_td(self, el, text, parent_tags):
         colspan = 1
         if 'colspan' in el.attrs and el['colspan'].isdigit():
             colspan = int(el['colspan'])
         return ' ' + text.strip().replace("\n", " ") + ' |' * colspan
 
-    def convert_th(self, el, text, convert_as_inline):
+    def convert_th(self, el, text, parent_tags):
         colspan = 1
         if 'colspan' in el.attrs and el['colspan'].isdigit():
             colspan = int(el['colspan'])
         return ' ' + text.strip().replace("\n", " ") + ' |' * colspan
 
-    def convert_tr(self, el, text, convert_as_inline):
+    def convert_tr(self, el, text, parent_tags):
         cells = el.find_all(['td', 'th'])
         is_first_row = el.find_previous_sibling() is None
         is_headrow = (

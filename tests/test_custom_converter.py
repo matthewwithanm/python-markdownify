@@ -6,11 +6,11 @@ class UnitTestConverter(MarkdownConverter):
     """
     Create a custom MarkdownConverter for unit tests
     """
-    def convert_img(self, el, text, convert_as_inline):
+    def convert_img(self, el, text, parent_tags):
         """Add two newlines after an image"""
-        return super().convert_img(el, text, convert_as_inline) + '\n\n'
+        return super().convert_img(el, text, parent_tags) + '\n\n'
 
-    def convert_custom_tag(self, el, text, convert_as_inline):
+    def convert_custom_tag(self, el, text, parent_tags):
         """Ensure conversion function is found for tags with special characters in name"""
         return "FUNCTION USED: %s" % text
 
