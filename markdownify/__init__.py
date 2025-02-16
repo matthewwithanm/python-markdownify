@@ -9,8 +9,11 @@ line_with_content_re = re.compile(r'^(.*)', flags=re.MULTILINE)
 whitespace_re = re.compile(r'[\t ]+')
 all_whitespace_re = re.compile(r'[\t \r\n]+')
 newline_whitespace_re = re.compile(r'[\t \r\n]*[\r\n][\t \r\n]*')
-extract_newlines_re = re.compile(r'^(\n*)(.*?)(\n*)$', flags=re.DOTALL)
 html_heading_re = re.compile(r'h[1-6]')
+
+# extract (leading_nl, content, trailing_nl) from a string
+# (functionally equivalent to r'^(\n*)(.*?)(\n*)$', but greedy is faster than reluctant here)
+extract_newlines_re = re.compile(r'^(\n*)((?:.*[^\n])?)(\n*)$', flags=re.DOTALL)
 
 
 # Heading styles
