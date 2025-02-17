@@ -11,6 +11,10 @@ all_whitespace_re = re.compile(r'[\t \r\n]+')
 newline_whitespace_re = re.compile(r'[\t \r\n]*[\r\n][\t \r\n]*')
 html_heading_re = re.compile(r'h[1-6]')
 
+# extract (leading_nl, content, trailing_nl) from a string
+# (functionally equivalent to r'^(\n*)(.*?)(\n*)$', but greedy is faster than reluctant here)
+extract_newlines_re = re.compile(r'^(\n*)((?:.*[^\n])?)(\n*)$', flags=re.DOTALL)
+
 
 # Heading styles
 ATX = 'atx'
@@ -168,6 +172,12 @@ class MarkdownConverter(object):
     def convert_soup(self, soup):
         return self.process_tag(soup, convert_as_inline=False)
 
+    def process_element(self, node, convert_as_inline):
+        if isinstance(node, NavigableString):
+            return self.process_text(node)
+        else:
+            return self.process_tag(node, convert_as_inline)
+
     def process_tag(self, node, convert_as_inline):
         text = ''
 
@@ -203,23 +213,44 @@ class MarkdownConverter(object):
                     return True
                 else:
                     return False
+            elif el is None:
+                return True
             else:
                 raise ValueError('Unexpected element type: %s' % type(el))
 
-        children_to_convert = [child for child in node.children if not _can_ignore(child)]
+        children_to_convert = [el for el in node.children if not _can_ignore(el)]
 
-        # Convert the children first
-        for el in children_to_convert:
-            if isinstance(el, NavigableString):
-                text += self.process_text(el)
-            else:
-                text_strip = text.rstrip('\n')
-                newlines_left = len(text) - len(text_strip)
-                next_text = self.process_tag(el, convert_children_as_inline)
-                next_text_strip = next_text.lstrip('\n')
-                newlines_right = len(next_text) - len(next_text_strip)
-                newlines = '\n' * max(newlines_left, newlines_right)
-                text = text_strip + newlines + next_text_strip
+        # Convert the children elements into a list of result strings.
+        child_strings = [self.process_element(el, convert_children_as_inline) for el in children_to_convert]
+
+        # Remove empty string values.
+        child_strings = [s for s in child_strings if s]
+
+        # Collapse newlines at child element boundaries, if needed.
+        if node.name == 'pre' or node.find_parent('pre'):
+            # Inside <pre> blocks, do not collapse newlines.
+            pass
+        else:
+            # Collapse newlines at child element boundaries.
+            updated_child_strings = ['']  # so the first lookback works
+            for child_string in child_strings:
+                # Separate the leading/trailing newlines from the content.
+                leading_nl, content, trailing_nl = extract_newlines_re.match(child_string).groups()
+
+                # If the last child had trailing newlines and this child has leading newlines,
+                # use the larger newline count, limited to 2.
+                if updated_child_strings[-1] and leading_nl:
+                    prev_trailing_nl = updated_child_strings.pop()  # will be replaced by the collapsed value
+                    num_newlines = min(2, max(len(prev_trailing_nl), len(leading_nl)))
+                    leading_nl = '\n' * num_newlines
+
+                # Add the results to the updated child string list.
+                updated_child_strings.extend([leading_nl, content, trailing_nl])
+
+            child_strings = updated_child_strings
+
+        # Join all child text strings into a single string.
+        text = ''.join(child_strings)
 
         # apply this tag's final conversion function
         convert_fn_name = "convert_%s" % re.sub(r"[\[\]:-]", "_", node.name)
