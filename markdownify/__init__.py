@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup, Comment, Doctype, NavigableString, Tag
 from textwrap import fill
 import re
 import six
+from urllib.parse import urlparse
 
 
 convert_heading_re = re.compile(r'convert_h(\d+)')
@@ -151,6 +152,7 @@ class MarkdownConverter(object):
         table_infer_header = False
         wrap = False
         wrap_width = 80
+        base_url = None
 
     class Options(DefaultOptions):
         pass
@@ -488,6 +490,16 @@ class MarkdownConverter(object):
         src = el.attrs.get('src', None) or ''
         title = el.attrs.get('title', None) or ''
         title_part = ' "%s"' % title.replace('"', r'\"') if title else ''
+        
+        if not src.startswith(('http://', 'https://', 'data:')):
+            if self.options['base_url']:
+                if src.startswith('/'):
+                    parsed_url = urlparse(self.options['base_url'])
+                    base_path = f"{parsed_url.scheme}://{parsed_url.netloc}"
+                    src = f"{base_path}{src}"
+                else:
+                    src = f"{self.options['base_url'].rstrip('/')}/{src.lstrip('/')}"
+
         if (convert_as_inline
                 and el.parent.name not in self.options['keep_inline_images_in']):
             return alt

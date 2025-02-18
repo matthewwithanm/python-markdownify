@@ -344,6 +344,14 @@ def test_lang_callback():
     assert md('<pre class="javascript"><code>test\n    foo\nbar</code></pre>', code_language_callback=callback) == '\n\n```javascript\ntest\n    foo\nbar\n```\n\n'
     assert md('<pre class="javascript"><code class="javascript">test\n    foo\nbar</code></pre>', code_language_callback=callback) == '\n\n```javascript\ntest\n    foo\nbar\n```\n\n'
 
+def test_img():
+    assert md('<img src="/path/to/img.jpg" alt="Alt text" title="Optional title" />') == '![Alt text](/path/to/img.jpg "Optional title")'
+    assert md('<img src="/path/to/img.jpg" alt="Alt text" />') == '![Alt text](/path/to/img.jpg)'
+    assert md('<img src="/path/to/img.jpg" alt="Alt text" />', base_url='https://example.com') == '![Alt text](https://example.com/path/to/img.jpg)'
+    assert md('<img src="/path/to/img.jpg" alt="Alt text" />', base_url='https://example.com/otherpath') == '![Alt text](https://example.com/path/to/img.jpg)'
+    assert md('<img src="/path/to/img.jpg" alt="Alt text" />', base_url='https://example.com/otherpath/') == '![Alt text](https://example.com/path/to/img.jpg)'
+    assert md('<img src="path/to/img.jpg" alt="Alt text" />', base_url='https://example.com/anypage') == '![Alt text](https://example.com/anypage/path/to/img.jpg)'
+    assert md('<img src="path/to/img.jpg" alt="Alt text" />', base_url='https://example.com/anypage/') == '![Alt text](https://example.com/anypage/path/to/img.jpg)'
 
 def test_spaces():
     assert md('<p> a b </p> <p> c d </p>') == '\n\na b\n\nc d\n\n'
