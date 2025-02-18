@@ -51,7 +51,7 @@ def test_misc():
     assert md('-y', escape_misc=True) == '-y'
     assert md('+ x\n+ y\n', escape_misc=True) == '\\+ x\n\\+ y\n'
     assert md('`x`', escape_misc=True) == r'\`x\`'
-    assert md('[text](notalink)', escape_misc=True) == r'\[text\](notalink)'
+    assert md('[text](notalink)', escape_misc=True) == r'\[text](notalink)'
     assert md('<a href="link">text]</a>', escape_misc=True) == r'[text\]](link)'
     assert md('<a href="link">[text]</a>', escape_misc=True) == r'[\[text\]](link)'
     assert md('1. x', escape_misc=True) == r'1\. x'
