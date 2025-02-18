@@ -180,7 +180,7 @@ If you have a special usecase that calls for a special conversion, you can
 always inherit from ``MarkdownConverter`` and override the method you want to
 change.
 The function that handles a HTML tag named ``abc`` is called
-``convert_abc(self, el, text, convert_as_inline)`` and returns a string
+``convert_abc(self, el, text, parent_tags)`` and returns a string
 containing the converted HTML tag.
 The ``MarkdownConverter`` object will handle the conversion based on the
 function names:
@@ -193,8 +193,8 @@ function names:
         """
         Create a custom MarkdownConverter that adds two newlines after an image
         """
-        def convert_img(self, el, text, convert_as_inline):
-            return super().convert_img(el, text, convert_as_inline) + '\n\n'
+        def convert_img(self, el, text, parent_tags):
+            return super().convert_img(el, text, parent_tags) + '\n\n'
 
     # Create shorthand method for conversion
     def md(html, **options):
@@ -208,7 +208,7 @@ function names:
         """
         Create a custom MarkdownConverter that ignores paragraphs
         """
-        def convert_p(self, el, text, convert_as_inline):
+        def convert_p(self, el, text, parent_tags):
             return ''
 
     # Create shorthand method for conversion
