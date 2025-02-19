@@ -305,7 +305,7 @@ class MarkdownConverter(object):
 
         # escape special characters if we're not inside a preformatted or code element
         if '_noformat' not in parent_tags:
-            text = self.escape(text)
+            text = self.escape(text, parent_tags)
 
         # remove leading whitespace at the start or just after a
         # block-level element; remove traliing whitespace at the end
@@ -347,11 +347,11 @@ class MarkdownConverter(object):
         else:
             return True
 
-    def escape(self, text):
+    def escape(self, text, parent_tags):
         if not text:
             return ''
         if self.options['escape_misc']:
-            text = re.sub(r'([\\&<`[>~=+|])', r'\\\1', text)
+            text = re.sub(r'([]\\&<`[>~=+|])', r'\\\1', text)
             # A sequence of one or more consecutive '-', preceded and
             # followed by whitespace or start/end of fragment, might
             # be confused with an underline of a header, or with a
