@@ -351,12 +351,7 @@ class MarkdownConverter(object):
         if not text:
             return ''
         if self.options['escape_misc']:
-            text = re.sub(r'([\\&<`[>~=+|])', r'\\\1', text)
-
-            if 'a' in parent_tags:
-                # inside <a> tags, also escape closing brackets in link text
-                text = re.sub(r'(])', r'\\\1', text)
-
+            text = re.sub(r'([]\\&<`[>~=+|])', r'\\\1', text)
             # A sequence of one or more consecutive '-', preceded and
             # followed by whitespace or start/end of fragment, might
             # be confused with an underline of a header, or with a
