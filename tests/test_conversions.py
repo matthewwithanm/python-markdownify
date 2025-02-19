@@ -59,6 +59,7 @@ def test_b_spaces():
 def test_blockquote():
     assert md('<blockquote>Hello</blockquote>') == '\n> Hello\n\n'
     assert md('<blockquote>\nHello\n</blockquote>') == '\n> Hello\n\n'
+    assert md('<blockquote>&nbsp;Hello</blockquote>') == '\n> \u00a0Hello\n\n'
 
 
 def test_blockquote_with_nested_paragraph():
@@ -266,6 +267,7 @@ def test_p():
     assert md('<p>1234 5678 9012<br />67890</p>', wrap=True, wrap_width=10, newline_style=BACKSLASH) == '\n\n1234 5678\n9012\\\n67890\n\n'
     assert md('<p>1234 5678 9012<br />67890</p>', wrap=True, wrap_width=10, newline_style=SPACES) == '\n\n1234 5678\n9012  \n67890\n\n'
     assert md('First<p>Second</p><p>Third</p>Fourth') == 'First\n\nSecond\n\nThird\n\nFourth'
+    assert md('<p>&nbsp;x y</p>', wrap=True, wrap_width=80) == '\n\n\u00a0x y\n\n'
 
 
 def test_pre():
