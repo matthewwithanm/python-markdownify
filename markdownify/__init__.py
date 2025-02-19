@@ -313,7 +313,7 @@ class MarkdownConverter(object):
         if (should_remove_whitespace_outside(el.previous_sibling)
                 or (should_remove_whitespace_inside(el.parent)
                     and not el.previous_sibling)):
-            text = text.lstrip()
+            text = text.lstrip(' \t\r\n')
         if (should_remove_whitespace_outside(el.next_sibling)
                 or (should_remove_whitespace_inside(el.parent)
                     and not el.next_sibling)):
@@ -399,7 +399,7 @@ class MarkdownConverter(object):
 
     def convert_blockquote(self, el, text, parent_tags):
         # handle some early-exit scenarios
-        text = (text or '').strip()
+        text = (text or '').strip(' \t\r\n')
         if '_inline' in parent_tags:
             return ' ' + text + ' '
         if not text:
@@ -567,8 +567,8 @@ class MarkdownConverter(object):
 
     def convert_p(self, el, text, parent_tags):
         if '_inline' in parent_tags:
-            return ' ' + text.strip() + ' '
-        text = text.strip()
+            return ' ' + text.strip(' \t\r\n') + ' '
+        text = text.strip(' \t\r\n')
         if self.options['wrap']:
             # Preserve newlines (and preceding whitespace) resulting
             # from <br> tags.  Newlines in the input have already been
@@ -577,7 +577,7 @@ class MarkdownConverter(object):
                 lines = text.split('\n')
                 new_lines = []
                 for line in lines:
-                    line = line.lstrip()
+                    line = line.lstrip(' \t\r\n')
                     line_no_trailing = line.rstrip()
                     trailing = line[len(line_no_trailing):]
                     line = fill(line,
