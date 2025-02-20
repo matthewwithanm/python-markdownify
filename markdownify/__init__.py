@@ -4,16 +4,16 @@ import re
 import six
 
 
-convert_heading_re = re.compile(r'convert_h(\d+)')
-line_with_content_re = re.compile(r'^(.*)', flags=re.MULTILINE)
-whitespace_re = re.compile(r'[\t ]+')
-all_whitespace_re = re.compile(r'[\t \r\n]+')
-newline_whitespace_re = re.compile(r'[\t \r\n]*[\r\n][\t \r\n]*')
-html_heading_re = re.compile(r'h[1-6]')
+re_convert_heading = re.compile(r'convert_h(\d+)')
+re_line_with_content = re.compile(r'^(.*)', flags=re.MULTILINE)
+re_whitespace = re.compile(r'[\t ]+')
+re_all_whitespace = re.compile(r'[\t \r\n]+')
+re_newline_whitespace = re.compile(r'[\t \r\n]*[\r\n][\t \r\n]*')
+re_html_heading = re.compile(r'h[1-6]')
 
 # extract (leading_nl, content, trailing_nl) from a string
 # (functionally equivalent to r'^(\n*)(.*?)(\n*)$', but greedy is faster than reluctant here)
-extract_newlines_re = re.compile(r'^(\n*)((?:.*[^\n])?)(\n*)$', flags=re.DOTALL)
+re_extract_newlines = re.compile(r'^(\n*)((?:.*[^\n])?)(\n*)$', flags=re.DOTALL)
 
 
 # Heading styles
@@ -80,7 +80,7 @@ def should_remove_whitespace_inside(el):
     """Return to remove whitespace immediately inside a block-level element."""
     if not el or not el.name:
         return False
-    if html_heading_re.match(el.name) is not None:
+    if re_html_heading.match(el.name) is not None:
         return True
     return el.name in ('p', 'blockquote',
                        'article', 'div', 'section',
@@ -221,7 +221,7 @@ class MarkdownConverter(object):
 
         # if this tag is a heading or table cell, add an '_inline' parent pseudo-tag
         if (
-            html_heading_re.match(node.name) is not None  # headings
+            re_html_heading.match(node.name) is not None  # headings
             or node.name in {'td', 'th'}  # table cells
         ):
             parent_tags_for_children.add('_inline')
@@ -248,7 +248,7 @@ class MarkdownConverter(object):
             updated_child_strings = ['']  # so the first lookback works
             for child_string in child_strings:
                 # Separate the leading/trailing newlines from the content.
-                leading_nl, content, trailing_nl = extract_newlines_re.match(child_string).groups()
+                leading_nl, content, trailing_nl = re_extract_newlines.match(child_string).groups()
 
                 # If the last child had trailing newlines and this child has leading newlines,
                 # use the larger newline count, limited to 2.
@@ -298,10 +298,10 @@ class MarkdownConverter(object):
         # normalize whitespace if we're not inside a preformatted element
         if 'pre' not in parent_tags:
             if self.options['wrap']:
-                text = all_whitespace_re.sub(' ', text)
+                text = re_all_whitespace.sub(' ', text)
             else:
-                text = newline_whitespace_re.sub('\n', text)
-                text = whitespace_re.sub(' ', text)
+                text = re_newline_whitespace.sub('\n', text)
+                text = re_whitespace.sub(' ', text)
 
         # escape special characters if we're not inside a preformatted or code element
         if '_noformat' not in parent_tags:
@@ -323,7 +323,7 @@ class MarkdownConverter(object):
 
     def __getattr__(self, attr):
         # Handle headings
-        m = convert_heading_re.match(attr)
+        m = re_convert_heading.match(attr)
         if m:
             n = int(m.group(1))
 
@@ -409,7 +409,7 @@ class MarkdownConverter(object):
         def _indent_for_blockquote(match):
             line_content = match.group(1)
             return '> ' + line_content if line_content else '>'
-        text = line_with_content_re.sub(_indent_for_blockquote, text)
+        text = re_line_with_content.sub(_indent_for_blockquote, text)
 
         return '\n' + text + '\n\n'
 
@@ -455,7 +455,7 @@ class MarkdownConverter(object):
         def _indent_for_dd(match):
             line_content = match.group(1)
             return '    ' + line_content if line_content else ''
-        text = line_with_content_re.sub(_indent_for_dd, text)
+        text = re_line_with_content.sub(_indent_for_dd, text)
 
         # insert definition marker into first-line indent whitespace
         text = ':' + text[1:]
@@ -465,7 +465,7 @@ class MarkdownConverter(object):
     def convert_dt(self, el, text, parent_tags):
         # remove newlines from term text
         text = (text or '').strip()
-        text = all_whitespace_re.sub(' ', text)
+        text = re_all_whitespace.sub(' ', text)
         if '_inline' in parent_tags:
             return ' ' + text + ' '
         if not text:
@@ -489,7 +489,7 @@ class MarkdownConverter(object):
         if style == UNDERLINED and n <= 2:
             line = '=' if n == 1 else '-'
             return self.underline(text, line)
-        text = all_whitespace_re.sub(' ', text)
+        text = re_all_whitespace.sub(' ', text)
         hashes = '#' * n
         if style == ATX_CLOSED:
             return '\n\n%s %s %s\n\n' % (hashes, text, hashes)
@@ -558,7 +558,7 @@ class MarkdownConverter(object):
         def _indent_for_li(match):
             line_content = match.group(1)
             return bullet_indent + line_content if line_content else ''
-        text = line_with_content_re.sub(_indent_for_li, text)
+        text = re_line_with_content.sub(_indent_for_li, text)
 
         # insert bullet into first-line indent whitespace
         text = bullet + text[bullet_width:]
