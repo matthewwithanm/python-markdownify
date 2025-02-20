@@ -4,6 +4,7 @@ import re
 import six
 
 
+# General-purpose regex patterns
 re_convert_heading = re.compile(r'convert_h(\d+)')
 re_line_with_content = re.compile(r'^(.*)', flags=re.MULTILINE)
 re_whitespace = re.compile(r'[\t ]+')
@@ -11,10 +12,30 @@ re_all_whitespace = re.compile(r'[\t \r\n]+')
 re_newline_whitespace = re.compile(r'[\t \r\n]*[\r\n][\t \r\n]*')
 re_html_heading = re.compile(r'h[1-6]')
 
-# extract (leading_nl, content, trailing_nl) from a string
+# Pattern for creating convert_<tag> function names from tag names
+re_make_convert_fn_name = re.compile(r'[\[\]:-]')
+
+# Extract (leading_nl, content, trailing_nl) from a string
 # (functionally equivalent to r'^(\n*)(.*?)(\n*)$', but greedy is faster than reluctant here)
 re_extract_newlines = re.compile(r'^(\n*)((?:.*[^\n])?)(\n*)$', flags=re.DOTALL)
 
+# Escape miscellaneous special Markdown characters
+re_escape_misc_chars = re.compile(r'([]\\&<`[>~=+|])')
+
+# Escape sequence of one or more consecutive '-', preceded
+# and followed by whitespace or start/end of fragment, as it
+# might be confused with an underline of a header, or with a
+# list marker
+re_escape_misc_dash_sequences = re.compile(r'(\s|^)(-+(?:\s|$))')
+
+# Escape sequence of up to six consecutive '#', preceded
+# and followed by whitespace or start/end of fragment, as
+# it might be confused with an ATX heading
+re_escape_misc_hashes = re.compile(r'(\s|^)(#{1,6}(?:\s|$))')
+
+# Escape '.' or ')' preceded by up to nine digits, as it might be
+# confused with a list item
+re_escape_misc_list_items = re.compile(r'((?:\s|^)[0-9]{1,9})([.)](?:\s|$))')
 
 # Heading styles
 ATX = 'atx'
@@ -266,7 +287,7 @@ class MarkdownConverter(object):
         text = ''.join(child_strings)
 
         # apply this tag's final conversion function
-        convert_fn_name = "convert_%s" % re.sub(r"[\[\]:-]", "_", node.name)
+        convert_fn_name = "convert_%s" % re_make_convert_fn_name.sub('_', node.name)
         convert_fn = getattr(self, convert_fn_name, None)
         if convert_fn and self.should_convert_tag(node.name):
             text = convert_fn(node, text, parent_tags=parent_tags)
@@ -351,20 +372,11 @@ class MarkdownConverter(object):
         if not text:
             return ''
         if self.options['escape_misc']:
-            text = re.sub(r'([]\\&<`[>~=+|])', r'\\\1', text)
-            # A sequence of one or more consecutive '-', preceded and
-            # followed by whitespace or start/end of fragment, might
-            # be confused with an underline of a header, or with a
-            # list marker.
-            text = re.sub(r'(\s|^)(-+(?:\s|$))', r'\1\\\2', text)
-            # A sequence of up to six consecutive '#', preceded and
-            # followed by whitespace or start/end of fragment, might
-            # be confused with an ATX heading.
-            text = re.sub(r'(\s|^)(#{1,6}(?:\s|$))', r'\1\\\2', text)
-            # '.' or ')' preceded by up to nine digits might be
-            # confused with a list item.
-            text = re.sub(r'((?:\s|^)[0-9]{1,9})([.)](?:\s|$))', r'\1\\\2',
-                          text)
+            text = re_escape_misc_chars.sub(r'\\\1', text)
+            text = re_escape_misc_dash_sequences.sub(r'\1\\\2', text)
+            text = re_escape_misc_hashes.sub(r'\1\\\2', text)
+            text = re_escape_misc_list_items.sub(r'\1\\\2', text)
+
         if self.options['escape_asterisks']:
             text = text.replace('*', r'\*')
         if self.options['escape_underscores']:
