@@ -4,12 +4,11 @@ import re
 import six
 
 
-re_convert_heading = re.compile(r'convert_h(\d+)')
 re_line_with_content = re.compile(r'^(.*)', flags=re.MULTILINE)
 re_whitespace = re.compile(r'[\t ]+')
 re_all_whitespace = re.compile(r'[\t \r\n]+')
 re_newline_whitespace = re.compile(r'[\t \r\n]*[\r\n][\t \r\n]*')
-re_html_heading = re.compile(r'h[1-6]')
+re_html_heading = re.compile(r'h(\d+)')
 
 # extract (leading_nl, content, trailing_nl) from a string
 # (functionally equivalent to r'^(\n*)(.*?)(\n*)$', but greedy is faster than reluctant here)
@@ -165,6 +164,9 @@ class MarkdownConverter(object):
             raise ValueError('You may specify either tags to strip or tags to'
                              ' convert, but not both.')
 
+        # Initialize the conversion function cache
+        self.convert_fn_cache = {}
+
     def convert(self, html):
         soup = BeautifulSoup(html, 'html.parser')
         return self.convert_soup(soup)
@@ -266,9 +268,8 @@ class MarkdownConverter(object):
         text = ''.join(child_strings)
 
         # apply this tag's final conversion function
-        convert_fn_name = "convert_%s" % re.sub(r"[\[\]:-]", "_", node.name)
-        convert_fn = getattr(self, convert_fn_name, None)
-        if convert_fn and self.should_convert_tag(node.name):
+        convert_fn = self.get_conv_fn_cached(node.name)
+        if convert_fn is not None:
             text = convert_fn(node, text, parent_tags=parent_tags)
 
         return text
@@ -321,23 +322,36 @@ class MarkdownConverter(object):
 
         return text
 
-    def __getattr__(self, attr):
-        # Handle headings
-        m = re_convert_heading.match(attr)
-        if m:
-            n = int(m.group(1))
+    def get_conv_fn_cached(self, tag_name):
+        """Given a tag name, return the conversion function using the cache."""
+        # If conversion function is not in cache, add it
+        if tag_name not in self.convert_fn_cache:
+            self.convert_fn_cache[tag_name] = self.get_conv_fn(tag_name)
 
-            def convert_tag(el, text, parent_tags):
-                return self._convert_hn(n, el, text, parent_tags)
+        # Return the cached entry
+        return self.convert_fn_cache[tag_name]
 
-            convert_tag.__name__ = 'convert_h%s' % n
-            setattr(self, convert_tag.__name__, convert_tag)
-            return convert_tag
+    def get_conv_fn(self, tag_name):
+        """Given a tag name, find and return the conversion function."""
+        tag_name = tag_name.lower()
 
-        raise AttributeError(attr)
+        # Handle strip/convert exclusion options
+        if not self.should_convert_tag(tag_name):
+            return None
+
+        # Handle headings with _convert_hn() function
+        match = re_html_heading.match(tag_name)
+        if match:
+            n = int(match.group(1))
+            return lambda el, text, parent_tags: self._convert_hn(n, el, text, parent_tags)
+
+        # For other tags, look up their conversion function by tag name
+        convert_fn_name = "convert_%s" % re.sub(r"[\[\]:-]", "_", tag_name)
+        convert_fn = getattr(self, convert_fn_name, None)
+        return convert_fn
 
     def should_convert_tag(self, tag):
-        tag = tag.lower()
+        """Given a tag name, return whether to convert based on strip/convert options."""
         strip = self.options['strip']
         convert = self.options['convert']
         if strip is not None:
