@@ -139,10 +139,23 @@ keep_inline_images_in
   that should be allowed to contain inline images, for example ``['td']``.
   Defaults to an empty list.
 
+table_infer_header
+  Controls handling of tables with no header row (as indicated by ``<thead>``
+  or ``<th>``). When set to ``True``, the first body row is used as the header row.
+  Defaults to ``False``, which leaves the header row empty.
+
 wrap, wrap_width
   If ``wrap`` is set to ``True``, all text paragraphs are wrapped at
   ``wrap_width`` characters. Defaults to ``False`` and ``80``.
   Use with ``newline_style=BACKSLASH`` to keep line breaks in paragraphs.
+  A `wrap_width` value of `None` reflows lines to unlimited line length.
+
+strip_document
+  Controls whether leading and/or trailing separation newlines are removed from
+  the final converted document. Supported values are ``LSTRIP`` (leading),
+  ``RSTRIP`` (trailing), ``STRIP`` (both), and ``None`` (neither). Newlines
+  within the document are unaffected.
+  Defaults to ``STRIP``.
 
 Options may be specified as kwargs to the ``markdownify`` function, or as a
 nested ``Options`` class in ``MarkdownConverter`` subclasses.
@@ -167,7 +180,7 @@ If you have a special usecase that calls for a special conversion, you can
 always inherit from ``MarkdownConverter`` and override the method you want to
 change.
 The function that handles a HTML tag named ``abc`` is called
-``convert_abc(self, el, text, convert_as_inline)`` and returns a string
+``convert_abc(self, el, text, parent_tags)`` and returns a string
 containing the converted HTML tag.
 The ``MarkdownConverter`` object will handle the conversion based on the
 function names:
@@ -180,8 +193,8 @@ function names:
         """
         Create a custom MarkdownConverter that adds two newlines after an image
         """
-        def convert_img(self, el, text, convert_as_inline):
-            return super().convert_img(el, text, convert_as_inline) + '\n\n'
+        def convert_img(self, el, text, parent_tags):
+            return super().convert_img(el, text, parent_tags) + '\n\n'
 
     # Create shorthand method for conversion
     def md(html, **options):
@@ -195,7 +208,7 @@ function names:
         """
         Create a custom MarkdownConverter that ignores paragraphs
         """
-        def convert_p(self, el, text, convert_as_inline):
+        def convert_p(self, el, text, parent_tags):
             return ''
 
     # Create shorthand method for conversion
