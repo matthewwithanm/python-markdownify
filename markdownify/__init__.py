@@ -546,7 +546,7 @@ class MarkdownConverter(object):
         if not src:
             sources = el.find_all('source', attrs={'src': True})
             if sources:
-                src = sources[0]['src']
+                src = sources[0].attrs.get('src', None) or ''
         poster = el.attrs.get('poster', None) or ''
         if src and poster:
             return '[![%s](%s)](%s)' % (text, poster, src)
