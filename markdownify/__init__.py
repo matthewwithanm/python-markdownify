@@ -538,6 +538,24 @@ class MarkdownConverter(object):
 
         return '![%s](%s%s)' % (alt, src, title_part)
 
+    def convert_video(self, el, text, parent_tags):
+        if ('_inline' in parent_tags
+                and el.parent.name not in self.options['keep_inline_images_in']):
+            return text
+        src = el.attrs.get('src', None) or ''
+        if not src:
+            sources = el.find_all('source', attrs={'src': True})
+            if sources:
+                src = sources[0].attrs.get('src', None) or ''
+        poster = el.attrs.get('poster', None) or ''
+        if src and poster:
+            return '[![%s](%s)](%s)' % (text, poster, src)
+        if src:
+            return '[%s](%s)' % (text, src)
+        if poster:
+            return '![%s](%s)' % (text, poster)
+        return text
+
     def convert_list(self, el, text, parent_tags):
 
         # Converting a list to inline is undefined.
