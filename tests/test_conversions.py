@@ -243,6 +243,14 @@ def test_img():
     assert md('<img src="/path/to/img.jpg" alt="Alt text" />') == '![Alt text](/path/to/img.jpg)'
 
 
+def test_video():
+    assert md('<video src="/path/to/video.mp4" poster="/path/to/img.jpg">text</video>') == '[![text](/path/to/img.jpg)](/path/to/video.mp4)'
+    assert md('<video src="/path/to/video.mp4">text</video>') == '[text](/path/to/video.mp4)'
+    assert md('<video><source src="/path/to/video.mp4"/>text</video>') == '[text](/path/to/video.mp4)'
+    assert md('<video poster="/path/to/img.jpg">text</video>') == '![text](/path/to/img.jpg)'
+    assert md('<video>text</video>') == 'text'
+
+
 def test_kbd():
     inline_tests('kbd', '`')
 
