@@ -106,6 +106,7 @@ def should_remove_whitespace_inside(el):
     return el.name in ('p', 'blockquote',
                        'article', 'div', 'section',
                        'ol', 'ul', 'li',
+                       'dl', 'dt', 'dd',
                        'table', 'thead', 'tbody', 'tfoot',
                        'tr', 'td', 'th')
 
@@ -489,6 +490,11 @@ class MarkdownConverter(object):
 
         return '%s\n' % text
 
+    # definition lists are formatted as follows:
+    #   https://pandoc.org/MANUAL.html#definition-lists
+    #   https://michelf.ca/projects/php-markdown/extra/#def-list
+    convert_dl = convert_div
+
     def convert_dt(self, el, text, parent_tags):
         # remove newlines from term text
         text = (text or '').strip()
@@ -501,7 +507,7 @@ class MarkdownConverter(object):
         # TODO - format consecutive <dt> elements as directly adjacent lines):
         #   https://michelf.ca/projects/php-markdown/extra/#def-list
 
-        return '\n%s\n' % text
+        return '\n\n%s\n' % text
 
     def _convert_hn(self, n, el, text, parent_tags):
         """ Method name prefixed with _ to prevent <hn> to call this """
