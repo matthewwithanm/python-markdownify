@@ -701,6 +701,12 @@ class MarkdownConverter(object):
         )
         overline = ''
         underline = ''
+        full_colspan = 0
+        for cell in cells:
+            if 'colspan' in cell.attrs and cell['colspan'].isdigit():
+                full_colspan += int(cell["colspan"])
+            else:
+                full_colspan += 1
         if ((is_headrow
              or (is_head_row_missing
                  and self.options['table_infer_header']))
@@ -709,12 +715,6 @@ class MarkdownConverter(object):
             # - is headline or
             # - headline is missing and header inference is enabled
             # print headline underline
-            full_colspan = 0
-            for cell in cells:
-                if 'colspan' in cell.attrs and cell['colspan'].isdigit():
-                    full_colspan += int(cell["colspan"])
-                else:
-                    full_colspan += 1
             underline += '| ' + ' | '.join(['---'] * full_colspan) + ' |' + '\n'
         elif ((is_head_row_missing
                and not self.options['table_infer_header'])
@@ -727,8 +727,8 @@ class MarkdownConverter(object):
             #  - the parent is table or
             #  - the parent is tbody at the beginning of a table.
             # print empty headline above this row
-            overline += '| ' + ' | '.join([''] * len(cells)) + ' |' + '\n'
-            overline += '| ' + ' | '.join(['---'] * len(cells)) + ' |' + '\n'
+            overline += '| ' + ' | '.join([''] * full_colspan) + ' |' + '\n'
+            overline += '| ' + ' | '.join(['---'] * full_colspan) + ' |' + '\n'
         return overline + '|' + text + '\n' + underline
 
 
