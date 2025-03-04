@@ -443,7 +443,7 @@ class MarkdownConverter(object):
 
     def convert_br(self, el, text, parent_tags):
         if '_inline' in parent_tags:
-            return ""
+            return ' '
 
         if self.options['newline_style'].lower() == BACKSLASH:
             return '\\\n'
