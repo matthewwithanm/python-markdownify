@@ -267,6 +267,23 @@ table_with_undefined_colspan = """<table>
     </tr>
 </table>"""
 
+table_with_colspan_missing_head = """<table>
+    <tr>
+        <td colspan="2">Name</td>
+        <td>Age</td>
+    </tr>
+    <tr>
+        <td>Jill</td>
+        <td>Smith</td>
+        <td>50</td>
+    </tr>
+    <tr>
+        <td>Eve</td>
+        <td>Jackson</td>
+        <td>94</td>
+    </tr>
+</table>"""
+
 
 def test_table():
     assert md(table) == '\n\n| Firstname | Lastname | Age |\n| --- | --- | --- |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |\n\n'
@@ -283,6 +300,7 @@ def test_table():
     assert md(table_with_caption) == 'TEXT\n\nCaption\n\n|  |  |  |\n| --- | --- | --- |\n| Firstname | Lastname | Age |\n\n'
     assert md(table_with_colspan) == '\n\n| Name | | Age |\n| --- | --- | --- |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |\n\n'
     assert md(table_with_undefined_colspan) == '\n\n| Name | Age |\n| --- | --- |\n| Jill | Smith |\n\n'
+    assert md(table_with_colspan_missing_head) == '\n\n|  |  |  |\n| --- | --- | --- |\n| Name | | Age |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |\n\n'
 
 
 def test_table_infer_header():
@@ -300,3 +318,4 @@ def test_table_infer_header():
     assert md(table_with_caption, table_infer_header=True) == 'TEXT\n\nCaption\n\n| Firstname | Lastname | Age |\n| --- | --- | --- |\n\n'
     assert md(table_with_colspan, table_infer_header=True) == '\n\n| Name | | Age |\n| --- | --- | --- |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |\n\n'
     assert md(table_with_undefined_colspan, table_infer_header=True) == '\n\n| Name | Age |\n| --- | --- |\n| Jill | Smith |\n\n'
+    assert md(table_with_colspan_missing_head, table_infer_header=True) == '\n\n| Name | | Age |\n| --- | --- | --- |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |\n\n'
