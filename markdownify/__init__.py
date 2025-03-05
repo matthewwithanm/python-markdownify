@@ -106,6 +106,7 @@ def should_remove_whitespace_inside(el):
     return el.name in ('p', 'blockquote',
                        'article', 'div', 'section',
                        'ol', 'ul', 'li',
+                       'dl', 'dt', 'dd',
                        'table', 'thead', 'tbody', 'tfoot',
                        'tr', 'td', 'th')
 
@@ -442,7 +443,7 @@ class MarkdownConverter(object):
 
     def convert_br(self, el, text, parent_tags):
         if '_inline' in parent_tags:
-            return ""
+            return ' '
 
         if self.options['newline_style'].lower() == BACKSLASH:
             return '\\\n'
@@ -489,6 +490,11 @@ class MarkdownConverter(object):
 
         return '%s\n' % text
 
+    # definition lists are formatted as follows:
+    #   https://pandoc.org/MANUAL.html#definition-lists
+    #   https://michelf.ca/projects/php-markdown/extra/#def-list
+    convert_dl = convert_div
+
     def convert_dt(self, el, text, parent_tags):
         # remove newlines from term text
         text = (text or '').strip()
@@ -501,7 +507,7 @@ class MarkdownConverter(object):
         # TODO - format consecutive <dt> elements as directly adjacent lines):
         #   https://michelf.ca/projects/php-markdown/extra/#def-list
 
-        return '\n%s\n' % text
+        return '\n\n%s\n' % text
 
     def _convert_hn(self, n, el, text, parent_tags):
         """ Method name prefixed with _ to prevent <hn> to call this """
@@ -537,6 +543,24 @@ class MarkdownConverter(object):
             return alt
 
         return '![%s](%s%s)' % (alt, src, title_part)
+
+    def convert_video(self, el, text, parent_tags):
+        if ('_inline' in parent_tags
+                and el.parent.name not in self.options['keep_inline_images_in']):
+            return text
+        src = el.attrs.get('src', None) or ''
+        if not src:
+            sources = el.find_all('source', attrs={'src': True})
+            if sources:
+                src = sources[0].attrs.get('src', None) or ''
+        poster = el.attrs.get('poster', None) or ''
+        if src and poster:
+            return '[![%s](%s)](%s)' % (text, poster, src)
+        if src:
+            return '[%s](%s)' % (text, src)
+        if poster:
+            return '![%s](%s)' % (text, poster)
+        return text
 
     def convert_list(self, el, text, parent_tags):
 
@@ -677,6 +701,12 @@ class MarkdownConverter(object):
         )
         overline = ''
         underline = ''
+        full_colspan = 0
+        for cell in cells:
+            if 'colspan' in cell.attrs and cell['colspan'].isdigit():
+                full_colspan += int(cell["colspan"])
+            else:
+                full_colspan += 1
         if ((is_headrow
              or (is_head_row_missing
                  and self.options['table_infer_header']))
@@ -685,12 +715,6 @@ class MarkdownConverter(object):
             # - is headline or
             # - headline is missing and header inference is enabled
             # print headline underline
-            full_colspan = 0
-            for cell in cells:
-                if 'colspan' in cell.attrs and cell['colspan'].isdigit():
-                    full_colspan += int(cell["colspan"])
-                else:
-                    full_colspan += 1
             underline += '| ' + ' | '.join(['---'] * full_colspan) + ' |' + '\n'
         elif ((is_head_row_missing
                and not self.options['table_infer_header'])
@@ -703,8 +727,8 @@ class MarkdownConverter(object):
             #  - the parent is table or
             #  - the parent is tbody at the beginning of a table.
             # print empty headline above this row
-            overline += '| ' + ' | '.join([''] * len(cells)) + ' |' + '\n'
-            overline += '| ' + ' | '.join(['---'] * len(cells)) + ' |' + '\n'
+            overline += '| ' + ' | '.join([''] * full_colspan) + ' |' + '\n'
+            overline += '| ' + ' | '.join(['---'] * full_colspan) + ' |' + '\n'
         return overline + '|' + text + '\n' + underline
 
 

@@ -79,6 +79,8 @@ def test_blockquote_nested():
 def test_br():
     assert md('a<br />b<br />c') == 'a  \nb  \nc'
     assert md('a<br />b<br />c', newline_style=BACKSLASH) == 'a\\\nb\\\nc'
+    assert md('<h1>foo<br />bar</h1>', heading_style=ATX) == '\n\n# foo bar\n\n'
+    assert md('<td>foo<br />bar</td>', heading_style=ATX) == ' foo bar |'
 
 
 def test_code():
@@ -102,13 +104,13 @@ def test_code():
 
 
 def test_dl():
-    assert md('<dl><dt>term</dt><dd>definition</dd></dl>') == '\nterm\n:   definition\n'
-    assert md('<dl><dt><p>te</p><p>rm</p></dt><dd>definition</dd></dl>') == '\nte rm\n:   definition\n'
-    assert md('<dl><dt>term</dt><dd><p>definition-p1</p><p>definition-p2</p></dd></dl>') == '\nterm\n:   definition-p1\n\n    definition-p2\n'
-    assert md('<dl><dt>term</dt><dd><p>definition 1</p></dd><dd><p>definition 2</p></dd></dl>') == '\nterm\n:   definition 1\n:   definition 2\n'
-    assert md('<dl><dt>term 1</dt><dd>definition 1</dd><dt>term 2</dt><dd>definition 2</dd></dl>') == '\nterm 1\n:   definition 1\nterm 2\n:   definition 2\n'
-    assert md('<dl><dt>term</dt><dd><blockquote><p>line 1</p><p>line 2</p></blockquote></dd></dl>') == '\nterm\n:   > line 1\n    >\n    > line 2\n'
-    assert md('<dl><dt>term</dt><dd><ol><li><p>1</p><ul><li>2a</li><li>2b</li></ul></li><li><p>3</p></li></ol></dd></dl>') == '\nterm\n:   1. 1\n\n       * 2a\n       * 2b\n    2. 3\n'
+    assert md('<dl><dt>term</dt><dd>definition</dd></dl>') == '\n\nterm\n:   definition\n\n'
+    assert md('<dl><dt><p>te</p><p>rm</p></dt><dd>definition</dd></dl>') == '\n\nte rm\n:   definition\n\n'
+    assert md('<dl><dt>term</dt><dd><p>definition-p1</p><p>definition-p2</p></dd></dl>') == '\n\nterm\n:   definition-p1\n\n    definition-p2\n\n'
+    assert md('<dl><dt>term</dt><dd><p>definition 1</p></dd><dd><p>definition 2</p></dd></dl>') == '\n\nterm\n:   definition 1\n:   definition 2\n\n'
+    assert md('<dl><dt>term 1</dt><dd>definition 1</dd><dt>term 2</dt><dd>definition 2</dd></dl>') == '\n\nterm 1\n:   definition 1\n\nterm 2\n:   definition 2\n\n'
+    assert md('<dl><dt>term</dt><dd><blockquote><p>line 1</p><p>line 2</p></blockquote></dd></dl>') == '\n\nterm\n:   > line 1\n    >\n    > line 2\n\n'
+    assert md('<dl><dt>term</dt><dd><ol><li><p>1</p><ul><li>2a</li><li>2b</li></ul></li><li><p>3</p></li></ol></dd></dl>') == '\n\nterm\n:   1. 1\n\n       * 2a\n       * 2b\n    2. 3\n\n'
 
 
 def test_del():
@@ -241,6 +243,14 @@ def test_i():
 def test_img():
     assert md('<img src="/path/to/img.jpg" alt="Alt text" title="Optional title" />') == '![Alt text](/path/to/img.jpg "Optional title")'
     assert md('<img src="/path/to/img.jpg" alt="Alt text" />') == '![Alt text](/path/to/img.jpg)'
+
+
+def test_video():
+    assert md('<video src="/path/to/video.mp4" poster="/path/to/img.jpg">text</video>') == '[![text](/path/to/img.jpg)](/path/to/video.mp4)'
+    assert md('<video src="/path/to/video.mp4">text</video>') == '[text](/path/to/video.mp4)'
+    assert md('<video><source src="/path/to/video.mp4"/>text</video>') == '[text](/path/to/video.mp4)'
+    assert md('<video poster="/path/to/img.jpg">text</video>') == '![text](/path/to/img.jpg)'
+    assert md('<video>text</video>') == 'text'
 
 
 def test_kbd():
