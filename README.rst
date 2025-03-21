@@ -74,9 +74,10 @@ heading_style
   ``SETEXT``). Defaults to ``UNDERLINED``.
 
 beautiful_soup_parser
-  Specifies the HTML parser to be used by [BeautifulSoup](https://www.crummy.com/software/BeautifulSoup/).
-  Values such as ``html5lib``, ``lxml`` can be used but require those parser to be installed in your project.
-  Defaults to ``html.parser``.
+  Specifies the HTML parser to be used by
+  [BeautifulSoup](https://www.crummy.com/software/BeautifulSoup/).
+  Values such as ``html5lib``, ``lxml`` can be used but require those parser
+  to be installed in your project. Defaults to ``html.parser``.
 
 bullets
   An iterable (string, list, or tuple) of bullet styles to be used. If the
