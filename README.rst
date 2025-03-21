@@ -73,12 +73,6 @@ heading_style
   ``ATX_CLOSED``, ``SETEXT``, and ``UNDERLINED`` (which is an alias for
   ``SETEXT``). Defaults to ``UNDERLINED``.
 
-beautiful_soup_parser
-  Specifies the HTML parser to be used by
-  [BeautifulSoup](https://www.crummy.com/software/BeautifulSoup/).
-  Values such as ``html5lib``, ``lxml`` can be used but require those parser
-  to be installed in your project. Defaults to ``html.parser``.
-
 bullets
   An iterable (string, list, or tuple) of bullet styles to be used. If the
   iterable only contains one item, it will be used regardless of how deeply
@@ -162,6 +156,13 @@ strip_document
   ``RSTRIP`` (trailing), ``STRIP`` (both), and ``None`` (neither). Newlines
   within the document are unaffected.
   Defaults to ``STRIP``.
+
+beautiful_soup_parser
+  Specifies the HTML parser to be used by `BeautifulSoup`_.
+  Values such as ``html5lib``, ``lxml`` can be used but require those parser
+  to be installed in your project. Defaults to ``html.parser``.
+
+.. _BeautifulSoup: https://www.crummy.com/software/BeautifulSoup/
 
 Options may be specified as kwargs to the ``markdownify`` function, or as a
 nested ``Options`` class in ``MarkdownConverter`` subclasses.
