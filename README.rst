@@ -158,9 +158,9 @@ strip_document
   Defaults to ``STRIP``.
 
 beautiful_soup_parser
-  Specifies the HTML parser to be used by `BeautifulSoup`_.
-  Values such as ``html5lib``, ``lxml`` can be used but require those parser
-  to be installed in your project. Defaults to ``html.parser``.
+  Specify the Beautiful Soup parser to be used for interpreting HTML markup. Parsers such
+  as `html5lib`, `lxml` or even a custom parser as long as it is installed on the execution
+  environment. Defaults to ``html.parser``.
 
 .. _BeautifulSoup: https://www.crummy.com/software/BeautifulSoup/
 
