@@ -154,6 +154,7 @@ def _next_block_content_sibling(el):
 class MarkdownConverter(object):
     class DefaultOptions:
         autolinks = True
+        beautiful_soup_parser = 'html.parser'
         bullets = '*+-'  # An iterable of bullet types.
         code_language = ''
         code_language_callback = None
@@ -191,7 +192,7 @@ class MarkdownConverter(object):
         self.convert_fn_cache = {}
 
     def convert(self, html):
-        soup = BeautifulSoup(html, 'html.parser')
+        soup = BeautifulSoup(html, self.options['beautiful_soup_parser'])
         return self.convert_soup(soup)
 
     def convert_soup(self, soup):
