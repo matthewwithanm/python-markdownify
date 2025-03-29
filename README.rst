@@ -157,6 +157,13 @@ strip_document
   within the document are unaffected.
   Defaults to ``STRIP``.
 
+beautiful_soup_parser
+  Specify the Beautiful Soup parser to be used for interpreting HTML markup. Parsers such
+  as `html5lib`, `lxml` or even a custom parser as long as it is installed on the execution
+  environment. Defaults to ``html.parser``.
+
+.. _BeautifulSoup: https://www.crummy.com/software/BeautifulSoup/
+
 Options may be specified as kwargs to the ``markdownify`` function, or as a
 nested ``Options`` class in ``MarkdownConverter`` subclasses.
 
