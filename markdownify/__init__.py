@@ -362,11 +362,11 @@ class MarkdownConverter(object):
         if not self.should_convert_tag(tag_name):
             return None
 
-        # Handle headings with _convert_hn() function
+        # Handle headings with convert_hN() function
         match = re_html_heading.match(tag_name)
         if match:
             n = int(match.group(1))
-            return lambda el, text, parent_tags: self._convert_hn(n, el, text, parent_tags)
+            return lambda el, text, parent_tags: self.convert_hN(n, el, text, parent_tags)
 
         # For other tags, look up their conversion function by tag name
         convert_fn_name = "convert_%s" % re_make_convert_fn_name.sub('_', tag_name)
@@ -509,12 +509,12 @@ class MarkdownConverter(object):
 
         return '\n\n%s\n' % text
 
-    def _convert_hn(self, n, el, text, parent_tags):
-        """ Method name prefixed with _ to prevent <hn> to call this """
+    def convert_hN(self, n, el, text, parent_tags):
+        # convert_hN() converts <hN> tags, where N is any integer
         if '_inline' in parent_tags:
             return text
 
-        # prevent MemoryErrors in case of very large n
+        # Markdown does not support heading depths of n > 6
         n = max(1, min(6, n))
 
         style = self.options['heading_style'].lower()
