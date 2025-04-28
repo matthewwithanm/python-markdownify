@@ -652,7 +652,7 @@ class MarkdownConverter(object):
 
     def convert_q(self, el, text, parent_tags):
         return '"' + text + '"'
-        
+
     def convert_script(self, el, text, parent_tags):
         return ''
 
