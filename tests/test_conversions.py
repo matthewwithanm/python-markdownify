@@ -305,6 +305,11 @@ def test_pre():
     assert md("<p>foo</p>\n<pre>bar</pre>\n</p>baz</p>", sub_symbol="^") == "\n\nfoo\n\n```\nbar\n```\n\nbaz"
 
 
+def test_q():
+    assert md('foo <q>quote</q> bar') == 'foo "quote" bar'
+    assert md('foo <q cite="https://example.com">quote</q> bar') == 'foo "quote" bar'
+
+
 def test_script():
     assert md('foo <script>var foo=42;</script> bar') == 'foo  bar'
 
