@@ -650,6 +650,9 @@ class MarkdownConverter(object):
 
         return '\n\n```%s\n%s\n```\n\n' % (code_language, text)
 
+    def convert_q(self, el, text, parent_tags):
+        return '"' + text + '"'
+
     def convert_script(self, el, text, parent_tags):
         return ''
 
