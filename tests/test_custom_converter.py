@@ -14,8 +14,12 @@ class UnitTestConverter(MarkdownConverter):
         """Ensure conversion function is found for tags with special characters in name"""
         return "convert_custom_tag(): %s" % text
 
+    def convert_h1(self, el, text, parent_tags):
+        """Ensure explicit heading conversion function is used"""
+        return "convert_h1: %s" % (text)
+
     def convert_hN(self, n, el, text, parent_tags):
-        """Ensure conversion function is found for headings"""
+        """Ensure general heading conversion function is used"""
         return "convert_hN(%d): %s" % (n, text)
 
 
@@ -28,6 +32,8 @@ def test_custom_conversion_functions():
     assert md('<img src="/path/to/img.jpg" alt="Alt text" />text') == '![Alt text](/path/to/img.jpg)\n\ntext'
 
     assert md("<custom-tag>text</custom-tag>") == "convert_custom_tag(): text"
+
+    assert md("<h1>text</h1>") == "convert_h1: text"
 
     assert md("<h3>text</h3>") == "convert_hN(3): text"
 
