@@ -363,16 +363,20 @@ class MarkdownConverter(object):
         if not self.should_convert_tag(tag_name):
             return None
 
-        # Handle headings with convert_hN() function
+        # Look for an explicitly defined conversion function by tag name first
+        convert_fn_name = "convert_%s" % re_make_convert_fn_name.sub("_", tag_name)
+        convert_fn = getattr(self, convert_fn_name, None)
+        if convert_fn:
+            return convert_fn
+
+        # If tag is any heading, handle with convert_hN() function
         match = re_html_heading.match(tag_name)
         if match:
-            n = int(match.group(1))
+            n = int(match.group(1))  # get value of N from <hN>
             return lambda el, text, parent_tags: self.convert_hN(n, el, text, parent_tags)
 
-        # For other tags, look up their conversion function by tag name
-        convert_fn_name = "convert_%s" % re_make_convert_fn_name.sub('_', tag_name)
-        convert_fn = getattr(self, convert_fn_name, None)
-        return convert_fn
+        # No conversion function was found
+        return None
 
     def should_convert_tag(self, tag):
         """Given a tag name, return whether to convert based on strip/convert options."""
