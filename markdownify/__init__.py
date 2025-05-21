@@ -256,6 +256,11 @@ class MarkdownConverter(object):
         if node.name in {'pre', 'code', 'kbd', 'samp'}:
             parent_tags_for_children.add('_noformat')
 
+        # **Handle nested tables**
+        if node.name == 'table' and 'table' in parent_tags:
+            # If this table is nested within another table, return its HTML representation
+            return str(node)
+
         # Convert the children elements into a list of result strings.
         child_strings = [
             self.process_element(el, parent_tags=parent_tags_for_children)
