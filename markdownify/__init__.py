@@ -11,6 +11,10 @@ re_whitespace = re.compile(r'[\t ]+')
 re_all_whitespace = re.compile(r'[\t \r\n]+')
 re_newline_whitespace = re.compile(r'[\t \r\n]*[\r\n][\t \r\n]*')
 re_html_heading = re.compile(r'h(\d+)')
+re_pre_lstrip1 = re.compile(r'^ *\n')
+re_pre_rstrip1 = re.compile(r'\n *$')
+re_pre_lstrip = re.compile(r'^[ \n]*\n')
+re_pre_rstrip = re.compile(r'[ \n]*$')
 
 # Pattern for creating convert_<tag> function names from tag names
 re_make_convert_fn_name = re.compile(r'[\[\]:-]')
@@ -51,10 +55,25 @@ BACKSLASH = 'backslash'
 ASTERISK = '*'
 UNDERSCORE = '_'
 
-# Document strip styles
+# Document/pre strip styles
 LSTRIP = 'lstrip'
 RSTRIP = 'rstrip'
 STRIP = 'strip'
+STRIP_ONE = 'strip_one'
+
+
+def strip1_pre(text):
+    """Strip one leading and trailing newline from a <pre> string."""
+    text = re_pre_lstrip1.sub('', text)
+    text = re_pre_rstrip1.sub('', text)
+    return text
+
+
+def strip_pre(text):
+    """Strip all leading and trailing newlines from a <pre> string."""
+    text = re_pre_lstrip.sub('', text)
+    text = re_pre_rstrip.sub('', text)
+    return text
 
 
 def chomp(text):
@@ -168,6 +187,7 @@ class MarkdownConverter(object):
         newline_style = SPACES
         strip = None
         strip_document = STRIP
+        strip_pre = STRIP
         strong_em_symbol = ASTERISK
         sub_symbol = ''
         sup_symbol = ''
@@ -651,6 +671,15 @@ class MarkdownConverter(object):
 
         if self.options['code_language_callback']:
             code_language = self.options['code_language_callback'](el) or code_language
+
+        if self.options['strip_pre'] == STRIP:
+            text = strip_pre(text)  # remove all leading/trailing newlines
+        elif self.options['strip_pre'] == STRIP_ONE:
+            text = strip1_pre(text)  # remove one leading/trailing newline
+        elif self.options['strip_pre'] is None:
+            pass  # leave leading and trailing newlines as-is
+        else:
+            raise ValueError('Invalid value for strip_pre: %s' % self.options['strip_pre'])
 
         return '\n\n```%s\n%s\n```\n\n' % (code_language, text)
 

@@ -157,6 +157,12 @@ strip_document
   within the document are unaffected.
   Defaults to ``STRIP``.
 
+strip_pre
+  Controls whether leading/trailing blank lines are removed from ``<pre>``
+  tags. Supported values are ``STRIP`` (all leading/trailing blank lines),
+  ``STRIP_ONE`` (one leading/trailing blank line), and ``None`` (neither).
+  Defaults to ``STRIP``.
+
 beautiful_soup_parser
   Specify the Beautiful Soup parser to be used for interpreting HTML markup. Parsers such
   as `html5lib`, `lxml` or even a custom parser as long as it is installed on the execution
