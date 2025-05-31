@@ -17,7 +17,9 @@ re_make_convert_fn_name = re.compile(r'[\[\]:-]')
 
 # Extract (leading_nl, content, trailing_nl) from a string
 # (functionally equivalent to r'^(\n*)(.*?)(\n*)$', but greedy is faster than reluctant here)
-re_extract_newlines = re.compile(r'^(\n*)((?:.*[^\n])?)(\n*)$', flags=re.DOTALL)
+re_extract_newlines = re.compile(
+    r'^(\n*)((?:.*[^\n])?)(\n*)$',
+    flags=re.DOTALL)
 
 # Escape miscellaneous special Markdown characters
 re_escape_misc_chars = re.compile(r'([]\\&<`[>~=+|])')
@@ -78,6 +80,7 @@ def abstract_inline_conversion(markup_fn):
     the text if it looks like an HTML tag. markup_fn is necessary to allow for
     references to self.strong_em_symbol etc.
     """
+
     def implementation(self, el, text, parent_tags):
         markup_prefix = markup_fn(self)
         if markup_prefix.startswith('<') and markup_prefix.endswith('>'):
@@ -89,12 +92,14 @@ def abstract_inline_conversion(markup_fn):
         prefix, suffix, text = chomp(text)
         if not text:
             return ''
-        return '%s%s%s%s%s' % (prefix, markup_prefix, text, markup_suffix, suffix)
+        return '%s%s%s%s%s' % (prefix, markup_prefix,
+                               text, markup_suffix, suffix)
     return implementation
 
 
 def _todict(obj):
-    return dict((k, getattr(obj, k)) for k in dir(obj) if not k.startswith('_'))
+    return dict((k, getattr(obj, k))
+                for k in dir(obj) if not k.startswith('_'))
 
 
 def should_remove_whitespace_inside(el):
@@ -209,7 +214,8 @@ class MarkdownConverter(object):
             return self.process_tag(node, parent_tags=parent_tags)
 
     def process_tag(self, node, parent_tags=None):
-        # For the top-level element, initialize the parent context with an empty set.
+        # For the top-level element, initialize the parent context with an
+        # empty set.
         if parent_tags is None:
             parent_tags = set()
 
@@ -230,10 +236,12 @@ class MarkdownConverter(object):
                     # Non-whitespace text nodes are always processed.
                     return False
                 elif should_remove_inside and (not el.previous_sibling or not el.next_sibling):
-                    # Inside block elements (excluding <pre>), ignore adjacent whitespace elements.
+                    # Inside block elements (excluding <pre>), ignore adjacent
+                    # whitespace elements.
                     return True
                 elif should_remove_whitespace_outside(el.previous_sibling) or should_remove_whitespace_outside(el.next_sibling):
-                    # Outside block elements (including <pre>), ignore adjacent whitespace elements.
+                    # Outside block elements (including <pre>), ignore adjacent
+                    # whitespace elements.
                     return True
                 else:
                     return False
@@ -242,22 +250,24 @@ class MarkdownConverter(object):
             else:
                 raise ValueError('Unexpected element type: %s' % type(el))
 
-
-        children_to_convert = [el for el in node.children if not _can_ignore(el)]
+        children_to_convert = [
+            el for el in node.children if not _can_ignore(el)]
 
         # Create a copy of this tag's parent context, then update it to include this tag
         # to propagate down into the children.
         parent_tags_for_children = set(parent_tags)
         parent_tags_for_children.add(node.name)
 
-        # if this tag is a heading or table cell, add an '_inline' parent pseudo-tag
+        # if this tag is a heading or table cell, add an '_inline' parent
+        # pseudo-tag
         if (
             re_html_heading.match(node.name) is not None  # headings
             or node.name in {'td', 'th'}  # table cells
         ):
             parent_tags_for_children.add('_inline')
 
-        # if this tag is a preformatted element, add a '_noformat' parent pseudo-tag
+        # if this tag is a preformatted element, add a '_noformat' parent
+        # pseudo-tag
         if node.name in {'pre', 'code', 'kbd', 'samp'}:
             parent_tags_for_children.add('_noformat')
 
@@ -279,17 +289,21 @@ class MarkdownConverter(object):
             updated_child_strings = ['']  # so the first lookback works
             for child_string in child_strings:
                 # Separate the leading/trailing newlines from the content.
-                leading_nl, content, trailing_nl = re_extract_newlines.match(child_string).groups()
+                leading_nl, content, trailing_nl = re_extract_newlines.match(
+                    child_string).groups()
 
                 # If the last child had trailing newlines and this child has leading newlines,
                 # use the larger newline count, limited to 2.
                 if updated_child_strings[-1] and leading_nl:
-                    prev_trailing_nl = updated_child_strings.pop()  # will be replaced by the collapsed value
-                    num_newlines = min(2, max(len(prev_trailing_nl), len(leading_nl)))
+                    # will be replaced by the collapsed value
+                    prev_trailing_nl = updated_child_strings.pop()
+                    num_newlines = min(
+                        2, max(len(prev_trailing_nl), len(leading_nl)))
                     leading_nl = '\n' * num_newlines
 
                 # Add the results to the updated child string list.
-                updated_child_strings.extend([leading_nl, content, trailing_nl])
+                updated_child_strings.extend(
+                    [leading_nl, content, trailing_nl])
 
             child_strings = updated_child_strings
 
@@ -297,7 +311,6 @@ class MarkdownConverter(object):
         text = ''.join(child_strings)
 
         # apply this tag's final conversion function
-        
 
         if self.preprocess_fn and self.should_convert_tag(node.name):
             text = self.preprocess_fn(node, text, parent_tags=parent_tags)
@@ -307,7 +320,7 @@ class MarkdownConverter(object):
             text = convert_fn(node, text, parent_tags=parent_tags)
         if self.postprocess_fn and self.should_convert_tag(node.name):
             text = self.postprocess_fn(node, text, parent_tags=parent_tags)
-            
+
         return text
 
     def convert__document_(self, el, text, parent_tags):
@@ -317,16 +330,20 @@ class MarkdownConverter(object):
         elif self.options['strip_document'] == RSTRIP:
             text = text.rstrip('\n')  # remove trailing separation newlines
         elif self.options['strip_document'] == STRIP:
-            text = text.strip('\n')  # remove leading and trailing separation newlines
+            # remove leading and trailing separation newlines
+            text = text.strip('\n')
         elif self.options['strip_document'] is None:
             pass  # leave leading and trailing separation newlines as-is
         else:
-            raise ValueError('Invalid value for strip_document: %s' % self.options['strip_document'])
+            raise ValueError(
+                'Invalid value for strip_document: %s' %
+                self.options['strip_document'])
 
         return text
 
     def process_text(self, el, parent_tags=None):
-        # For the top-level element, initialize the parent context with an empty set.
+        # For the top-level element, initialize the parent context with an
+        # empty set.
         if parent_tags is None:
             parent_tags = set()
 
@@ -340,7 +357,8 @@ class MarkdownConverter(object):
                 text = re_newline_whitespace.sub('\n', text)
                 text = re_whitespace.sub(' ', text)
 
-        # escape special characters if we're not inside a preformatted or code element
+        # escape special characters if we're not inside a preformatted or code
+        # element
         if '_noformat' not in parent_tags:
             text = self.escape(text, parent_tags)
 
@@ -376,7 +394,8 @@ class MarkdownConverter(object):
             return None
 
         # Look for an explicitly defined conversion function by tag name first
-        convert_fn_name = "convert_%s" % re_make_convert_fn_name.sub("_", tag_name)
+        convert_fn_name = "convert_%s" % re_make_convert_fn_name.sub(
+            "_", tag_name)
         convert_fn = getattr(self, convert_fn_name, None)
         if convert_fn:
             return convert_fn
@@ -385,7 +404,8 @@ class MarkdownConverter(object):
         match = re_html_heading.match(tag_name)
         if match:
             n = int(match.group(1))  # get value of N from <hN>
-            return lambda el, text, parent_tags: self.convert_hN(n, el, text, parent_tags)
+            return lambda el, text, parent_tags: self.convert_hN(
+                n, el, text, parent_tags)
 
         # No conversion function was found
         return None
@@ -438,9 +458,11 @@ class MarkdownConverter(object):
         if self.options['default_title'] and not title:
             title = href
         title_part = ' "%s"' % title.replace('"', r'\"') if title else ''
-        return '%s[%s](%s%s)%s' % (prefix, text, href, title_part, suffix) if href else text
+        return '%s[%s](%s%s)%s' % (prefix, text, href,
+                                   title_part, suffix) if href else text
 
-    convert_b = abstract_inline_conversion(lambda self: 2 * self.options['strong_em_symbol'])
+    convert_b = abstract_inline_conversion(
+        lambda self: 2 * self.options['strong_em_symbol'])
 
     def convert_blockquote(self, el, text, parent_tags):
         # handle some early-exit scenarios
@@ -485,7 +507,8 @@ class MarkdownConverter(object):
 
     convert_section = convert_div
 
-    convert_em = abstract_inline_conversion(lambda self: self.options['strong_em_symbol'])
+    convert_em = abstract_inline_conversion(
+        lambda self: self.options['strong_em_symbol'])
 
     convert_kbd = convert_code
 
@@ -662,7 +685,8 @@ class MarkdownConverter(object):
         code_language = self.options['code_language']
 
         if self.options['code_language_callback']:
-            code_language = self.options['code_language_callback'](el) or code_language
+            code_language = self.options['code_language_callback'](
+                el) or code_language
 
         return '\n\n```%s\n%s\n```\n\n' % (code_language, text)
 
@@ -681,9 +705,11 @@ class MarkdownConverter(object):
 
     convert_samp = convert_code
 
-    convert_sub = abstract_inline_conversion(lambda self: self.options['sub_symbol'])
+    convert_sub = abstract_inline_conversion(
+        lambda self: self.options['sub_symbol'])
 
-    convert_sup = abstract_inline_conversion(lambda self: self.options['sup_symbol'])
+    convert_sup = abstract_inline_conversion(
+        lambda self: self.options['sup_symbol'])
 
     def convert_table(self, el, text, parent_tags):
         return '\n\n' + text.strip() + '\n\n'
@@ -716,9 +742,10 @@ class MarkdownConverter(object):
                 and len(el.parent.find_all('tr')) == 1)
         )
         is_head_row_missing = (
-            (is_first_row and not el.parent.name == 'tbody')
-            or (is_first_row and el.parent.name == 'tbody' and len(el.parent.parent.find_all(['thead'])) < 1)
-        )
+            (is_first_row and not el.parent.name == 'tbody') or (
+                is_first_row and el.parent.name == 'tbody' and len(
+                    el.parent.parent.find_all(
+                        ['thead'])) < 1))
         overline = ''
         underline = ''
         full_colspan = 0
@@ -735,7 +762,8 @@ class MarkdownConverter(object):
             # - is headline or
             # - headline is missing and header inference is enabled
             # print headline underline
-            underline += '| ' + ' | '.join(['---'] * full_colspan) + ' |' + '\n'
+            underline += '| ' + \
+                ' | '.join(['---'] * full_colspan) + ' |' + '\n'
         elif ((is_head_row_missing
                and not self.options['table_infer_header'])
               or (is_first_row

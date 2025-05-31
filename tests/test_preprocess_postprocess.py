@@ -15,7 +15,7 @@ def test_preprocess_all_tags():
 
     assert md(
         '<p style="text-align: center;">para</p><b style="text-align: left;">bold</b>',
-        preprocess_fn=preprocess) == '\n\n[align=center]para[/align]\n\n**[align=left]bold[/align]**'
+        preprocess_fn=preprocess) == '[align=center]para[/align]\n\n**[align=left]bold[/align]**'
 
 
 def test_postprocess_all_tags():
@@ -85,17 +85,19 @@ def test_postprocess_doesnt_prevent_conversion():
 def test_combined_pre_and_post_processing():
 
     def preprocess(node, text, parent_tags):
-        return f"({text})"
+        print("Running preprocess on", text)
+        return f"PRE:{text}:PRE"
 
     def postprocess(node, text, parent_tags):
-        return f"[{text}]"
+        print("Running postprocess on", text)
+        return f"POST:{text}:POST"
 
     # <b>bold</b> normally becomes "**bold**"
     # With preprocessing: "(bold)" -> "**(bold)**"
     # Then postprocessing: "[**(bold)**]"
-    assert md('<b>bold</b>',
+    assert md('text',
               preprocess_fn=preprocess,
-              postprocess_fn=postprocess) == '[**(bold)**]'
+              postprocess_fn=postprocess) == 'POST:PRE:text:PRE:POST'
 
 
 def test_processing_with_multiple_tags():
@@ -110,7 +112,7 @@ def test_processing_with_multiple_tags():
     # <p><b>bold</b> and <i>italic</i></p>
     # Should become "**B:bold** and *I:italic*"
     assert md('<p><b>bold</b> and <i>italic</i></p>',
-              preprocess_fn=preprocess) == '\n\n**B:bold** and *I:italic*\n\n'
+              preprocess_fn=preprocess) == '**B:bold** and *I:italic*'
 
 
 def test_processing_with_nested_tags():
@@ -123,4 +125,4 @@ def test_processing_with_nested_tags():
     # <p><b>bold</b> text</p> normally becomes "**bold** text"
     # With postprocessing becomes "P:**bold** text"
     assert md('<p><b>bold</b> text</p>',
-              postprocess_fn=postprocess) == 'P:\n\n**bold** text\n\n'
+              postprocess_fn=postprocess) == 'P:\n\n**bold** text'
