@@ -1,4 +1,4 @@
-from markdownify import markdownify as md
+from .utils import md
 
 
 nested_uls = """
@@ -42,12 +42,13 @@ nested_ols = """
 
 def test_ol():
     assert md('<ol><li>a</li><li>b</li></ol>') == '\n\n1. a\n2. b\n'
+    assert md('<ol><!--comment--><li>a</li><span/><li>b</li></ol>') == '\n\n1. a\n2. b\n'
     assert md('<ol start="3"><li>a</li><li>b</li></ol>') == '\n\n3. a\n4. b\n'
     assert md('foo<ol start="3"><li>a</li><li>b</li></ol>bar') == 'foo\n\n3. a\n4. b\n\nbar'
     assert md('<ol start="-1"><li>a</li><li>b</li></ol>') == '\n\n1. a\n2. b\n'
     assert md('<ol start="foo"><li>a</li><li>b</li></ol>') == '\n\n1. a\n2. b\n'
     assert md('<ol start="1.5"><li>a</li><li>b</li></ol>') == '\n\n1. a\n2. b\n'
-    assert md('<ol start="1234"><li><p>first para</p><p>second para</p></li><li><p>third para</p><p>fourth para</p></li></ol>') == '\n\n1234. first para\n      \n      second para\n1235. third para\n      \n      fourth para\n'
+    assert md('<ol start="1234"><li><p>first para</p><p>second para</p></li><li><p>third para</p><p>fourth para</p></li></ol>') == '\n\n1234. first para\n\n      second para\n1235. third para\n\n      fourth para\n'
 
 
 def test_nested_ols():
@@ -64,7 +65,7 @@ def test_ul():
      <li>   c
      </li>
  </ul>""") == '\n\n* a\n* b\n* c\n'
-    assert md('<ul><li><p>first para</p><p>second para</p></li><li><p>third para</p><p>fourth para</p></li></ul>') == '\n\n* first para\n  \n  second para\n* third para\n  \n  fourth para\n'
+    assert md('<ul><li><p>first para</p><p>second para</p></li><li><p>third para</p><p>fourth para</p></li></ul>') == '\n\n* first para\n\n  second para\n* third para\n\n  fourth para\n'
 
 
 def test_inline_ul():

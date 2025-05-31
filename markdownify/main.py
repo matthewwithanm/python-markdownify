@@ -55,15 +55,27 @@ def main(argv=sys.argv[1:]):
     parser.add_argument('--no-escape-underscores', dest='escape_underscores',
                         action='store_false',
                         help="Do not escape '_' to '\\_' in text.")
-    parser.add_argument('-i', '--keep-inline-images-in', nargs='*',
+    parser.add_argument('-i', '--keep-inline-images-in',
+                        default=[],
+                        nargs='*',
                         help="Images are converted to their alt-text when the images are "
                         "located inside headlines or table cells. If some inline images "
                         "should be converted to markdown images instead, this option can "
                         "be set to a list of parent tags that should be allowed to "
                         "contain inline images.")
+    parser.add_argument('--table-infer-header', dest='table_infer_header',
+                        action='store_true',
+                        help="When a table has no header row (as indicated by '<thead>' "
+                        "or '<th>'), use the first body row as the header row.")
     parser.add_argument('-w', '--wrap', action='store_true',
                         help="Wrap all text paragraphs at --wrap-width characters.")
     parser.add_argument('--wrap-width', type=int, default=80)
+    parser.add_argument('-p', '--beautiful-soup-parser',
+                        dest='beautiful_soup_parser',
+                        default='html.parser',
+                        help="Specify the Beautiful Soup parser to be used for interpreting HTML markup. Parsers such "
+                             "as html5lib, lxml or even a custom parser as long as it is installed on the execution "
+                             "environment.")
 
     args = parser.parse_args(argv)
     print(markdownify(**vars(args)))

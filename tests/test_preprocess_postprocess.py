@@ -3,7 +3,7 @@ from markdownify import markdownify as md
 
 def test_preprocess_all_tags():
 
-    def preprocess(node, text, convert_as_inline):
+    def preprocess(node, text, parent_tags):
         alignment = ""
         if 'style' in node.attrs and 'text-align' in node.attrs['style']:
             style = node.attrs['style']
@@ -20,7 +20,7 @@ def test_preprocess_all_tags():
 
 def test_postprocess_all_tags():
 
-    def postprocess(node, text, convert_as_inline):
+    def postprocess(node, text, parent_tags):
         alignment = ""
         if 'style' in node.attrs and 'text-align' in node.attrs['style']:
             style = node.attrs['style']
@@ -40,7 +40,7 @@ def test_postprocess_all_tags():
 
 def test_preprocess_runs_before_conversion():
 
-    def preprocess(node, text, convert_as_inline):
+    def preprocess(node, text, parent_tags):
         if node.name == 'b':
             return f"PRE_{text}_PRE"
         return text
@@ -52,7 +52,7 @@ def test_preprocess_runs_before_conversion():
 
 def test_postprocess_runs_after_conversion():
 
-    def postprocess(node, text, convert_as_inline):
+    def postprocess(node, text, parent_tags):
         if node.name == 'b':
             return f"POST_{text}_POST"
         return text
@@ -66,7 +66,7 @@ def test_postprocess_runs_after_conversion():
 
 def test_preprocess_doesnt_prevent_conversion():
 
-    def preprocess(node, text, convert_as_inline):
+    def preprocess(node, text, parent_tags):
         return text.upper()  # Just modify the text, don't prevent conversion
 
     # Should still get converted to markdown, just with uppercase content
@@ -75,7 +75,7 @@ def test_preprocess_doesnt_prevent_conversion():
 
 def test_postprocess_doesnt_prevent_conversion():
 
-    def postprocess(node, text, convert_as_inline):
+    def postprocess(node, text, parent_tags):
         return text.upper()  # Just modify the result, don't prevent conversion
 
     # Should get normal markdown conversion but then uppercased
@@ -84,10 +84,10 @@ def test_postprocess_doesnt_prevent_conversion():
 
 def test_combined_pre_and_post_processing():
 
-    def preprocess(node, text, convert_as_inline):
+    def preprocess(node, text, parent_tags):
         return f"({text})"
 
-    def postprocess(node, text, convert_as_inline):
+    def postprocess(node, text, parent_tags):
         return f"[{text}]"
 
     # <b>bold</b> normally becomes "**bold**"
@@ -100,7 +100,7 @@ def test_combined_pre_and_post_processing():
 
 def test_processing_with_multiple_tags():
 
-    def preprocess(node, text, convert_as_inline):
+    def preprocess(node, text, parent_tags):
         if node.name == 'b':
             return f"B:{text}"
         elif node.name == 'i':
@@ -115,7 +115,7 @@ def test_processing_with_multiple_tags():
 
 def test_processing_with_nested_tags():
 
-    def postprocess(node, text, convert_as_inline):
+    def postprocess(node, text, parent_tags):
         if node.name == 'p':
             return f"P:{text}"
         return text
