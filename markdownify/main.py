@@ -70,12 +70,11 @@ def main(argv=sys.argv[1:]):
     parser.add_argument('-w', '--wrap', action='store_true',
                         help="Wrap all text paragraphs at --wrap-width characters.")
     parser.add_argument('--wrap-width', type=int, default=80)
-    parser.add_argument('-p', '--beautiful-soup-parser',
-                        dest='beautiful_soup_parser',
+    parser.add_argument('--bs4-options',
                         default='html.parser',
-                        help="Specify the Beautiful Soup parser to be used for interpreting HTML markup. Parsers such "
-                             "as html5lib, lxml or even a custom parser as long as it is installed on the execution "
-                             "environment.")
+                        help="Specifies the parser that BeautifulSoup should use to parse "
+                             "the HTML markup. Examples include 'html5.parser', 'lxml', and "
+                             "'html5lib'.")
 
     args = parser.parse_args(argv)
     print(markdownify(**vars(args)))
