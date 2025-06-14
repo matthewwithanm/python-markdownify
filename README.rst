@@ -157,12 +157,16 @@ strip_document
   within the document are unaffected.
   Defaults to ``STRIP``.
 
-beautiful_soup_parser
-  Specify the Beautiful Soup parser to be used for interpreting HTML markup. Parsers such
-  as `html5lib`, `lxml` or even a custom parser as long as it is installed on the execution
-  environment. Defaults to ``html.parser``.
+bs4_options
+  Specify additional configuration options for the ``BeautifulSoup`` object
+  used to interpret the HTML markup. String and list values (such as ``lxml``)
+  are treated as ``features`` parameter arguments to control parser
+  selection. Dictionary values (such as ``{"from_encoding": "iso-8859-8"}``)
+  are treated as full kwargs to be used for the BeautifulSoup constructor,
+  allowing specification of any parameter. For parameter details, see the
+  Beautiful Soup documentation at:
 
-.. _BeautifulSoup: https://www.crummy.com/software/BeautifulSoup/
+.. _BeautifulSoup: https://www.crummy.com/software/BeautifulSoup/bs4/doc/
 
 Options may be specified as kwargs to the ``markdownify`` function, or as a
 nested ``Options`` class in ``MarkdownConverter`` subclasses.
