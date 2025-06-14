@@ -157,6 +157,12 @@ strip_document
   within the document are unaffected.
   Defaults to ``STRIP``.
 
+strip_pre
+  Controls whether leading/trailing blank lines are removed from ``<pre>``
+  tags. Supported values are ``STRIP`` (all leading/trailing blank lines),
+  ``STRIP_ONE`` (one leading/trailing blank line), and ``None`` (neither).
+  Defaults to ``STRIP``.
+
 bs4_options
   Specify additional configuration options for the ``BeautifulSoup`` object
   used to interpret the HTML markup. String and list values (such as ``lxml``

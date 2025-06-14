@@ -370,4 +370,4 @@ def test_spaces():
     assert md('test <blockquote> text </blockquote> after') == 'test\n> text\n\nafter'
     assert md(' <ol> <li> x </li> <li> y </li> </ol> ') == '\n\n1. x\n2. y\n'
     assert md(' <ul> <li> x </li> <li> y </li> </ol> ') == '\n\n* x\n* y\n'
-    assert md('test <pre> foo </pre> bar') == 'test\n\n```\n foo \n```\n\nbar'
+    assert md('test <pre> foo </pre> bar') == 'test\n\n```\n foo\n```\n\nbar'
