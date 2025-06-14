@@ -173,7 +173,7 @@ def _next_block_content_sibling(el):
 class MarkdownConverter(object):
     class DefaultOptions:
         autolinks = True
-        beautiful_soup_parser = 'html.parser'
+        bs4_options = 'html.parser'
         bullets = '*+-'  # An iterable of bullet types.
         code_language = ''
         code_language_callback = None
@@ -208,11 +208,15 @@ class MarkdownConverter(object):
             raise ValueError('You may specify either tags to strip or tags to'
                              ' convert, but not both.')
 
+        # If a string or list is passed to bs4_options, assume it is a 'features' specification
+        if not isinstance(self.options['bs4_options'], dict):
+            self.options['bs4_options'] = {'features': self.options['bs4_options']}
+
         # Initialize the conversion function cache
         self.convert_fn_cache = {}
 
     def convert(self, html):
-        soup = BeautifulSoup(html, self.options['beautiful_soup_parser'])
+        soup = BeautifulSoup(html, **self.options['bs4_options'])
         return self.convert_soup(soup)
 
     def convert_soup(self, soup):

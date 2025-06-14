@@ -39,3 +39,9 @@ def test_strip_pre():
     assert markdownify("<pre>  \n  \n  Hello  \n  \n  </pre>", strip_pre=STRIP) == "```\n  Hello\n```"
     assert markdownify("<pre>  \n  \n  Hello  \n  \n  </pre>", strip_pre=STRIP_ONE) == "```\n  \n  Hello  \n  \n```"
     assert markdownify("<pre>  \n  \n  Hello  \n  \n  </pre>", strip_pre=None) == "```\n  \n  \n  Hello  \n  \n  \n```"
+
+
+def bs4_options():
+    assert markdownify("<p>Hello</p>", bs4_options="html.parser") == "Hello"
+    assert markdownify("<p>Hello</p>", bs4_options=["html.parser"]) == "Hello"
+    assert markdownify("<p>Hello</p>", bs4_options={"features": "html.parser"}) == "Hello"
