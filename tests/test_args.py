@@ -32,3 +32,9 @@ def test_strip_document():
     assert markdownify("<p>Hello</p>", strip_document=RSTRIP) == "\n\nHello"
     assert markdownify("<p>Hello</p>", strip_document=STRIP) == "Hello"
     assert markdownify("<p>Hello</p>", strip_document=None) == "\n\nHello\n\n"
+
+
+def bs4_options():
+    assert markdownify("<p>Hello</p>", bs4_options="html.parser") == "Hello"
+    assert markdownify("<p>Hello</p>", bs4_options=["html.parser"]) == "Hello"
+    assert markdownify("<p>Hello</p>", bs4_options={"features": "html.parser"}) == "Hello"
