@@ -41,6 +41,9 @@ re_escape_misc_hashes = re.compile(r'(\s|^)(#{1,6}(?:\s|$))')
 # confused with a list item
 re_escape_misc_list_items = re.compile(r'((?:\s|^)[0-9]{1,9})([.)](?:\s|$))')
 
+# Find consecutive backtick sequences in a string
+re_backtick_runs = re.compile(r'`+')
+
 # Heading styles
 ATX = 'atx'
 ATX_CLOSED = 'atx_closed'
@@ -480,10 +483,24 @@ class MarkdownConverter(object):
             return '  \n'
 
     def convert_code(self, el, text, parent_tags):
-        if 'pre' in parent_tags:
+        if '_noformat' in parent_tags:
             return text
-        converter = abstract_inline_conversion(lambda self: '`')
-        return converter(self, el, text, parent_tags)
+
+        prefix, suffix, text = chomp(text)
+        if not text:
+            return ''
+
+        # Find the maximum number of consecutive backticks in the text, then
+        # delimit the code span with one more backtick than that
+        max_backticks = max((len(match) for match in re.findall(re_backtick_runs, text)), default=0)
+        markup_delimiter = '`' * (max_backticks + 1)
+
+        # If the maximum number of backticks is greater than zero, add a space
+        # to avoid interpretation of inside backticks as literals
+        if max_backticks > 0:
+            text = " " + text + " "
+
+        return '%s%s%s%s%s' % (prefix, markup_delimiter, text, markup_delimiter, suffix)
 
     convert_del = abstract_inline_conversion(lambda self: '~~')
 

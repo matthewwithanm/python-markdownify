@@ -101,6 +101,9 @@ def test_code():
     assert md('<code>foo<s> bar </s>baz</code>') == '`foo bar baz`'
     assert md('<code>foo<sup>bar</sup>baz</code>', sup_symbol='^') == '`foobarbaz`'
     assert md('<code>foo<sub>bar</sub>baz</code>', sub_symbol='^') == '`foobarbaz`'
+    assert md('foo<code>`bar`</code>baz') == 'foo`` `bar` ``baz'
+    assert md('foo<code>``bar``</code>baz') == 'foo``` ``bar`` ```baz'
+    assert md('foo<code> `bar` </code>baz') == 'foo `` `bar` `` baz'
 
 
 def test_dl():
