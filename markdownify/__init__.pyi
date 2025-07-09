@@ -35,3 +35,6 @@ def markdownify(
   wrap: bool = ...,
   wrap_width: int = ...,
 ) -> str: ...
+
+class MarkdownConverter:
+  pass
