@@ -1,5 +1,17 @@
 from _typeshed import Incomplete
 
+ATX: str
+ATX_CLOSED: str
+UNDERLINED: str
+SETEXT = UNDERLINED
+SPACES: str
+BACKSLASH: str
+ASTERISK: str
+UNDERSCORE: str
+LSTRIP: str
+RSTRIP: str
+STRIP: str
+
 def markdownify(
   html: str,
   strip: list[str] = ...,
