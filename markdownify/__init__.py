@@ -735,13 +735,13 @@ class MarkdownConverter(object):
     def convert_td(self, el, text, parent_tags):
         colspan = 1
         if 'colspan' in el.attrs and el['colspan'].isdigit():
-            colspan = int(el['colspan'])
+            colspan = max(1, min(1000, int(el['colspan'])))
         return ' ' + text.strip().replace("\n", " ") + ' |' * colspan
 
     def convert_th(self, el, text, parent_tags):
         colspan = 1
         if 'colspan' in el.attrs and el['colspan'].isdigit():
-            colspan = int(el['colspan'])
+            colspan = max(1, min(1000, int(el['colspan'])))
         return ' ' + text.strip().replace("\n", " ") + ' |' * colspan
 
     def convert_tr(self, el, text, parent_tags):
@@ -762,7 +762,7 @@ class MarkdownConverter(object):
         full_colspan = 0
         for cell in cells:
             if 'colspan' in cell.attrs and cell['colspan'].isdigit():
-                full_colspan += int(cell["colspan"])
+                full_colspan += max(1, min(1000, int(cell['colspan'])))
             else:
                 full_colspan += 1
         if ((is_headrow
