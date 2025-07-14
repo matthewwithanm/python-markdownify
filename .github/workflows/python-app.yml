@@ -48,3 +48,4 @@ jobs:
     - name: Check types
       run: |
         mypy .
+        mypy --strict tests/types.py
