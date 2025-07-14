@@ -11,6 +11,7 @@ UNDERSCORE: str
 LSTRIP: str
 RSTRIP: str
 STRIP: str
+STRIP_ONE: str
 
 def markdownify(
   html: str,
