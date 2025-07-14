@@ -47,4 +47,5 @@ jobs:
         pip install --upgrade setuptools setuptools_scm wheel build tox mypy
     - name: Check types
       run: |
+        mypy --install-types
         mypy .
