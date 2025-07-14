@@ -1,5 +1,5 @@
 from _typeshed import Incomplete
-from typing import Callable
+from typing import Callable, Union
 
 ATX: str
 ATX_CLOSED: str
@@ -21,8 +21,8 @@ def markdownify(
     bs4_options: str = ...,
     bullets: str = ...,
     code_language: str = ...,
-    code_language_callback: Callable[[Incomplete], str | None] | None = ...,
-    convert: list[str] | None = ...,
+    code_language_callback: Union[Callable[[Incomplete], Union[str, None]], None] = ...,
+    convert: Union[list[str], None] = ...,
     default_title: bool = ...,
     escape_asterisks: bool = ...,
     escape_underscores: bool = ...,
@@ -30,8 +30,8 @@ def markdownify(
     heading_style: str = ...,
     keep_inline_images_in: list[str] = ...,
     newline_style: str = ...,
-    strip: list[str] | None = ...,
-    strip_document: str | None = ...,
+    strip: Union[list[str], None] = ...,
+    strip_document: Union[str, None] = ...,
     strip_pre: str = ...,
     strong_em_symbol: str = ...,
     sub_symbol: str = ...,
@@ -49,8 +49,8 @@ class MarkdownConverter:
         bs4_options: str = ...,
         bullets: str = ...,
         code_language: str = ...,
-        code_language_callback: Callable[[Incomplete], str | None] | None = ...,
-        convert: list[str] | None = ...,
+        code_language_callback: Union[Callable[[Incomplete], Union[str, None]], None] = ...,
+        convert: Union[list[str], None] = ...,
         default_title: bool = ...,
         escape_asterisks: bool = ...,
         escape_underscores: bool = ...,
@@ -58,8 +58,8 @@ class MarkdownConverter:
         heading_style: str = ...,
         keep_inline_images_in: list[str] = ...,
         newline_style: str = ...,
-        strip: list[str] | None = ...,
-        strip_document: str | None = ...,
+        strip: Union[list[str], None] = ...,
+        strip_document: Union[str, None] = ...,
         strip_pre: str = ...,
         strong_em_symbol: str = ...,
         sub_symbol: str = ...,
