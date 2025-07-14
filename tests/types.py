@@ -1,4 +1,5 @@
 from markdownify import markdownify, ASTERISK, BACKSLASH, LSTRIP, RSTRIP, SPACES, STRIP, UNDERLINED, UNDERSCORE, MarkdownConverter
+from bs4 import BeautifulSoup
 
 markdownify("<p>Hello</p>") == "Hello"  # test default of STRIP
 markdownify("<p>Hello</p>", strip_document=LSTRIP) == "Hello\n\n"
@@ -51,3 +52,7 @@ MarkdownConverter(
     code_language='python',
     code_language_callback=None
 ).convert("")
+
+html = '<b>test</b>'
+soup = BeautifulSoup(html, 'html.parser')
+MarkdownConverter().convert_soup(soup) == '**test**'

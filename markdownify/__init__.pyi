@@ -71,3 +71,6 @@ class MarkdownConverter:
   
     def convert(self, html: str) -> str:
         ...
+
+    def convert_soup(self, soup: Incomplete) -> str:
+        ...
