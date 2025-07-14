@@ -44,8 +44,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install --upgrade setuptools setuptools_scm wheel build tox mypy
+        pip install --upgrade setuptools setuptools_scm wheel build tox mypy types-beautifulsoup4
     - name: Check types
       run: |
-        mypy --install-types
         mypy .
