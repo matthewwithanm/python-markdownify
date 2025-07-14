@@ -1,4 +1,5 @@
 from _typeshed import Incomplete
+from typing import Callable
 
 ATX: str
 ATX_CLOSED: str
@@ -20,7 +21,7 @@ def markdownify(
     bs4_options: str = ...,
     bullets: str = ...,
     code_language: str = ...,
-    code_language_callback: Incomplete | None = ...,
+    code_language_callback: Callable[[Incomplete], str | None] | None = ...,
     convert: list[str] | None = ...,
     default_title: bool = ...,
     escape_asterisks: bool = ...,
@@ -48,7 +49,7 @@ class MarkdownConverter:
         bs4_options: str = ...,
         bullets: str = ...,
         code_language: str = ...,
-        code_language_callback: Incomplete | None = ...,
+        code_language_callback: Callable[[Incomplete], str | None] | None = ...,
         convert: list[str] | None = ...,
         default_title: bool = ...,
         escape_asterisks: bool = ...,
