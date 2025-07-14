@@ -28,7 +28,7 @@ def markdownify(
   heading_style: str = ...,
   keep_inline_images_in: list[str] = ...,
   newline_style: str = ...,
-  strip_document: str = ...,
+  strip_document: str | None = ...,
   strong_em_symbol: str = ...,
   sub_symbol: str = ...,
   sup_symbol: str = ...,
