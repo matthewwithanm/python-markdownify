@@ -110,7 +110,7 @@ code_language_callback
   When the HTML code contains ``pre`` tags that in some way provide the code
   language, for example as class, this callback can be used to extract the
   language from the tag and prefix it to the converted ``pre`` tag.
-  The callback gets one single argument, an BeautifylSoup object, and returns
+  The callback gets one single argument, a BeautifulSoup object, and returns
   a string containing the code language, or ``None``.
   An example to use the class name as code language could be::
 
