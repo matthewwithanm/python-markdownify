@@ -11,6 +11,10 @@ re_whitespace = re.compile(r'[\t ]+')
 re_all_whitespace = re.compile(r'[\t \r\n]+')
 re_newline_whitespace = re.compile(r'[\t \r\n]*[\r\n][\t \r\n]*')
 re_html_heading = re.compile(r'h(\d+)')
+re_pre_lstrip1 = re.compile(r'^ *\n')
+re_pre_rstrip1 = re.compile(r'\n *$')
+re_pre_lstrip = re.compile(r'^[ \n]*\n')
+re_pre_rstrip = re.compile(r'[ \n]*$')
 
 # Pattern for creating convert_<tag> function names from tag names
 re_make_convert_fn_name = re.compile(r'[\[\]:-]')
@@ -37,6 +41,9 @@ re_escape_misc_hashes = re.compile(r'(\s|^)(#{1,6}(?:\s|$))')
 # confused with a list item
 re_escape_misc_list_items = re.compile(r'((?:\s|^)[0-9]{1,9})([.)](?:\s|$))')
 
+# Find consecutive backtick sequences in a string
+re_backtick_runs = re.compile(r'`+')
+
 # Heading styles
 ATX = 'atx'
 ATX_CLOSED = 'atx_closed'
@@ -51,10 +58,25 @@ BACKSLASH = 'backslash'
 ASTERISK = '*'
 UNDERSCORE = '_'
 
-# Document strip styles
+# Document/pre strip styles
 LSTRIP = 'lstrip'
 RSTRIP = 'rstrip'
 STRIP = 'strip'
+STRIP_ONE = 'strip_one'
+
+
+def strip1_pre(text):
+    """Strip one leading and trailing newline from a <pre> string."""
+    text = re_pre_lstrip1.sub('', text)
+    text = re_pre_rstrip1.sub('', text)
+    return text
+
+
+def strip_pre(text):
+    """Strip all leading and trailing newlines from a <pre> string."""
+    text = re_pre_lstrip.sub('', text)
+    text = re_pre_rstrip.sub('', text)
+    return text
 
 
 def chomp(text):
@@ -154,6 +176,7 @@ def _next_block_content_sibling(el):
 class MarkdownConverter(object):
     class DefaultOptions:
         autolinks = True
+        bs4_options = 'html.parser'
         bullets = '*+-'  # An iterable of bullet types.
         code_language = ''
         code_language_callback = None
@@ -167,6 +190,7 @@ class MarkdownConverter(object):
         newline_style = SPACES
         strip = None
         strip_document = STRIP
+        strip_pre = STRIP
         strong_em_symbol = ASTERISK
         sub_symbol = ''
         sup_symbol = ''
@@ -187,11 +211,15 @@ class MarkdownConverter(object):
             raise ValueError('You may specify either tags to strip or tags to'
                              ' convert, but not both.')
 
+        # If a string or list is passed to bs4_options, assume it is a 'features' specification
+        if not isinstance(self.options['bs4_options'], dict):
+            self.options['bs4_options'] = {'features': self.options['bs4_options']}
+
         # Initialize the conversion function cache
         self.convert_fn_cache = {}
 
     def convert(self, html):
-        soup = BeautifulSoup(html, 'html.parser')
+        soup = BeautifulSoup(html, **self.options['bs4_options'])
         return self.convert_soup(soup)
 
     def convert_soup(self, soup):
@@ -362,16 +390,20 @@ class MarkdownConverter(object):
         if not self.should_convert_tag(tag_name):
             return None
 
-        # Handle headings with _convert_hn() function
+        # Look for an explicitly defined conversion function by tag name first
+        convert_fn_name = "convert_%s" % re_make_convert_fn_name.sub("_", tag_name)
+        convert_fn = getattr(self, convert_fn_name, None)
+        if convert_fn:
+            return convert_fn
+
+        # If tag is any heading, handle with convert_hN() function
         match = re_html_heading.match(tag_name)
         if match:
-            n = int(match.group(1))
-            return lambda el, text, parent_tags: self._convert_hn(n, el, text, parent_tags)
+            n = int(match.group(1))  # get value of N from <hN>
+            return lambda el, text, parent_tags: self.convert_hN(n, el, text, parent_tags)
 
-        # For other tags, look up their conversion function by tag name
-        convert_fn_name = "convert_%s" % re_make_convert_fn_name.sub('_', tag_name)
-        convert_fn = getattr(self, convert_fn_name, None)
-        return convert_fn
+        # No conversion function was found
+        return None
 
     def should_convert_tag(self, tag):
         """Given a tag name, return whether to convert based on strip/convert options."""
@@ -451,10 +483,24 @@ class MarkdownConverter(object):
             return '  \n'
 
     def convert_code(self, el, text, parent_tags):
-        if 'pre' in parent_tags:
+        if '_noformat' in parent_tags:
             return text
-        converter = abstract_inline_conversion(lambda self: '`')
-        return converter(self, el, text, parent_tags)
+
+        prefix, suffix, text = chomp(text)
+        if not text:
+            return ''
+
+        # Find the maximum number of consecutive backticks in the text, then
+        # delimit the code span with one more backtick than that
+        max_backticks = max((len(match) for match in re.findall(re_backtick_runs, text)), default=0)
+        markup_delimiter = '`' * (max_backticks + 1)
+
+        # If the maximum number of backticks is greater than zero, add a space
+        # to avoid interpretation of inside backticks as literals
+        if max_backticks > 0:
+            text = " " + text + " "
+
+        return '%s%s%s%s%s' % (prefix, markup_delimiter, text, markup_delimiter, suffix)
 
     convert_del = abstract_inline_conversion(lambda self: '~~')
 
@@ -509,12 +555,12 @@ class MarkdownConverter(object):
 
         return '\n\n%s\n' % text
 
-    def _convert_hn(self, n, el, text, parent_tags):
-        """ Method name prefixed with _ to prevent <hn> to call this """
+    def convert_hN(self, n, el, text, parent_tags):
+        # convert_hN() converts <hN> tags, where N is any integer
         if '_inline' in parent_tags:
             return text
 
-        # prevent MemoryErrors in case of very large n
+        # Markdown does not support heading depths of n > 6
         n = max(1, min(6, n))
 
         style = self.options['heading_style'].lower()
@@ -647,7 +693,19 @@ class MarkdownConverter(object):
         if self.options['code_language_callback']:
             code_language = self.options['code_language_callback'](el) or code_language
 
+        if self.options['strip_pre'] == STRIP:
+            text = strip_pre(text)  # remove all leading/trailing newlines
+        elif self.options['strip_pre'] == STRIP_ONE:
+            text = strip1_pre(text)  # remove one leading/trailing newline
+        elif self.options['strip_pre'] is None:
+            pass  # leave leading and trailing newlines as-is
+        else:
+            raise ValueError('Invalid value for strip_pre: %s' % self.options['strip_pre'])
+
         return '\n\n```%s\n%s\n```\n\n' % (code_language, text)
+
+    def convert_q(self, el, text, parent_tags):
+        return '"' + text + '"'
 
     def convert_script(self, el, text, parent_tags):
         return ''
@@ -677,13 +735,13 @@ class MarkdownConverter(object):
     def convert_td(self, el, text, parent_tags):
         colspan = 1
         if 'colspan' in el.attrs and el['colspan'].isdigit():
-            colspan = int(el['colspan'])
+            colspan = max(1, min(1000, int(el['colspan'])))
         return ' ' + text.strip().replace("\n", " ") + ' |' * colspan
 
     def convert_th(self, el, text, parent_tags):
         colspan = 1
         if 'colspan' in el.attrs and el['colspan'].isdigit():
-            colspan = int(el['colspan'])
+            colspan = max(1, min(1000, int(el['colspan'])))
         return ' ' + text.strip().replace("\n", " ") + ' |' * colspan
 
     def convert_tr(self, el, text, parent_tags):
@@ -704,7 +762,7 @@ class MarkdownConverter(object):
         full_colspan = 0
         for cell in cells:
             if 'colspan' in cell.attrs and cell['colspan'].isdigit():
-                full_colspan += int(cell["colspan"])
+                full_colspan += max(1, min(1000, int(cell['colspan'])))
             else:
                 full_colspan += 1
         if ((is_headrow

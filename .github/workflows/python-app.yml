@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: Set up Python 3.8
       uses: actions/setup-python@v2
       with:
@@ -30,3 +30,22 @@ jobs:
     - name: Build
       run: |
         python -m build -nwsx .
+
+  types:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install --upgrade setuptools setuptools_scm wheel build tox mypy types-beautifulsoup4
+    - name: Check types
+      run: |
+        mypy .
+        mypy --strict tests/types.py

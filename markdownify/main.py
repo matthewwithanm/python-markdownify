@@ -55,7 +55,9 @@ def main(argv=sys.argv[1:]):
     parser.add_argument('--no-escape-underscores', dest='escape_underscores',
                         action='store_false',
                         help="Do not escape '_' to '\\_' in text.")
-    parser.add_argument('-i', '--keep-inline-images-in', nargs='*',
+    parser.add_argument('-i', '--keep-inline-images-in',
+                        default=[],
+                        nargs='*',
                         help="Images are converted to their alt-text when the images are "
                         "located inside headlines or table cells. If some inline images "
                         "should be converted to markdown images instead, this option can "
@@ -68,6 +70,11 @@ def main(argv=sys.argv[1:]):
     parser.add_argument('-w', '--wrap', action='store_true',
                         help="Wrap all text paragraphs at --wrap-width characters.")
     parser.add_argument('--wrap-width', type=int, default=80)
+    parser.add_argument('--bs4-options',
+                        default='html.parser',
+                        help="Specifies the parser that BeautifulSoup should use to parse "
+                             "the HTML markup. Examples include 'html5.parser', 'lxml', and "
+                             "'html5lib'.")
 
     args = parser.parse_args(argv)
     print(markdownify(**vars(args)))

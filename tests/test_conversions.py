@@ -101,6 +101,9 @@ def test_code():
     assert md('<code>foo<s> bar </s>baz</code>') == '`foo bar baz`'
     assert md('<code>foo<sup>bar</sup>baz</code>', sup_symbol='^') == '`foobarbaz`'
     assert md('<code>foo<sub>bar</sub>baz</code>', sub_symbol='^') == '`foobarbaz`'
+    assert md('foo<code>`bar`</code>baz') == 'foo`` `bar` ``baz'
+    assert md('foo<code>``bar``</code>baz') == 'foo``` ``bar`` ```baz'
+    assert md('foo<code> `bar` </code>baz') == 'foo `` `bar` `` baz'
 
 
 def test_dl():
@@ -164,7 +167,8 @@ def test_hn():
     assert md('<h5>Hello</h5>') == '\n\n##### Hello\n\n'
     assert md('<h6>Hello</h6>') == '\n\n###### Hello\n\n'
     assert md('<h10>Hello</h10>') == md('<h6>Hello</h6>')
-    assert md('<hn>Hello</hn>') == md('Hello')
+    assert md('<h0>Hello</h0>') == md('<h1>Hello</h1>')
+    assert md('<hx>Hello</hx>') == md('Hello')
 
 
 def test_hn_chained():
@@ -304,6 +308,11 @@ def test_pre():
     assert md("<p>foo</p>\n<pre>bar</pre>\n</p>baz</p>", sub_symbol="^") == "\n\nfoo\n\n```\nbar\n```\n\nbaz"
 
 
+def test_q():
+    assert md('foo <q>quote</q> bar') == 'foo "quote" bar'
+    assert md('foo <q cite="https://example.com">quote</q> bar') == 'foo "quote" bar'
+
+
 def test_script():
     assert md('foo <script>var foo=42;</script> bar') == 'foo  bar'
 
@@ -364,4 +373,4 @@ def test_spaces():
     assert md('test <blockquote> text </blockquote> after') == 'test\n> text\n\nafter'
     assert md(' <ol> <li> x </li> <li> y </li> </ol> ') == '\n\n1. x\n2. y\n'
     assert md(' <ul> <li> x </li> <li> y </li> </ol> ') == '\n\n* x\n* y\n'
-    assert md('test <pre> foo </pre> bar') == 'test\n\n```\n foo \n```\n\nbar'
+    assert md('test <pre> foo </pre> bar') == 'test\n\n```\n foo\n```\n\nbar'

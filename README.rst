@@ -110,7 +110,7 @@ code_language_callback
   When the HTML code contains ``pre`` tags that in some way provide the code
   language, for example as class, this callback can be used to extract the
   language from the tag and prefix it to the converted ``pre`` tag.
-  The callback gets one single argument, an BeautifylSoup object, and returns
+  The callback gets one single argument, a BeautifulSoup object, and returns
   a string containing the code language, or ``None``.
   An example to use the class name as code language could be::
 
@@ -156,6 +156,23 @@ strip_document
   ``RSTRIP`` (trailing), ``STRIP`` (both), and ``None`` (neither). Newlines
   within the document are unaffected.
   Defaults to ``STRIP``.
+
+strip_pre
+  Controls whether leading/trailing blank lines are removed from ``<pre>``
+  tags. Supported values are ``STRIP`` (all leading/trailing blank lines),
+  ``STRIP_ONE`` (one leading/trailing blank line), and ``None`` (neither).
+  Defaults to ``STRIP``.
+
+bs4_options
+  Specify additional configuration options for the ``BeautifulSoup`` object
+  used to interpret the HTML markup. String and list values (such as ``lxml``
+  or ``html5lib``) are treated as ``features`` arguments to control parser
+  selection. Dictionary values (such as ``{"from_encoding": "iso-8859-8"}``)
+  are treated as full kwargs to be used for the BeautifulSoup constructor,
+  allowing specification of any parameter. For parameter details, see the
+  Beautiful Soup documentation at:
+
+.. _BeautifulSoup: https://www.crummy.com/software/BeautifulSoup/bs4/doc/
 
 Options may be specified as kwargs to the ``markdownify`` function, or as a
 nested ``Options`` class in ``MarkdownConverter`` subclasses.
