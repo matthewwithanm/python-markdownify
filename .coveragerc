@@ -1,0 +1,5 @@
+[run]
+omit = markdownify/main.py
+
+[report]
+show_missing = True
