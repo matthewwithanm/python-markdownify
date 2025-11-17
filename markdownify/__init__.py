@@ -173,7 +173,7 @@ def should_remove_whitespace_inside(el: LexborNode | None):
     """Return to remove whitespace immediately inside a block-level element."""
     if not el or not el.tag:
         return False
-    if is_header_tag(el.tag) is not None:
+    if is_header_tag(el.tag):
         return True
     return el.tag in WHITESPACE_ABLE
 
@@ -212,19 +212,10 @@ def _is_block_content_element(el: LexborNode | None):
         return False
 
 
-def _prev_block_content_sibling(el):
-    """Returns the first previous sibling that is a content element, else None."""
-    while el is not None:
-        el = el.previous_sibling
-        if _is_block_content_element(el):
-            return el
-    return None
-
-
-def _next_block_content_sibling(el):
+def _next_block_content_sibling(el:LexborNode|None):
     """Returns the first next sibling that is a content element, else None."""
     while el is not None:
-        el = el.next_sibling
+        el = el.next
         if _is_block_content_element(el):
             return el
     return None
@@ -329,7 +320,7 @@ class MarkdownConverter:
                 raise ValueError("Unexpected element type: %s" % type(el))
 
         children_to_convert = [
-            el for el in el.iter(include_text=True) if not _can_ignore(el) and el != el
+            el for el in el.iter(include_text=True) if not _can_ignore(el)
         ]
 
         # Create a copy of this tag's parent context, then update it to include this tag
@@ -398,7 +389,9 @@ class MarkdownConverter:
         return text
 
     def convert__document_(self, el: LexborNode, text: str, parent_tags: set[str]):
-        """Final document-level formatting for BeautifulSoup object (node.name == "[document]")"""
+        """Final document-level formatting for lexbor (node.tag == "[document]")"""
+        # XXX: I believe this is not needed.
+
         if self.options["strip_document"] == LSTRIP:
             text = text.lstrip("\n")  # remove leading separation newlines
         elif self.options["strip_document"] == RSTRIP:
@@ -719,7 +712,7 @@ class MarkdownConverter:
 
         before_paragraph = False
         next_sibling = _next_block_content_sibling(el)
-        if next_sibling and next_sibling.name not in ["ul", "ol"]:
+        if next_sibling and next_sibling.tag not in ["ul", "ol"]:
             before_paragraph = True
         if "li" in parent_tags:
             # remove trailing newline if we're in a nested list
