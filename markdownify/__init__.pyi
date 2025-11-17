@@ -14,11 +14,9 @@ RSTRIP: str
 STRIP: str
 STRIP_ONE: str
 
-
 def markdownify(
     html: str,
     autolinks: bool = ...,
-    bs4_options: str = ...,
     bullets: str = ...,
     code_language: str = ...,
     code_language_callback: Union[Callable[[Incomplete], Union[str, None]], None] = ...,
@@ -41,15 +39,15 @@ def markdownify(
     wrap_width: int = ...,
 ) -> str: ...
 
-
 class MarkdownConverter:
     def __init__(
         self,
         autolinks: bool = ...,
-        bs4_options: str = ...,
         bullets: str = ...,
         code_language: str = ...,
-        code_language_callback: Union[Callable[[Incomplete], Union[str, None]], None] = ...,
+        code_language_callback: Union[
+            Callable[[Incomplete], Union[str, None]], None
+        ] = ...,
         convert: Union[list[str], None] = ...,
         default_title: bool = ...,
         escape_asterisks: bool = ...,
@@ -67,11 +65,6 @@ class MarkdownConverter:
         table_infer_header: bool = ...,
         wrap: bool = ...,
         wrap_width: int = ...,
-    ) -> None:
-        ...
-  
-    def convert(self, html: str) -> str:
-        ...
-
-    def convert_soup(self, soup: Incomplete) -> str:
-        ...
+    ) -> None: ...
+    def convert(self, html: str) -> str: ...
+    def convert_soup(self, soup: Incomplete) -> str: ...

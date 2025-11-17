@@ -1,5 +1,5 @@
 from markdownify import MarkdownConverter
-from bs4 import BeautifulSoup
+from selectolax.lexbor import LexborHTMLParser
 
 
 class UnitTestConverter(MarkdownConverter):
@@ -40,5 +40,5 @@ def test_custom_conversion_functions():
 
 def test_soup():
     html = '<b>test</b>'
-    soup = BeautifulSoup(html, 'html.parser')
+    soup = LexborHTMLParser(html)
     assert MarkdownConverter().convert_soup(soup) == '**test**'
