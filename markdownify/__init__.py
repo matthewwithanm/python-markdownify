@@ -79,14 +79,14 @@ def find_previous_siblings(el: LexborNode | None, tag: str):
             yield el
 
 
-def strip1_pre(text):
+def strip1_pre(text: str):
     """Strip one leading and trailing newline from a <pre> string."""
     text = re_pre_lstrip1.sub("", text)
     text = re_pre_rstrip1.sub("", text)
     return text
 
 
-def strip_pre(text):
+def strip_pre(text: str):
     """Strip all leading and trailing newlines from a <pre> string."""
     text = re_pre_lstrip.sub("", text)
     text = re_pre_rstrip.sub("", text)
@@ -117,7 +117,7 @@ def chomp(text: str):
     return (prefix, suffix, text)
 
 
-def abstract_inline_conversion(markup_fn: Callable):
+def abstract_inline_conversion(markup_fn: Callable[["MarkdownConverter"], str]):
     """
     This abstracts all simple inline tags like b, em, del, ...
     Returns a function that wraps the chomped text in a pair of the string
@@ -258,7 +258,7 @@ class MarkdownConverter:
     class Options(DefaultOptions):
         pass
 
-    def __init__(self, **options):
+    def __init__(self, **options: dict[str, Any]):
         # Create an options dictionary. Use DefaultOptions as a base so that
         # it doesn't have to be extended.
         self.options = _todict(self.DefaultOptions)
@@ -268,7 +268,6 @@ class MarkdownConverter:
             raise ValueError(
                 "You may specify either tags to strip or tags to convert, but not both."
             )
-
 
         # Initialize the conversion function cache
         self.convert_fn_cache = {}
@@ -286,13 +285,13 @@ class MarkdownConverter:
             f"Unexpected type: {type(soup)} passed to convert_soup()."
         )
 
-    def process_element(self, el: LexborNode, parent_tags=None):
+    def process_element(self, el: LexborNode, parent_tags: set[str] | None = None):
         if el.tag and el.tag == "-text":
             return self.process_text(el, parent_tags=parent_tags)
         else:
             return self.process_tag(el, parent_tags=parent_tags)
 
-    def process_tag(self, el: LexborNode, parent_tags=None):
+    def process_tag(self, el: LexborNode, parent_tags: set[str] | None = None):
         # For the top-level element, initialize the parent context with an empty set.
         if parent_tags is None:
             parent_tags = set()
@@ -399,7 +398,7 @@ class MarkdownConverter:
 
         return text
 
-    def convert__document_(self, el: LexborNode, text, parent_tags):
+    def convert__document_(self, el: LexborNode, text: str, parent_tags: set[str]):
         """Final document-level formatting for BeautifulSoup object (node.name == "[document]")"""
         if self.options["strip_document"] == LSTRIP:
             text = text.lstrip("\n")  # remove leading separation newlines
@@ -416,7 +415,7 @@ class MarkdownConverter:
 
         return text
 
-    def process_text(self, el: LexborNode, parent_tags=None):
+    def process_text(self, el: LexborNode, parent_tags: set[str] | None = None):
         # For the top-level element, initialize the parent context with an empty set.
         if parent_tags is None:
             parent_tags = set()
@@ -494,7 +493,7 @@ class MarkdownConverter:
         else:
             return True
 
-    def escape(self, text, parent_tags):
+    def escape(self, text: str, parent_tags: set[str]):
         if not text:
             return ""
         if self.options["escape_misc"]:
@@ -509,11 +508,11 @@ class MarkdownConverter:
             text = text.replace("_", r"\_")
         return text
 
-    def underline(self, text, pad_char):
+    def underline(self, text: str, pad_char: str):
         text = (text or "").rstrip()
         return "\n\n%s\n%s\n\n" % (text, pad_char * len(text)) if text else ""
 
-    def convert_a(self, el: LexborNode, text, parent_tags):
+    def convert_a(self, el: LexborNode, text: str, parent_tags: set[str]):
         if "_noformat" in parent_tags:
             return text
         prefix, suffix, text = chomp(text)
@@ -544,7 +543,7 @@ class MarkdownConverter:
         lambda self: 2 * self.options["strong_em_symbol"]
     )
 
-    def convert_blockquote(self, el: LexborNode, text, parent_tags):
+    def convert_blockquote(self, el: LexborNode, text: str, parent_tags: set[str]):
         # handle some early-exit scenarios
         text = (text or "").strip(" \t\r\n")
         if "_inline" in parent_tags:
@@ -561,7 +560,7 @@ class MarkdownConverter:
 
         return "\n" + text + "\n\n"
 
-    def convert_br(self, el: LexborNode, text, parent_tags):
+    def convert_br(self, el: LexborNode, text: str, parent_tags: set[str]):
         if "_inline" in parent_tags:
             return " "
 
@@ -570,7 +569,7 @@ class MarkdownConverter:
         else:
             return "  \n"
 
-    def convert_code(self, el: LexborNode, text, parent_tags):
+    def convert_code(self, el: LexborNode, text: str, parent_tags: set[str]):
         if "_noformat" in parent_tags:
             return text
 
@@ -594,7 +593,7 @@ class MarkdownConverter:
 
     convert_del = abstract_inline_conversion(lambda self: "~~")
 
-    def convert_div(self, el, text, parent_tags):
+    def convert_div(self, el: LexborNode, text: str, parent_tags: set[str]):
         if "_inline" in parent_tags:
             return " " + text.strip() + " "
         text = text.strip()
@@ -610,7 +609,7 @@ class MarkdownConverter:
 
     convert_kbd = convert_code
 
-    def convert_dd(self, el, text, parent_tags):
+    def convert_dd(self, el: LexborNode, text: str, parent_tags: set[str]):
         text = (text or "").strip()
         if "_inline" in parent_tags:
             return " " + text + " "
@@ -634,7 +633,7 @@ class MarkdownConverter:
     #   https://michelf.ca/projects/php-markdown/extra/#def-list
     convert_dl = convert_div
 
-    def convert_dt(self, el, text, parent_tags):
+    def convert_dt(self, el: LexborNode, text: str, parent_tags: set[str]):
         # remove newlines from term text
         text = (text or "").strip()
         text = re_all_whitespace.sub(" ", text)
@@ -648,7 +647,7 @@ class MarkdownConverter:
 
         return "\n\n%s\n" % text
 
-    def convert_hN(self, n, el, text, parent_tags):
+    def convert_hN(self, n: int, el: LexborNode, text: str, parent_tags: set[str]):
         # convert_hN() converts <hN> tags, where N is any integer
         if "_inline" in parent_tags:
             return text
@@ -667,12 +666,12 @@ class MarkdownConverter:
             return "\n\n%s %s %s\n\n" % (hashes, text, hashes)
         return "\n\n%s %s\n\n" % (hashes, text)
 
-    def convert_hr(self, el, text, parent_tags):
+    def convert_hr(self, el: LexborNode, text: str, parent_tags: set[str]):
         return "\n\n---\n\n"
 
     convert_i = convert_em
 
-    def convert_img(self, el: LexborNode, text, parent_tags):
+    def convert_img(self, el: LexborNode, text: str, parent_tags: set[str]):
         if not el.parent:
             raise NotImplementedError(
                 "img element does not have a children. Potentially malformed?"
@@ -690,7 +689,7 @@ class MarkdownConverter:
 
         return "![%s](%s%s)" % (alt, src, title_part)
 
-    def convert_video(self, el: LexborNode, text, parent_tags):
+    def convert_video(self, el: LexborNode, text: str, parent_tags: set[str]):
         if not el.parent:
             raise NotImplementedError(
                 "video element does not have a children. Potentially malformed?"
@@ -715,7 +714,7 @@ class MarkdownConverter:
             return "![%s](%s)" % (text, poster)
         return text
 
-    def convert_list(self, el: LexborNode, text, parent_tags):
+    def convert_list(self, el: LexborNode, text: str, parent_tags: set[str]):
         # Converting a list to inline is undefined.
         # Ignoring inline conversion parents for list.
 
@@ -731,7 +730,7 @@ class MarkdownConverter:
     convert_ul = convert_list
     convert_ol = convert_list
 
-    def convert_li(self, el: LexborNode, text, parent_tags):
+    def convert_li(self, el: LexborNode, text: str, parent_tags: set[str]):
         if not el.parent:
             raise NotImplementedError(
                 "li element does not have a children. Potentially malformed?"
@@ -774,7 +773,7 @@ class MarkdownConverter:
 
         return "%s\n" % text
 
-    def convert_p(self, el, text, parent_tags):
+    def convert_p(self, el: LexborNode, text: str, parent_tags: set[str]):
         if "_inline" in parent_tags:
             return " " + text.strip(" \t\r\n") + " "
         text = text.strip(" \t\r\n")
@@ -799,7 +798,7 @@ class MarkdownConverter:
                 text = "\n".join(new_lines)
         return "\n\n%s\n\n" % text if text else ""
 
-    def convert_pre(self, el, text, parent_tags):
+    def convert_pre(self, el: LexborNode, text: str, parent_tags: set[str]):
         if not text:
             return ""
         code_language = self.options["code_language"]
@@ -820,13 +819,17 @@ class MarkdownConverter:
 
         return "\n\n```%s\n%s\n```\n\n" % (code_language, text)
 
-    def convert_q(self, el, text, parent_tags):
+    def convert_q(self, el: LexborNode, text: str, parent_tags: set[str] | None = None):
         return '"' + text + '"'
 
-    def convert_script(self, el, text, parent_tags):
+    def convert_script(
+        self, el: LexborNode, text: str, parent_tags: set[str] | None = None
+    ):
         return ""
 
-    def convert_style(self, el, text, parent_tags):
+    def convert_style(
+        self, el: LexborNode, text: str, parent_tags: set[str] | None = None
+    ):
         return ""
 
     convert_s = convert_del
@@ -839,16 +842,24 @@ class MarkdownConverter:
 
     convert_sup = abstract_inline_conversion(lambda self: self.options["sup_symbol"])
 
-    def convert_table(self, el: LexborNode, text, parent_tags):
+    def convert_table(
+        self, el: LexborNode, text: str, parent_tags: set[str] | None = None
+    ):
         return "\n\n" + text.strip() + "\n\n"
 
-    def convert_caption(self, el: LexborNode, text, parent_tags):
+    def convert_caption(
+        self, el: LexborNode, text: str, parent_tags: set[str] | None = None
+    ):
         return text.strip() + "\n\n"
 
-    def convert_figcaption(self, el: LexborNode, text, parent_tags):
+    def convert_figcaption(
+        self, el: LexborNode, text: str, parent_tags: set[str] | None = None
+    ):
         return "\n\n" + text.strip() + "\n\n"
 
-    def convert_td(self, el: LexborNode, text, parent_tags):
+    def convert_td(
+        self, el: LexborNode, text: str, parent_tags: set[str] | None = None
+    ):
         colspan = 1
         el_colspan = el.attributes.get("colspan")
         el_colspan = int(el_colspan) if el_colspan and el_colspan.isdigit() else 0
@@ -856,7 +867,9 @@ class MarkdownConverter:
             colspan = max(1, min(1000, el_colspan))
         return " " + text.strip().replace("\n", " ") + " |" * colspan
 
-    def convert_th(self, el: LexborNode, text, parent_tags):
+    def convert_th(
+        self, el: LexborNode, text: str, parent_tags: set[str] | None = None
+    ):
         colspan = 1
         el_colspan = el.attributes.get("colspan")
         el_colspan = int(el_colspan) if el_colspan and el_colspan.isdigit() else 0
@@ -864,7 +877,9 @@ class MarkdownConverter:
             colspan = max(1, min(1000, el_colspan))
         return " " + text.strip().replace("\n", " ") + " |" * colspan
 
-    def convert_tr(self, el: LexborNode, text, parent_tags):
+    def convert_tr(
+        self, el: LexborNode, text: str, parent_tags: set[str] | None = None
+    ):
         if not el.parent or not el.parent.parent:
             raise NotImplementedError(
                 "Found table row with no parent or sub-parent. Malformed document?"
