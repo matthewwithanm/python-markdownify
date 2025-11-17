@@ -17,7 +17,6 @@ STRIP_ONE: str
 def markdownify(
     html: str,
     autolinks: bool = ...,
-    bs4_options: str = ...,
     bullets: str = ...,
     code_language: str = ...,
     code_language_callback: Union[Callable[[Incomplete], Union[str, None]], None] = ...,
@@ -44,7 +43,6 @@ class MarkdownConverter:
     def __init__(
         self,
         autolinks: bool = ...,
-        bs4_options: str = ...,
         bullets: str = ...,
         code_language: str = ...,
         code_language_callback: Union[

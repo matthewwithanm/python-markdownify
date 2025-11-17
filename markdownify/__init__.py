@@ -10,7 +10,6 @@ re_line_with_content = re.compile(r"^(.*)", flags=re.MULTILINE)
 re_whitespace = re.compile(r"[\t ]+")
 re_all_whitespace = re.compile(r"[\t \r\n]+")
 re_newline_whitespace = re.compile(r"[\t \r\n]*[\r\n][\t \r\n]*")
-re_html_heading = re.compile(r"h(\d+)")
 re_pre_lstrip1 = re.compile(r"^ *\n")
 re_pre_rstrip1 = re.compile(r"\n *$")
 re_pre_lstrip = re.compile(r"^[ \n]*\n")
@@ -65,6 +64,21 @@ STRIP = "strip"
 STRIP_ONE = "strip_one"
 
 
+def is_header_tag(tag_name: str):
+    """Returns True if the tag is a header (h1, h2, h3 ...)"""
+    tag_name = tag_name.lower()
+    # XXX: isdigit() is the fastest, but can be inaccurate
+    return tag_name[0] == "h" and tag_name[1:].isdigit()
+
+
+def find_previous_siblings(el: LexborNode | None, tag: str):
+    """Finds a previous element with specified tag"""
+    while el:
+        el = el.prev
+        if el and el.tag == tag:
+            yield el
+
+
 def strip1_pre(text):
     """Strip one leading and trailing newline from a <pre> string."""
     text = re_pre_lstrip1.sub("", text)
@@ -79,15 +93,15 @@ def strip_pre(text):
     return text
 
 
-def find_parent(node: LexborNode | None, node_tag: str):
+def find_parent(el: LexborNode | None, node_tag: str):
     """Finds a parent with the specified tag"""
-    while node:
-        node = node.parent
-        if node is None:
+    while el:
+        el = el.parent
+        if el is None:
             break
-        if node.tag == node_tag:
-            return node
-    return node
+        if el.tag == node_tag:
+            return el
+    return el
 
 
 def chomp(text: str):
@@ -128,7 +142,7 @@ def abstract_inline_conversion(markup_fn: Callable):
     return implementation
 
 
-def _todict(obj:Any):
+def _todict(obj: Any):
     return dict((k, getattr(obj, k)) for k in dir(obj) if not k.startswith("_"))
 
 
@@ -160,7 +174,7 @@ def should_remove_whitespace_inside(el: LexborNode | None):
     """Return to remove whitespace immediately inside a block-level element."""
     if not el or not el.tag:
         return False
-    if re_html_heading.match(el.tag) is not None:
+    if is_header_tag(el.tag) is not None:
         return True
     return el.tag in WHITESPACE_ABLE
 
@@ -255,9 +269,6 @@ class MarkdownConverter:
                 "You may specify either tags to strip or tags to convert, but not both."
             )
 
-        # If a string or list is passed to bs4_options, assume it is a 'features' specification
-        if not isinstance(self.options["bs4_options"], dict):
-            self.options["bs4_options"] = {"features": self.options["bs4_options"]}
 
         # Initialize the conversion function cache
         self.convert_fn_cache = {}
@@ -275,20 +286,22 @@ class MarkdownConverter:
             f"Unexpected type: {type(soup)} passed to convert_soup()."
         )
 
-    def process_element(self, node: LexborNode, parent_tags=None):
-        if node.tag and node.tag == "-text":
-            return self.process_text(node, parent_tags=parent_tags)
+    def process_element(self, el: LexborNode, parent_tags=None):
+        if el.tag and el.tag == "-text":
+            return self.process_text(el, parent_tags=parent_tags)
         else:
-            return self.process_tag(node, parent_tags=parent_tags)
+            return self.process_tag(el, parent_tags=parent_tags)
 
-    def process_tag(self, node: LexborNode, parent_tags=None):
+    def process_tag(self, el: LexborNode, parent_tags=None):
         # For the top-level element, initialize the parent context with an empty set.
         if parent_tags is None:
             parent_tags = set()
 
+        node_tag = el.tag
+
         # Collect child elements to process, ignoring whitespace-only text elements
         # adjacent to the inner/outer boundaries of block elements.
-        should_remove_inside = should_remove_whitespace_inside(node)
+        should_remove_inside = should_remove_whitespace_inside(el)
 
         def _can_ignore(el: LexborNode):
             if is_tag(el):
@@ -318,25 +331,23 @@ class MarkdownConverter:
                 raise ValueError("Unexpected element type: %s" % type(el))
 
         children_to_convert = [
-            el
-            for el in node.iter(include_text=True)
-            if not _can_ignore(el) and el != node
+            el for el in el.iter(include_text=True) if not _can_ignore(el) and el != el
         ]
 
         # Create a copy of this tag's parent context, then update it to include this tag
         # to propagate down into the children.
         parent_tags_for_children = set(parent_tags)
-        parent_tags_for_children.add(node.tag)
+        parent_tags_for_children.add(el.tag)
 
         # if this tag is a heading or table cell, add an '_inline' parent pseudo-tag
         if (
-            (node.tag and re_html_heading.match(node.tag) is not None)  # headings
-            or node.tag in {"td", "th"}  # table cells
+            (node_tag and is_header_tag(node_tag) is not None)  # headings
+            or node_tag in {"td", "th"}  # table cells
         ):
             parent_tags_for_children.add("_inline")
 
         # if this tag is a preformatted element, add a '_noformat' parent pseudo-tag
-        if node.tag in {"pre", "code", "kbd", "samp"}:
+        if node_tag in {"pre", "code", "kbd", "samp"}:
             parent_tags_for_children.add("_noformat")
 
         # Convert the children elements into a list of result strings.
@@ -349,7 +360,7 @@ class MarkdownConverter:
         child_strings = [s for s in child_strings if s]
 
         # Collapse newlines at child element boundaries, if needed.
-        if node.tag == "pre" or find_parent(node, "pre"):
+        if node_tag == "pre" or find_parent(el, "pre"):
             # Inside <pre> blocks, do not collapse newlines.
             pass
         else:
@@ -378,14 +389,17 @@ class MarkdownConverter:
         # Join all child text strings into a single string.
         text = "".join(child_strings)
 
+        # Ensure node.tag is valid.
+        if el.tag is None:
+            raise NotImplementedError("Expected tag to be valid. Got None.")
         # apply this tag's final conversion function
-        convert_fn = self.get_conv_fn_cached(node.name)
+        convert_fn = self.get_conv_fn_cached(el.tag)
         if convert_fn is not None:
-            text = convert_fn(node, text, parent_tags=parent_tags)
+            text = convert_fn(el, text, parent_tags=parent_tags)
 
         return text
 
-    def convert__document_(self, el, text, parent_tags):
+    def convert__document_(self, el: LexborNode, text, parent_tags):
         """Final document-level formatting for BeautifulSoup object (node.name == "[document]")"""
         if self.options["strip_document"] == LSTRIP:
             text = text.lstrip("\n")  # remove leading separation newlines
@@ -402,12 +416,12 @@ class MarkdownConverter:
 
         return text
 
-    def process_text(self, el, parent_tags=None):
+    def process_text(self, el: LexborNode, parent_tags=None):
         # For the top-level element, initialize the parent context with an empty set.
         if parent_tags is None:
             parent_tags = set()
 
-        text = six.text_type(el) or ""
+        text = el.text_content or ""
 
         # normalize whitespace if we're not inside a preformatted element
         if "pre" not in parent_tags:
@@ -424,18 +438,18 @@ class MarkdownConverter:
         # remove leading whitespace at the start or just after a
         # block-level element; remove traliing whitespace at the end
         # or just before a block-level element.
-        if should_remove_whitespace_outside(el.previous_sibling) or (
-            should_remove_whitespace_inside(el.parent) and not el.previous_sibling
+        if should_remove_whitespace_outside(el.prev) or (
+            should_remove_whitespace_inside(el.parent) and not el.prev
         ):
             text = text.lstrip(" \t\r\n")
-        if should_remove_whitespace_outside(el.next_sibling) or (
-            should_remove_whitespace_inside(el.parent) and not el.next_sibling
+        if should_remove_whitespace_outside(el.next) or (
+            should_remove_whitespace_inside(el.parent) and not el.next
         ):
             text = text.rstrip()
 
         return text
 
-    def get_conv_fn_cached(self, tag_name):
+    def get_conv_fn_cached(self, tag_name: str):
         """Given a tag name, return the conversion function using the cache."""
         # If conversion function is not in cache, add it
         if tag_name not in self.convert_fn_cache:
@@ -444,7 +458,7 @@ class MarkdownConverter:
         # Return the cached entry
         return self.convert_fn_cache[tag_name]
 
-    def get_conv_fn(self, tag_name):
+    def get_conv_fn(self, tag_name: str):
         """Given a tag name, find and return the conversion function."""
         tag_name = tag_name.lower()
 
@@ -459,9 +473,9 @@ class MarkdownConverter:
             return convert_fn
 
         # If tag is any heading, handle with convert_hN() function
-        match = re_html_heading.match(tag_name)
+        match = is_header_tag(tag_name)
         if match:
-            n = int(match.group(1))  # get value of N from <hN>
+            n = int(tag_name[1:])  # get value of N from <hN>
             return lambda el, text, parent_tags: self.convert_hN(
                 n, el, text, parent_tags
             )
@@ -469,7 +483,7 @@ class MarkdownConverter:
         # No conversion function was found
         return None
 
-    def should_convert_tag(self, tag):
+    def should_convert_tag(self, tag: str):
         """Given a tag name, return whether to convert based on strip/convert options."""
         strip = self.options["strip"]
         convert = self.options["convert"]
@@ -499,14 +513,15 @@ class MarkdownConverter:
         text = (text or "").rstrip()
         return "\n\n%s\n%s\n\n" % (text, pad_char * len(text)) if text else ""
 
-    def convert_a(self, el, text, parent_tags):
+    def convert_a(self, el: LexborNode, text, parent_tags):
         if "_noformat" in parent_tags:
             return text
         prefix, suffix, text = chomp(text)
         if not text:
             return ""
-        href = el.get("href")
-        title = el.get("title")
+        attributes = el.attributes
+        href = attributes.get("href")
+        title = attributes.get("title")
         # For the replacement see #29: text nodes underscores are escaped
         if (
             self.options["autolinks"]
@@ -529,7 +544,7 @@ class MarkdownConverter:
         lambda self: 2 * self.options["strong_em_symbol"]
     )
 
-    def convert_blockquote(self, el, text, parent_tags):
+    def convert_blockquote(self, el: LexborNode, text, parent_tags):
         # handle some early-exit scenarios
         text = (text or "").strip(" \t\r\n")
         if "_inline" in parent_tags:
@@ -546,7 +561,7 @@ class MarkdownConverter:
 
         return "\n" + text + "\n\n"
 
-    def convert_br(self, el, text, parent_tags):
+    def convert_br(self, el: LexborNode, text, parent_tags):
         if "_inline" in parent_tags:
             return " "
 
@@ -555,7 +570,7 @@ class MarkdownConverter:
         else:
             return "  \n"
 
-    def convert_code(self, el, text, parent_tags):
+    def convert_code(self, el: LexborNode, text, parent_tags):
         if "_noformat" in parent_tags:
             return text
 
@@ -657,31 +672,41 @@ class MarkdownConverter:
 
     convert_i = convert_em
 
-    def convert_img(self, el, text, parent_tags):
-        alt = el.attrs.get("alt", None) or ""
-        src = el.attrs.get("src", None) or ""
-        title = el.attrs.get("title", None) or ""
+    def convert_img(self, el: LexborNode, text, parent_tags):
+        if not el.parent:
+            raise NotImplementedError(
+                "img element does not have a children. Potentially malformed?"
+            )
+        attrs = el.attributes
+        alt = attrs.get("alt", None) or ""
+        src = attrs.get("src", None) or ""
+        title = attrs.get("title", None) or ""
         title_part = ' "%s"' % title.replace('"', r"\"") if title else ""
         if (
             "_inline" in parent_tags
-            and el.parent.name not in self.options["keep_inline_images_in"]
+            and el.parent.tag not in self.options["keep_inline_images_in"]
         ):
             return alt
 
         return "![%s](%s%s)" % (alt, src, title_part)
 
-    def convert_video(self, el, text, parent_tags):
+    def convert_video(self, el: LexborNode, text, parent_tags):
+        if not el.parent:
+            raise NotImplementedError(
+                "video element does not have a children. Potentially malformed?"
+            )
         if (
             "_inline" in parent_tags
-            and el.parent.name not in self.options["keep_inline_images_in"]
+            and el.parent.tag not in self.options["keep_inline_images_in"]
         ):
             return text
-        src = el.attrs.get("src", None) or ""
+        attrs = el.attributes
+        src = attrs.get("src", None) or ""
         if not src:
-            sources = el.find_all("source", attrs={"src": True})
+            sources = el.css("source[src]")
             if sources:
-                src = sources[0].attrs.get("src", None) or ""
-        poster = el.attrs.get("poster", None) or ""
+                src = sources[0].attributes.get("src", None) or ""
+        poster = attrs.get("poster", None) or ""
         if src and poster:
             return "[![%s](%s)](%s)" % (text, poster, src)
         if src:
@@ -690,7 +715,7 @@ class MarkdownConverter:
             return "![%s](%s)" % (text, poster)
         return text
 
-    def convert_list(self, el, text, parent_tags):
+    def convert_list(self, el: LexborNode, text, parent_tags):
         # Converting a list to inline is undefined.
         # Ignoring inline conversion parents for list.
 
@@ -706,7 +731,11 @@ class MarkdownConverter:
     convert_ul = convert_list
     convert_ol = convert_list
 
-    def convert_li(self, el, text, parent_tags):
+    def convert_li(self, el: LexborNode, text, parent_tags):
+        if not el.parent:
+            raise NotImplementedError(
+                "li element does not have a children. Potentially malformed?"
+            )
         # handle some early-exit scenarios
         text = (text or "").strip()
         if not text:
@@ -714,16 +743,17 @@ class MarkdownConverter:
 
         # determine list item bullet character to use
         parent = el.parent
-        if parent is not None and parent.name == "ol":
-            if parent.get("start") and str(parent.get("start")).isnumeric():
-                start = int(parent.get("start"))
+        if parent is not None and parent.tag == "ol":
+            start_attribute = parent.attributes.get("start")
+            if start_attribute and str(start_attribute).isnumeric():
+                start = int(start_attribute)
             else:
                 start = 1
-            bullet = "%s." % (start + len(el.find_previous_siblings("li")))
+            bullet = "%s." % (start + len(list(find_previous_siblings(el, "li"))))
         else:
             depth = -1
             while el:
-                if el.name == "ul":
+                if el.tag == "ul":
                     depth += 1
                 el = el.parent
             bullets = self.options["bullets"]
@@ -809,46 +839,58 @@ class MarkdownConverter:
 
     convert_sup = abstract_inline_conversion(lambda self: self.options["sup_symbol"])
 
-    def convert_table(self, el, text, parent_tags):
+    def convert_table(self, el: LexborNode, text, parent_tags):
         return "\n\n" + text.strip() + "\n\n"
 
-    def convert_caption(self, el, text, parent_tags):
+    def convert_caption(self, el: LexborNode, text, parent_tags):
         return text.strip() + "\n\n"
 
-    def convert_figcaption(self, el, text, parent_tags):
+    def convert_figcaption(self, el: LexborNode, text, parent_tags):
         return "\n\n" + text.strip() + "\n\n"
 
-    def convert_td(self, el, text, parent_tags):
+    def convert_td(self, el: LexborNode, text, parent_tags):
         colspan = 1
-        if "colspan" in el.attrs and el["colspan"].isdigit():
-            colspan = max(1, min(1000, int(el["colspan"])))
+        el_colspan = el.attributes.get("colspan")
+        el_colspan = int(el_colspan) if el_colspan and el_colspan.isdigit() else 0
+        if el_colspan:
+            colspan = max(1, min(1000, el_colspan))
         return " " + text.strip().replace("\n", " ") + " |" * colspan
 
-    def convert_th(self, el, text, parent_tags):
+    def convert_th(self, el: LexborNode, text, parent_tags):
         colspan = 1
-        if "colspan" in el.attrs and el["colspan"].isdigit():
-            colspan = max(1, min(1000, int(el["colspan"])))
+        el_colspan = el.attributes.get("colspan")
+        el_colspan = int(el_colspan) if el_colspan and el_colspan.isdigit() else 0
+        if el_colspan:
+            colspan = max(1, min(1000, el_colspan))
         return " " + text.strip().replace("\n", " ") + " |" * colspan
 
-    def convert_tr(self, el, text, parent_tags):
-        cells = el.find_all(["td", "th"])
-        is_first_row = el.find_previous_sibling() is None
-        is_headrow = all([cell.name == "th" for cell in cells]) or (
-            el.parent.name == "thead"
+    def convert_tr(self, el: LexborNode, text, parent_tags):
+        if not el.parent or not el.parent.parent:
+            raise NotImplementedError(
+                "Found table row with no parent or sub-parent. Malformed document?"
+            )
+        cells = el.css("td,th")
+        is_first_row = el.prev is None
+        is_headrow = all([cell.tag == "th" for cell in cells]) or (
+            el.parent.tag == "thead"
             # avoid multiple tr in thead
-            and len(el.parent.find_all("tr")) == 1
+            and len(el.parent.css("tr")) == 1
         )
-        is_head_row_missing = (is_first_row and not el.parent.name == "tbody") or (
+        is_head_row_missing = (is_first_row and not el.parent.tag == "tbody") or (
             is_first_row
-            and el.parent.name == "tbody"
-            and len(el.parent.parent.find_all(["thead"])) < 1
+            and el.parent.tag == "tbody"
+            and len(el.parent.parent.css("thead")) < 1
         )
         overline = ""
         underline = ""
         full_colspan = 0
         for cell in cells:
-            if "colspan" in cell.attrs and cell["colspan"].isdigit():
-                full_colspan += max(1, min(1000, int(cell["colspan"])))
+            cell_colspan = cell.attributes.get("colspan")
+            cell_colspan = (
+                int(cell_colspan) if cell_colspan and cell_colspan.isdigit() else 0
+            )
+            if cell_colspan:
+                full_colspan += max(1, min(1000, cell_colspan))
             else:
                 full_colspan += 1
         if (
@@ -862,8 +904,8 @@ class MarkdownConverter:
         elif (is_head_row_missing and not self.options["table_infer_header"]) or (
             is_first_row
             and (
-                el.parent.name == "table"
-                or (el.parent.name == "tbody" and not el.parent.find_previous_sibling())
+                el.parent.tag == "table"
+                or (el.parent.tag == "tbody" and not el.parent.prev)
             )
         ):
             # headline is missing and header inference is disabled or:
