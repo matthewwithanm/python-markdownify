@@ -5,7 +5,6 @@ from typing import Any, Callable
 from selectolax.lexbor import LexborHTMLParser, LexborNode
 
 # General-purpose regex patterns
-re_convert_heading = re.compile(r"convert_h(\d+)")
 re_line_with_content = re.compile(r"^(.*)", flags=re.MULTILINE)
 re_whitespace = re.compile(r"[\t ]+")
 re_all_whitespace = re.compile(r"[\t \r\n]+")
