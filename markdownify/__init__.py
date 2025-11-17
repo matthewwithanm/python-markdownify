@@ -1,8 +1,8 @@
-from bs4 import BeautifulSoup, Comment, Doctype, NavigableString, Tag
-from textwrap import fill
 import re
-import six
+from textwrap import fill
+from typing import Any, Callable
 
+from selectolax.lexbor import LexborHTMLParser, LexborNode
 
 # General-purpose regex patterns
 re_convert_heading = re.compile(r"convert_h(\d+)")
@@ -79,7 +79,18 @@ def strip_pre(text):
     return text
 
 
-def chomp(text):
+def find_parent(node: LexborNode | None, node_tag: str):
+    """Finds a parent with the specified tag"""
+    while node:
+        node = node.parent
+        if node is None:
+            break
+        if node.tag == node_tag:
+            return node
+    return node
+
+
+def chomp(text: str):
     """
     If the text in an inline tag like b, a, or em contains a leading or trailing
     space, strip the string and return a space as suffix of prefix, if needed.
@@ -92,7 +103,7 @@ def chomp(text):
     return (prefix, suffix, text)
 
 
-def abstract_inline_conversion(markup_fn):
+def abstract_inline_conversion(markup_fn: Callable):
     """
     This abstracts all simple inline tags like b, em, del, ...
     Returns a function that wraps the chomped text in a pair of the string
@@ -117,17 +128,12 @@ def abstract_inline_conversion(markup_fn):
     return implementation
 
 
-def _todict(obj):
+def _todict(obj:Any):
     return dict((k, getattr(obj, k)) for k in dir(obj) if not k.startswith("_"))
 
 
-def should_remove_whitespace_inside(el):
-    """Return to remove whitespace immediately inside a block-level element."""
-    if not el or not el.name:
-        return False
-    if re_html_heading.match(el.name) is not None:
-        return True
-    return el.name in (
+WHITESPACE_ABLE = set(
+    [
         "p",
         "blockquote",
         "article",
@@ -146,27 +152,49 @@ def should_remove_whitespace_inside(el):
         "tr",
         "td",
         "th",
+    ]
+)
+
+
+def should_remove_whitespace_inside(el: LexborNode | None):
+    """Return to remove whitespace immediately inside a block-level element."""
+    if not el or not el.tag:
+        return False
+    if re_html_heading.match(el.tag) is not None:
+        return True
+    return el.tag in WHITESPACE_ABLE
+
+
+def should_remove_whitespace_outside(el: LexborNode | None):
+    """Return to remove whitespace immediately outside a block-level element."""
+    return should_remove_whitespace_inside(el) or (el and el.tag == "pre")
+
+
+def is_tag(el: LexborNode):
+    """Returns True if the lexbor node is a tag"""
+    return (
+        True
+        if el.tag_id not in [None, "-text", "-document", "-comment", "-doctype"]
+        else False
     )
 
 
-def should_remove_whitespace_outside(el):
-    """Return to remove whitespace immediately outside a block-level element."""
-    return should_remove_whitespace_inside(el) or (el and el.name == "pre")
-
-
-def _is_block_content_element(el):
+def _is_block_content_element(el: LexborNode | None):
     """
     In a block context, returns:
 
     - True for content elements (tags and non-whitespace text)
     - False for non-content elements (whitespace text, comments, doctypes)
     """
-    if isinstance(el, Tag):
+    if not el:
+        return False
+    if is_tag(el):
         return True
-    elif isinstance(el, (Comment, Doctype)):
+    elif el.tag == "-comment":
         return False  # (subclasses of NavigableString, must test first)
-    elif isinstance(el, NavigableString):
-        return el.strip() != ""
+    elif el.tag == "-text":
+        text = el.text_content if el.text_content else ""
+        return text.strip() != ""
     else:
         return False
 
@@ -189,10 +217,9 @@ def _next_block_content_sibling(el):
     return None
 
 
-class MarkdownConverter(object):
+class MarkdownConverter:
     class DefaultOptions:
         autolinks = True
-        bs4_options = "html.parser"
         bullets = "*+-"  # An iterable of bullet types.
         code_language = ""
         code_language_callback = None
@@ -235,20 +262,26 @@ class MarkdownConverter(object):
         # Initialize the conversion function cache
         self.convert_fn_cache = {}
 
-    def convert(self, html):
-        soup = BeautifulSoup(html, **self.options["bs4_options"])
+    def convert(self, html: str | bytes) -> str | None:
+        soup = LexborHTMLParser(html)
         return self.convert_soup(soup)
 
-    def convert_soup(self, soup):
-        return self.process_tag(soup, parent_tags=set())
+    def convert_soup(self, soup: LexborHTMLParser | LexborNode) -> str | None:
+        if isinstance(soup, LexborHTMLParser) and soup.root:
+            return self.process_tag(soup.root, parent_tags=set())
+        elif isinstance(soup, LexborNode):
+            return self.process_tag(soup, parent_tags=set())
+        raise NotImplementedError(
+            f"Unexpected type: {type(soup)} passed to convert_soup()."
+        )
 
-    def process_element(self, node, parent_tags=None):
-        if isinstance(node, NavigableString):
+    def process_element(self, node: LexborNode, parent_tags=None):
+        if node.tag and node.tag == "-text":
             return self.process_text(node, parent_tags=parent_tags)
         else:
             return self.process_tag(node, parent_tags=parent_tags)
 
-    def process_tag(self, node, parent_tags=None):
+    def process_tag(self, node: LexborNode, parent_tags=None):
         # For the top-level element, initialize the parent context with an empty set.
         if parent_tags is None:
             parent_tags = set()
@@ -257,26 +290,24 @@ class MarkdownConverter(object):
         # adjacent to the inner/outer boundaries of block elements.
         should_remove_inside = should_remove_whitespace_inside(node)
 
-        def _can_ignore(el):
-            if isinstance(el, Tag):
+        def _can_ignore(el: LexborNode):
+            if is_tag(el):
                 # Tags are always processed.
                 return False
-            elif isinstance(el, (Comment, Doctype)):
+            elif el.tag in ["-comment", "-doctype"]:
                 # Comment and Doctype elements are always ignored.
                 # (subclasses of NavigableString, must test first)
                 return True
-            elif isinstance(el, NavigableString):
-                if six.text_type(el).strip() != "":
+            elif el.tag == "-text":
+                if el.text_content and el.text_content.strip():
                     # Non-whitespace text nodes are always processed.
                     return False
-                elif should_remove_inside and (
-                    not el.previous_sibling or not el.next_sibling
-                ):
+                elif should_remove_inside and (not el.prev or not el.next):
                     # Inside block elements (excluding <pre>), ignore adjacent whitespace elements.
                     return True
                 elif should_remove_whitespace_outside(
-                    el.previous_sibling
-                ) or should_remove_whitespace_outside(el.next_sibling):
+                    el.prev
+                ) or should_remove_whitespace_outside(el.next):
                     # Outside block elements (including <pre>), ignore adjacent whitespace elements.
                     return True
                 else:
@@ -286,22 +317,26 @@ class MarkdownConverter(object):
             else:
                 raise ValueError("Unexpected element type: %s" % type(el))
 
-        children_to_convert = [el for el in node.children if not _can_ignore(el)]
+        children_to_convert = [
+            el
+            for el in node.iter(include_text=True)
+            if not _can_ignore(el) and el != node
+        ]
 
         # Create a copy of this tag's parent context, then update it to include this tag
         # to propagate down into the children.
         parent_tags_for_children = set(parent_tags)
-        parent_tags_for_children.add(node.name)
+        parent_tags_for_children.add(node.tag)
 
         # if this tag is a heading or table cell, add an '_inline' parent pseudo-tag
         if (
-            re_html_heading.match(node.name) is not None  # headings
-            or node.name in {"td", "th"}  # table cells
+            (node.tag and re_html_heading.match(node.tag) is not None)  # headings
+            or node.tag in {"td", "th"}  # table cells
         ):
             parent_tags_for_children.add("_inline")
 
         # if this tag is a preformatted element, add a '_noformat' parent pseudo-tag
-        if node.name in {"pre", "code", "kbd", "samp"}:
+        if node.tag in {"pre", "code", "kbd", "samp"}:
             parent_tags_for_children.add("_noformat")
 
         # Convert the children elements into a list of result strings.
@@ -314,7 +349,7 @@ class MarkdownConverter(object):
         child_strings = [s for s in child_strings if s]
 
         # Collapse newlines at child element boundaries, if needed.
-        if node.name == "pre" or node.find_parent("pre"):
+        if node.tag == "pre" or find_parent(node, "pre"):
             # Inside <pre> blocks, do not collapse newlines.
             pass
         else:
