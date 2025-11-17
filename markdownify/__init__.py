@@ -330,7 +330,7 @@ class MarkdownConverter:
 
         # if this tag is a heading or table cell, add an '_inline' parent pseudo-tag
         if (
-            (node_tag and is_header_tag(node_tag) is not None)  # headings
+            (node_tag and is_header_tag(node_tag))  # headings
             or node_tag in {"td", "th"}  # table cells
         ):
             parent_tags_for_children.add("_inline")
@@ -464,8 +464,8 @@ class MarkdownConverter:
             return convert_fn
 
         # If tag is any heading, handle with convert_hN() function
-        match = is_header_tag(tag_name)
-        if match:
+        is_header = is_header_tag(tag_name)
+        if is_header:
             n = int(tag_name[1:])  # get value of N from <hN>
             return lambda el, text, parent_tags: self.convert_hN(
                 n, el, text, parent_tags
