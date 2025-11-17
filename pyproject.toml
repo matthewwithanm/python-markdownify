@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "markdownify"
-version = "1.2.2"
+version = "2.0.0"
 authors = [{name = "Matthew Tretter", email = "m@tthewwithanm.com"}]
 description = "Convert HTML to markdown."
 readme = "README.rst"
@@ -23,8 +23,7 @@ classifiers = [
     "Topic :: Utilities",
 ]
 dependencies = [
-    "beautifulsoup4>=4.9,<5",
-    "six>=1.15,<2"
+    "selectolax>0.4"
 ]
 
 [project.urls]
