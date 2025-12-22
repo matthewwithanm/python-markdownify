@@ -84,6 +84,12 @@ strong_em_symbol
   *emphasized* texts. Either of these symbols can be chosen by the options
   ``ASTERISK`` (default) or ``UNDERSCORE`` respectively.
 
+strong_symbol
+  Like ``strong_em_symbol``, but only affects **strong** texts. Allows setting
+  a different symbol from ``em``. Can be chosen by the options ``ASTERISK``
+  or ``UNDERSCORE`` respectively, or ``None`` (default) to use
+  ``strong_em_symbol`` for both strong and emphasized texts.
+
 sub_symbol, sup_symbol
   Define the chars that surround ``<sub>`` and ``<sup>`` text. Defaults to an
   empty string, because this is non-standard behavior. Could be something like

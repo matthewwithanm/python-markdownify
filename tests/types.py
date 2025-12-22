@@ -27,6 +27,7 @@ MarkdownConverter(
     strip_document=STRIP,
     strip_pre=STRIP,
     strong_em_symbol=ASTERISK,
+    strong_symbol=ASTERISK,
     sub_symbol='',
     sup_symbol='',
     table_infer_header=False,
@@ -50,6 +51,7 @@ MarkdownConverter(
     wrap=True,
     wrap_width=80,
     strong_em_symbol=UNDERSCORE,
+    strong_symbol=UNDERSCORE,
     code_language='python',
     code_language_callback=None
 ).convert("")

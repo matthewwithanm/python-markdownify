@@ -338,6 +338,7 @@ def test_strong_em_symbol():
     assert md('<b>Hello</b>', strong_em_symbol=UNDERSCORE) == '__Hello__'
     assert md('<em>Hello</em>', strong_em_symbol=UNDERSCORE) == '_Hello_'
     assert md('<i>Hello</i>', strong_em_symbol=UNDERSCORE) == '_Hello_'
+    assert md('<b>He</b><em>llo</em>', strong_em_symbol=UNDERSCORE, strong_symbol=ASTERISK) == '**He**_llo_'
 
 
 def test_sub():
