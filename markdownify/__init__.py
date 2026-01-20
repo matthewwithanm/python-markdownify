@@ -85,7 +85,14 @@ def chomp(text):
     space, strip the string and return a space as suffix of prefix, if needed.
     This function is used to prevent conversions like
         <b> foo</b> => ** foo**
+
+    If the text is whitespace-only, preserve it as a single space instead of
+    returning an empty string (fixes issue #155).
     """
+    # Handle whitespace-only text: preserve as single space (fixes #155)
+    if text and not text.strip():
+        return ('', '', ' ')
+
     prefix = ' ' if text and text[0] == ' ' else ''
     suffix = ' ' if text and text[-1] == ' ' else ''
     text = text.strip()
@@ -111,6 +118,10 @@ def abstract_inline_conversion(markup_fn):
         prefix, suffix, text = chomp(text)
         if not text:
             return ''
+        # If text is whitespace-only, return just the whitespace without markup
+        # This preserves spaces from tags like <strong> </strong> (fixes #155)
+        if text.isspace():
+            return text
         return '%s%s%s%s%s' % (prefix, markup_prefix, text, markup_suffix, suffix)
     return implementation
 

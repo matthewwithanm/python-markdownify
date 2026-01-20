@@ -3,9 +3,11 @@ from .utils import md
 
 def test_chomp():
     assert md(' <b></b> ') == '  '
-    assert md(' <b> </b> ') == '  '
-    assert md(' <b>  </b> ') == '  '
-    assert md(' <b>   </b> ') == '  '
+    # With fix for issue #155, whitespace-only content is preserved as a single space
+    # so ' <b> </b> ' becomes ' ' (before) + ' ' (preserved) + ' ' (after) = '   '
+    assert md(' <b> </b> ') == '   '
+    assert md(' <b>  </b> ') == '   '
+    assert md(' <b>   </b> ') == '   '
     assert md(' <b>s </b> ') == ' **s**  '
     assert md(' <b> s</b> ') == '  **s** '
     assert md(' <b> s </b> ') == '  **s**  '
