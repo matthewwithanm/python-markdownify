@@ -374,3 +374,35 @@ def test_spaces():
     assert md(' <ol> <li> x </li> <li> y </li> </ol> ') == '\n\n1. x\n2. y\n'
     assert md(' <ul> <li> x </li> <li> y </li> </ol> ') == '\n\n* x\n* y\n'
     assert md('test <pre> foo </pre> bar') == 'test\n\n```\n foo\n```\n\nbar'
+
+
+def test_whitespace_only_inline_tags():
+    """
+    Test that whitespace-only inline tags preserve the whitespace.
+    Fixes issue #155: https://github.com/matthewwithanm/python-markdownify/issues/155
+
+    When DOCX files have formatting where a space is in its own formatting run
+    (e.g., "further" [normal] + " " [bold] + "reference" [normal]), the HTML
+    produced is: further<strong> </strong>reference
+
+    Previously, this would be converted to "furtherreference" (losing the space).
+    After the fix, it should be "further reference" (space preserved).
+    """
+    # Whitespace-only strong/b tags should preserve the space
+    assert md('further<strong> </strong>reference') == 'further reference'
+    assert md('word1<b> </b>word2') == 'word1 word2'
+
+    # Whitespace-only em/i tags should preserve the space
+    assert md('hello<em> </em>world') == 'hello world'
+    assert md('foo<i> </i>bar') == 'foo bar'
+
+    # Multiple whitespace characters should collapse to single space
+    assert md('a<strong>  </strong>b') == 'a b'
+    assert md('a<em>   </em>b') == 'a b'
+
+    # Mixed formatting with whitespace boundary (real-world DOCX pattern)
+    assert md('The <strong>TRUST,</strong> but without further<strong> </strong>reference') == 'The **TRUST,** but without further reference'
+
+    # Tabs and other whitespace should also be preserved as single space
+    assert md('a<b>\t</b>b') == 'a b'
+    assert md('a<i>\n</i>b') == 'a b'
