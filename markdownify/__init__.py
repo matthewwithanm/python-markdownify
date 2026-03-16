@@ -186,6 +186,7 @@ class MarkdownConverter(object):
         escape_underscores = True
         escape_misc = False
         heading_style = UNDERLINED
+        inline_br = False
         keep_inline_images_in = []
         newline_style = SPACES
         strip = None
@@ -475,7 +476,12 @@ class MarkdownConverter(object):
 
     def convert_br(self, el, text, parent_tags):
         if '_inline' in parent_tags:
-            return ' '
+            # Some Markdown renderers allow <br> tags for line breaks inside inline elements.
+            # We can choose to keep them with inline_br.
+            if self.options['inline_br']:
+                return '<br>'
+            else:
+                return ' '
 
         if self.options['newline_style'].lower() == BACKSLASH:
             return '\\\n'

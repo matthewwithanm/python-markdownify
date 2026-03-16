@@ -46,6 +46,9 @@ def main(argv=sys.argv[1:]):
                         choices=(SPACES, BACKSLASH),
                         help="Defines the style of <br> conversions: two spaces "
                         "or backslash at the and of the line thet should break.")
+    parser.add_argument('--inline-br', action='store_true',
+                        help="A boolean indicating whether <br> tags should be preserved "
+                        "inside inline elements. If false, spaces will be used instead.")
     parser.add_argument('--code-language', default='',
                         help="Defines the language that should be assumed for all "
                         "'<pre>' sections.")

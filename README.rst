@@ -100,6 +100,12 @@ newline_style
   newline). While the latter convention is non-standard, it is commonly
   preferred and supported by a lot of interpreters.
 
+inline_br
+  By default, linebreaks with ``<br>`` inside inline elements (especially table
+  cells) are replaced by spaces. This can be confusing in some contexts.
+  Setting this option replaces it by plain ``<br>`` tags, allowing actual line
+  breaks in Markdown renderers that support it.
+
 code_language
   Defines the language that should be assumed for all ``<pre>`` sections.
   Useful, if all code on a page is in the same programming language and
