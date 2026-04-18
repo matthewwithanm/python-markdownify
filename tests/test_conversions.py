@@ -374,3 +374,10 @@ def test_spaces():
     assert md(' <ol> <li> x </li> <li> y </li> </ol> ') == '\n\n1. x\n2. y\n'
     assert md(' <ul> <li> x </li> <li> y </li> </ol> ') == '\n\n* x\n* y\n'
     assert md('test <pre> foo </pre> bar') == 'test\n\n```\n foo\n```\n\nbar'
+
+
+def test_a_with_base_url():
+    assert md('<a href="/path">Link</a>', base_url='https://example.com') == '[Link](https://example.com/path)'
+    assert md('<a href="../other">Link</a>', base_url='https://example.com/page/') == '[Link](https://example.com/other)'
+    assert md('<a href="https://other.com">Link</a>', base_url='https://example.com') == '[Link](https://other.com)'
+    assert md('<a href="/path">Link</a>') == '[Link](/path)'

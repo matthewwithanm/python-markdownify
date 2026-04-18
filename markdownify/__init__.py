@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup, Comment, Doctype, NavigableString, Tag
 from textwrap import fill
 import re
 import six
+import urllib.parse
 
 
 # General-purpose regex patterns
@@ -176,6 +177,7 @@ def _next_block_content_sibling(el):
 class MarkdownConverter(object):
     class DefaultOptions:
         autolinks = True
+        base_url = ''
         bs4_options = 'html.parser'
         bullets = '*+-'  # An iterable of bullet types.
         code_language = ''
@@ -435,6 +437,20 @@ class MarkdownConverter(object):
         text = (text or '').rstrip()
         return '\n\n%s\n%s\n\n' % (text, pad_char * len(text)) if text else ''
 
+    def _make_absolute(self, url):
+        """Convert a URL to absolute using base_url if it's not already absolute."""
+        base_url = self.options['base_url']
+        
+        # Check if URLs to join actually exist
+        if not url or not base_url:
+            return url
+
+        # Check if URL is already absolute
+        if urllib.parse.urlparse(url).netloc:
+            return url
+
+        return urllib.parse.urljoin(base_url, url)
+
     def convert_a(self, el, text, parent_tags):
         if '_noformat' in parent_tags:
             return text
@@ -453,6 +469,7 @@ class MarkdownConverter(object):
         if self.options['default_title'] and not title:
             title = href
         title_part = ' "%s"' % title.replace('"', r'\"') if title else ''
+        href = self._make_absolute(href)
         return '%s[%s](%s%s)%s' % (prefix, text, href, title_part, suffix) if href else text
 
     convert_b = abstract_inline_conversion(lambda self: 2 * self.options['strong_em_symbol'])
@@ -588,6 +605,7 @@ class MarkdownConverter(object):
                 and el.parent.name not in self.options['keep_inline_images_in']):
             return alt
 
+        src = self._make_absolute(src)
         return '![%s](%s%s)' % (alt, src, title_part)
 
     def convert_video(self, el, text, parent_tags):
@@ -600,6 +618,8 @@ class MarkdownConverter(object):
             if sources:
                 src = sources[0].attrs.get('src', None) or ''
         poster = el.attrs.get('poster', None) or ''
+        src = self._make_absolute(src)
+        poster = self._make_absolute(poster)
         if src and poster:
             return '[![%s](%s)](%s)' % (text, poster, src)
         if src:
