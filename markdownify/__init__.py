@@ -92,6 +92,30 @@ def chomp(text):
     return (prefix, suffix, text)
 
 
+def escape_link_destination(url):
+    """
+    Make a URL safe to place inside Markdown ``(...)`` link/image syntax.
+
+    Destinations that contain whitespace or parentheses break the inline link
+    syntax, so wrap them in angle brackets -- CommonMark allows spaces and
+    parentheses inside ``<...>`` -- and backslash-escape any ``<``/``>``.
+    """
+    if url and re.search(r'[\s()<>]', url):
+        escaped = url.replace('\\', r'\\').replace('<', r'\<').replace('>', r'\>')
+        return '<%s>' % escaped
+    return url
+
+
+def escape_link_text(text):
+    """
+    Escape characters that would break out of Markdown ``[...]`` link/image
+    label syntax. Used for image ``alt`` text taken verbatim from HTML, which
+    would otherwise allow the label to be closed early (e.g. an ``alt`` of
+    ``](http://attacker)`` could inject an attacker-controlled destination).
+    """
+    return text.replace('\\', r'\\').replace('[', r'\[').replace(']', r'\]')
+
+
 def abstract_inline_conversion(markup_fn):
     """
     This abstracts all simple inline tags like b, em, del, ...
@@ -453,7 +477,7 @@ class MarkdownConverter(object):
         if self.options['default_title'] and not title:
             title = href
         title_part = ' "%s"' % title.replace('"', r'\"') if title else ''
-        return '%s[%s](%s%s)%s' % (prefix, text, href, title_part, suffix) if href else text
+        return '%s[%s](%s%s)%s' % (prefix, text, escape_link_destination(href), title_part, suffix) if href else text
 
     convert_b = abstract_inline_conversion(lambda self: 2 * self.options['strong_em_symbol'])
 
@@ -588,7 +612,7 @@ class MarkdownConverter(object):
                 and el.parent.name not in self.options['keep_inline_images_in']):
             return alt
 
-        return '![%s](%s%s)' % (alt, src, title_part)
+        return '![%s](%s%s)' % (escape_link_text(alt), escape_link_destination(src), title_part)
 
     def convert_video(self, el, text, parent_tags):
         if ('_inline' in parent_tags
@@ -601,11 +625,12 @@ class MarkdownConverter(object):
                 src = sources[0].attrs.get('src', None) or ''
         poster = el.attrs.get('poster', None) or ''
         if src and poster:
-            return '[![%s](%s)](%s)' % (text, poster, src)
+            return '[![%s](%s)](%s)' % (
+                text, escape_link_destination(poster), escape_link_destination(src))
         if src:
-            return '[%s](%s)' % (text, src)
+            return '[%s](%s)' % (text, escape_link_destination(src))
         if poster:
-            return '![%s](%s)' % (text, poster)
+            return '![%s](%s)' % (text, escape_link_destination(poster))
         return text
 
     def convert_list(self, el, text, parent_tags):

@@ -257,6 +257,32 @@ def test_video():
     assert md('<video>text</video>') == 'text'
 
 
+def test_a_escapes_destination():
+    # See #261: a destination containing spaces or parentheses must be wrapped
+    # in angle brackets so it is not truncated by the inline link syntax.
+    assert md('<a href="/a)b">click</a>') == '[click](</a)b>)'
+    assert md('<a href="/a b">click</a>') == '[click](</a b>)'
+    # Unaffected destinations are left untouched.
+    assert md('<a href="/normal">click</a>') == '[click](/normal)'
+
+
+def test_img_escapes_link_syntax():
+    # See #261: alt text is taken verbatim from HTML and must not be able to
+    # break out of the [...] label (which could otherwise inject a destination).
+    assert md('<img src="/a" alt="]">') == '![\\]](/a)'
+    assert md('<img src="/safe" alt="](http://attacker)">') == '![\\](http://attacker)](/safe)'
+    # A src containing spaces or parentheses is wrapped in angle brackets.
+    assert md('<img src="/a b" alt="x">') == '![x](</a b>)'
+    # Unaffected images are left untouched.
+    assert md('<img src="/normal.png" alt="cat">') == '![cat](/normal.png)'
+
+
+def test_video_escapes_destination():
+    # See #261: video src/poster destinations are escaped like other links.
+    assert md('<video src="/v )x">text</video>') == '[text](</v )x>)'
+    assert md('<video poster="/p )x">text</video>') == '![text](</p )x>)'
+
+
 def test_kbd():
     inline_tests('kbd', '`')
 
