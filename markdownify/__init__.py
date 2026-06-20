@@ -638,7 +638,17 @@ class MarkdownConverter(object):
                 start = int(parent.get("start"))
             else:
                 start = 1
-            bullet = '%s.' % (start + len(el.find_previous_siblings('li')))
+            # An explicit `value` on an <li> sets that item's ordinal and the
+            # following items continue counting from it (per the HTML spec).
+            # Walk from this item backwards (nearest first) for the closest
+            # numeric `value`; the offset is how many items follow it.
+            number = start + len(el.find_previous_siblings('li'))
+            for offset, li in enumerate([el] + el.find_previous_siblings('li')):
+                value = li.get("value")
+                if value and str(value).isnumeric():
+                    number = int(value) + offset
+                    break
+            bullet = '%s.' % number
         else:
             depth = -1
             while el:
