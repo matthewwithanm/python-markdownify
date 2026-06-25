@@ -81,6 +81,9 @@ def test_br():
     assert md('a<br />b<br />c', newline_style=BACKSLASH) == 'a\\\nb\\\nc'
     assert md('<h1>foo<br />bar</h1>', heading_style=ATX) == '\n\n# foo bar\n\n'
     assert md('<td>foo<br />bar</td>', heading_style=ATX) == ' foo bar |'
+    # html.parser may nest text inside <br> when mixing <br> and <br />; text must not be lost
+    assert md('a<br>b<br />c') == 'a  \nb  \nc'
+    assert md('a<br>b<br />c', newline_style=BACKSLASH) == 'a\\\nb\\\nc'
 
 
 def test_code():
