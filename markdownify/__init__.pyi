@@ -32,13 +32,13 @@ def markdownify(
     newline_style: str = ...,
     strip: Union[list[str], None] = ...,
     strip_document: Union[str, None] = ...,
-    strip_pre: str = ...,
+    strip_pre: Union[str, None] = ...,
     strong_em_symbol: str = ...,
     sub_symbol: str = ...,
     sup_symbol: str = ...,
     table_infer_header: bool = ...,
     wrap: bool = ...,
-    wrap_width: int = ...,
+    wrap_width: Union[int, None] = ...,
 ) -> str: ...
 
 
@@ -60,13 +60,13 @@ class MarkdownConverter:
         newline_style: str = ...,
         strip: Union[list[str], None] = ...,
         strip_document: Union[str, None] = ...,
-        strip_pre: str = ...,
+        strip_pre: Union[str, None] = ...,
         strong_em_symbol: str = ...,
         sub_symbol: str = ...,
         sup_symbol: str = ...,
         table_infer_header: bool = ...,
         wrap: bool = ...,
-        wrap_width: int = ...,
+        wrap_width: Union[int, None] = ...,
     ) -> None:
         ...
   
