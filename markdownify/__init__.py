@@ -475,12 +475,12 @@ class MarkdownConverter(object):
 
     def convert_br(self, el, text, parent_tags):
         if '_inline' in parent_tags:
-            return ' '
+            return text + ' ' if text else ' '
 
         if self.options['newline_style'].lower() == BACKSLASH:
-            return '\\\n'
+            return '\\\n' + text
         else:
-            return '  \n'
+            return '  \n' + text
 
     def convert_code(self, el, text, parent_tags):
         if '_noformat' in parent_tags:
