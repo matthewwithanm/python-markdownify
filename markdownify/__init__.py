@@ -362,16 +362,28 @@ class MarkdownConverter(object):
         # remove leading whitespace at the start or just after a
         # block-level element; remove traliing whitespace at the end
         # or just before a block-level element.
-        if (should_remove_whitespace_outside(el.previous_sibling)
+        if (self._removes_adjacent_whitespace(el.previous_sibling)
                 or (should_remove_whitespace_inside(el.parent)
                     and not el.previous_sibling)):
             text = text.lstrip(' \t\r\n')
-        if (should_remove_whitespace_outside(el.next_sibling)
+        if (self._removes_adjacent_whitespace(el.next_sibling)
                 or (should_remove_whitespace_inside(el.parent)
                     and not el.next_sibling)):
             text = text.rstrip()
 
         return text
+
+    def _removes_adjacent_whitespace(self, el):
+        """Return whether a sibling element absorbs the whitespace next to it.
+
+        Block-level elements normally do, but a block-level element that is
+        stripped (or otherwise not converted) is emitted inline, so the
+        whitespace that separates it from its neighbours must be preserved
+        instead of being collapsed away (see #249).
+        """
+        if not should_remove_whitespace_outside(el):
+            return False
+        return self.should_convert_tag(el.name.lower())
 
     def get_conv_fn_cached(self, tag_name):
         """Given a tag name, return the conversion function using the cache."""

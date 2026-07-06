@@ -16,6 +16,14 @@ def test_do_not_strip():
     assert text == '[Some Text](https://github.com/matthewwithanm)'
 
 
+def test_strip_block_element_preserves_surrounding_whitespace():
+    # A stripped block-level element is rendered inline, so the whitespace
+    # separating it from its neighbours must be preserved (see #249).
+    html = '<span>Ignored <div>Still ignored</div> tag.</span>'
+    assert md(html, strip=['div']) == 'Ignored Still ignored tag.'
+    assert md(html, convert=['span']) == 'Ignored Still ignored tag.'
+
+
 def test_convert():
     text = md('<a href="https://github.com/matthewwithanm">Some Text</a>', convert=['a'])
     assert text == '[Some Text](https://github.com/matthewwithanm)'
