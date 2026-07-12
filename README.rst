@@ -64,6 +64,11 @@ autolinks
   A boolean indicating whether the "automatic link" style should be used when
   a ``a`` tag's contents match its href. Defaults to ``True``.
 
+base_url
+  A base URL to use for resolving relative URLs. When specified, relative URLs
+  in the HTML will be converted to absolute URLs using this base. Defaults to
+  no base URL.
+
 default_title
   A boolean to enable setting the title of a link to its href, if no title is
   given. Defaults to ``False``.
