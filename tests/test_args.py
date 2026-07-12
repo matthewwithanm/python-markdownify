@@ -38,6 +38,8 @@ def test_strip_pre():
     assert markdownify("<pre>  \n  \n  Hello  \n  \n  </pre>") == "```\n  Hello\n```"
     assert markdownify("<pre>  \n  \n  Hello  \n  \n  </pre>", strip_pre=STRIP) == "```\n  Hello\n```"
     assert markdownify("<pre>  \n  \n  Hello  \n  \n  </pre>", strip_pre=STRIP_ONE) == "```\n  \n  Hello  \n  \n```"
+    assert markdownify("<pre>\n\nHello\n\n</pre>", strip_pre=STRIP_ONE) == "```\n\nHello\n\n```"
+    assert markdownify("<pre>\n\nHello\n\n\n</pre>", strip_pre=STRIP_ONE) == "```\n\nHello\n\n\n```"
     assert markdownify("<pre>  \n  \n  Hello  \n  \n  </pre>", strip_pre=None) == "```\n  \n  \n  Hello  \n  \n  \n```"
 
 

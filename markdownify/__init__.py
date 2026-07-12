@@ -12,7 +12,7 @@ re_all_whitespace = re.compile(r'[\t \r\n]+')
 re_newline_whitespace = re.compile(r'[\t \r\n]*[\r\n][\t \r\n]*')
 re_html_heading = re.compile(r'h(\d+)')
 re_pre_lstrip1 = re.compile(r'^ *\n')
-re_pre_rstrip1 = re.compile(r'\n *$')
+re_pre_rstrip1 = re.compile(r'\n *\Z')
 re_pre_lstrip = re.compile(r'^[ \n]*\n')
 re_pre_rstrip = re.compile(r'[ \n]*$')
 
