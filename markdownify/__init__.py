@@ -21,7 +21,8 @@ re_make_convert_fn_name = re.compile(r'[\[\]:-]')
 
 # Extract (leading_nl, content, trailing_nl) from a string
 # (functionally equivalent to r'^(\n*)(.*?)(\n*)$', but greedy is faster than reluctant here)
-re_extract_newlines = re.compile(r'^(\n*)((?:.*[^\n])?)(\n*)$', flags=re.DOTALL)
+re_extract_newlines = re.compile(
+    r'^(\n*)((?:.*[^\n])?)(\n*)$', flags=re.DOTALL)
 
 # Escape miscellaneous special Markdown characters
 re_escape_misc_chars = re.compile(r'([]\\&<`[>~=+|])')
@@ -100,6 +101,7 @@ def abstract_inline_conversion(markup_fn):
     the text if it looks like an HTML tag. markup_fn is necessary to allow for
     references to self.strong_em_symbol etc.
     """
+
     def implementation(self, el, text, parent_tags):
         markup_prefix = markup_fn(self)
         if markup_prefix.startswith('<') and markup_prefix.endswith('>'):
@@ -213,7 +215,8 @@ class MarkdownConverter(object):
 
         # If a string or list is passed to bs4_options, assume it is a 'features' specification
         if not isinstance(self.options['bs4_options'], dict):
-            self.options['bs4_options'] = {'features': self.options['bs4_options']}
+            self.options['bs4_options'] = {
+                'features': self.options['bs4_options']}
 
         # Initialize the conversion function cache
         self.convert_fn_cache = {}
@@ -265,7 +268,8 @@ class MarkdownConverter(object):
             else:
                 raise ValueError('Unexpected element type: %s' % type(el))
 
-        children_to_convert = [el for el in node.children if not _can_ignore(el)]
+        children_to_convert = [
+            el for el in node.children if not _can_ignore(el)]
 
         # Create a copy of this tag's parent context, then update it to include this tag
         # to propagate down into the children.
@@ -301,17 +305,21 @@ class MarkdownConverter(object):
             updated_child_strings = ['']  # so the first lookback works
             for child_string in child_strings:
                 # Separate the leading/trailing newlines from the content.
-                leading_nl, content, trailing_nl = re_extract_newlines.match(child_string).groups()
+                leading_nl, content, trailing_nl = re_extract_newlines.match(
+                    child_string).groups()
 
                 # If the last child had trailing newlines and this child has leading newlines,
                 # use the larger newline count, limited to 2.
                 if updated_child_strings[-1] and leading_nl:
-                    prev_trailing_nl = updated_child_strings.pop()  # will be replaced by the collapsed value
-                    num_newlines = min(2, max(len(prev_trailing_nl), len(leading_nl)))
+                    # will be replaced by the collapsed value
+                    prev_trailing_nl = updated_child_strings.pop()
+                    num_newlines = min(
+                        2, max(len(prev_trailing_nl), len(leading_nl)))
                     leading_nl = '\n' * num_newlines
 
                 # Add the results to the updated child string list.
-                updated_child_strings.extend([leading_nl, content, trailing_nl])
+                updated_child_strings.extend(
+                    [leading_nl, content, trailing_nl])
 
             child_strings = updated_child_strings
 
@@ -332,11 +340,13 @@ class MarkdownConverter(object):
         elif self.options['strip_document'] == RSTRIP:
             text = text.rstrip('\n')  # remove trailing separation newlines
         elif self.options['strip_document'] == STRIP:
-            text = text.strip('\n')  # remove leading and trailing separation newlines
+            # remove leading and trailing separation newlines
+            text = text.strip('\n')
         elif self.options['strip_document'] is None:
             pass  # leave leading and trailing separation newlines as-is
         else:
-            raise ValueError('Invalid value for strip_document: %s' % self.options['strip_document'])
+            raise ValueError('Invalid value for strip_document: %s' %
+                             self.options['strip_document'])
 
         return text
 
@@ -391,7 +401,8 @@ class MarkdownConverter(object):
             return None
 
         # Look for an explicitly defined conversion function by tag name first
-        convert_fn_name = "convert_%s" % re_make_convert_fn_name.sub("_", tag_name)
+        convert_fn_name = "convert_%s" % re_make_convert_fn_name.sub(
+            "_", tag_name)
         convert_fn = getattr(self, convert_fn_name, None)
         if convert_fn:
             return convert_fn
@@ -455,7 +466,8 @@ class MarkdownConverter(object):
         title_part = ' "%s"' % title.replace('"', r'\"') if title else ''
         return '%s[%s](%s%s)%s' % (prefix, text, href, title_part, suffix) if href else text
 
-    convert_b = abstract_inline_conversion(lambda self: 2 * self.options['strong_em_symbol'])
+    convert_b = abstract_inline_conversion(
+        lambda self: 2 * self.options['strong_em_symbol'])
 
     def convert_blockquote(self, el, text, parent_tags):
         # handle some early-exit scenarios
@@ -492,7 +504,8 @@ class MarkdownConverter(object):
 
         # Find the maximum number of consecutive backticks in the text, then
         # delimit the code span with one more backtick than that
-        max_backticks = max((len(match) for match in re.findall(re_backtick_runs, text)), default=0)
+        max_backticks = max(
+            (len(match) for match in re.findall(re_backtick_runs, text)), default=0)
         markup_delimiter = '`' * (max_backticks + 1)
 
         # If the maximum number of backticks is greater than zero, add a space
@@ -514,7 +527,8 @@ class MarkdownConverter(object):
 
     convert_section = convert_div
 
-    convert_em = abstract_inline_conversion(lambda self: self.options['strong_em_symbol'])
+    convert_em = abstract_inline_conversion(
+        lambda self: self.options['strong_em_symbol'])
 
     convert_kbd = convert_code
 
@@ -691,7 +705,8 @@ class MarkdownConverter(object):
         code_language = self.options['code_language']
 
         if self.options['code_language_callback']:
-            code_language = self.options['code_language_callback'](el) or code_language
+            code_language = self.options['code_language_callback'](
+                el) or code_language
 
         if self.options['strip_pre'] == STRIP:
             text = strip_pre(text)  # remove all leading/trailing newlines
@@ -700,7 +715,8 @@ class MarkdownConverter(object):
         elif self.options['strip_pre'] is None:
             pass  # leave leading and trailing newlines as-is
         else:
-            raise ValueError('Invalid value for strip_pre: %s' % self.options['strip_pre'])
+            raise ValueError('Invalid value for strip_pre: %s' %
+                             self.options['strip_pre'])
 
         return '\n\n```%s\n%s\n```\n\n' % (code_language, text)
 
@@ -719,9 +735,11 @@ class MarkdownConverter(object):
 
     convert_samp = convert_code
 
-    convert_sub = abstract_inline_conversion(lambda self: self.options['sub_symbol'])
+    convert_sub = abstract_inline_conversion(
+        lambda self: self.options['sub_symbol'])
 
-    convert_sup = abstract_inline_conversion(lambda self: self.options['sup_symbol'])
+    convert_sup = abstract_inline_conversion(
+        lambda self: self.options['sup_symbol'])
 
     def convert_table(self, el, text, parent_tags):
         return '\n\n' + text.strip() + '\n\n'
@@ -745,49 +763,183 @@ class MarkdownConverter(object):
         return ' ' + text.strip().replace("\n", " ") + ' |' * colspan
 
     def convert_tr(self, el, text, parent_tags):
+        table = el.find_parent('table')
+        if not table:
+            # No table context, use original logic
+            cells = el.find_all(['td', 'th'])
+            full_colspan = 0
+            for cell in cells:
+                if 'colspan' in cell.attrs and cell['colspan'].isdigit():
+                    full_colspan += max(1, min(1000, int(cell['colspan'])))
+                else:
+                    full_colspan += 1
+            is_first_row = el.find_previous_sibling() is None
+            is_headrow = (
+                all([cell.name == 'th' for cell in cells])
+                or (el.parent.name == 'thead' and len(el.parent.find_all('tr')) == 1)
+            )
+            is_head_row_missing = (
+                (is_first_row and not el.parent.name == 'tbody')
+                or (is_first_row and el.parent.name == 'tbody' and len(el.parent.parent.find_all(['thead'])) < 1)
+            )
+            overline = ''
+            underline = ''
+            if ((is_headrow or (is_head_row_missing and self.options['table_infer_header'])) and is_first_row):
+                underline += '| ' + \
+                    ' | '.join(['---'] * full_colspan) + ' |' + '\n'
+            elif ((is_head_row_missing and not self.options['table_infer_header']) or
+                  (is_first_row and (el.parent.name == 'table' or (el.parent.name == 'tbody' and not el.parent.find_previous_sibling())))):
+                overline += '| ' + \
+                    ' | '.join([''] * full_colspan) + ' |' + '\n'
+                overline += '| ' + \
+                    ' | '.join(['---'] * full_colspan) + ' |' + '\n'
+            return overline + '|' + text + '\n' + underline
+
+        # Check if table has any rowspan before using grid
+        has_rowspan = self._table_has_rowspan(table)
+        if not has_rowspan:
+            # Use original logic for tables without rowspan
+            cells = el.find_all(['td', 'th'])
+            full_colspan = 0
+            for cell in cells:
+                if 'colspan' in cell.attrs and cell['colspan'].isdigit():
+                    full_colspan += max(1, min(1000, int(cell['colspan'])))
+                else:
+                    full_colspan += 1
+            is_first_row = el.find_previous_sibling() is None
+            is_headrow = (
+                all([cell.name == 'th' for cell in cells])
+                or (el.parent.name == 'thead' and len(el.parent.find_all('tr')) == 1)
+            )
+            is_head_row_missing = (
+                (is_first_row and not el.parent.name == 'tbody')
+                or (is_first_row and el.parent.name == 'tbody' and len(el.parent.parent.find_all(['thead'])) < 1)
+            )
+
+            overline = ''
+            underline = ''
+            if ((is_headrow or (is_head_row_missing and self.options['table_infer_header'])) and is_first_row):
+                underline += '| ' + \
+                    ' | '.join(['---'] * full_colspan) + ' |' + '\n'
+            elif ((is_head_row_missing and not self.options['table_infer_header']) or
+                  (is_first_row and (el.parent.name == 'table' or (el.parent.name == 'tbody' and not el.parent.find_previous_sibling())))):
+                overline += '| ' + \
+                    ' | '.join([''] * full_colspan) + ' |' + '\n'
+                overline += '| ' + \
+                    ' | '.join(['---'] * full_colspan) + ' |' + '\n'
+
+            return overline + '|' + text + '\n' + underline
+
+        # For tables with rowspan, we need to add empty cells where needed
+        # Build table grid if not already done
+        if not hasattr(table, '_md_rowspan_cells') or table._md_rowspan_cells is None:
+            self._build_rowspan_cells(table)
+
+        # Get current row index
+        all_rows = table.find_all('tr')
+        current_row_idx = all_rows.index(el)
+
+        # Insert empty cells for rowspan at the beginning of the text
+        empty_cells = table._md_rowspan_cells[current_row_idx]
+        final_text = empty_cells + text
+
+        # Handle headers with correct column count
         cells = el.find_all(['td', 'th'])
+        original_cell_count = 0
+        for cell in cells:
+            if 'colspan' in cell.attrs and cell['colspan'].isdigit():
+                original_cell_count += max(1, min(1000, int(cell['colspan'])))
+            else:
+                original_cell_count += 1
+
+        # Add empty cells count
+        total_columns = original_cell_count + empty_cells.count(' |')
+
         is_first_row = el.find_previous_sibling() is None
         is_headrow = (
             all([cell.name == 'th' for cell in cells])
-            or (el.parent.name == 'thead'
-                # avoid multiple tr in thead
-                and len(el.parent.find_all('tr')) == 1)
+            or (el.parent.name == 'thead' and len(el.parent.find_all('tr')) == 1)
         )
         is_head_row_missing = (
             (is_first_row and not el.parent.name == 'tbody')
             or (is_first_row and el.parent.name == 'tbody' and len(el.parent.parent.find_all(['thead'])) < 1)
         )
+
         overline = ''
         underline = ''
-        full_colspan = 0
-        for cell in cells:
-            if 'colspan' in cell.attrs and cell['colspan'].isdigit():
-                full_colspan += max(1, min(1000, int(cell['colspan'])))
-            else:
-                full_colspan += 1
-        if ((is_headrow
-             or (is_head_row_missing
-                 and self.options['table_infer_header']))
-                and is_first_row):
-            # first row and:
-            # - is headline or
-            # - headline is missing and header inference is enabled
-            # print headline underline
-            underline += '| ' + ' | '.join(['---'] * full_colspan) + ' |' + '\n'
-        elif ((is_head_row_missing
-               and not self.options['table_infer_header'])
-              or (is_first_row
-                  and (el.parent.name == 'table'
-                       or (el.parent.name == 'tbody'
-                           and not el.parent.find_previous_sibling())))):
-            # headline is missing and header inference is disabled or:
-            # first row, not headline, and:
-            #  - the parent is table or
-            #  - the parent is tbody at the beginning of a table.
-            # print empty headline above this row
-            overline += '| ' + ' | '.join([''] * full_colspan) + ' |' + '\n'
-            overline += '| ' + ' | '.join(['---'] * full_colspan) + ' |' + '\n'
-        return overline + '|' + text + '\n' + underline
+        if ((is_headrow or (is_head_row_missing and self.options['table_infer_header'])) and is_first_row):
+            underline += '| ' + \
+                ' | '.join(['---'] * total_columns) + ' |' + '\n'
+        elif ((is_head_row_missing and not self.options['table_infer_header']) or
+              (is_first_row and (el.parent.name == 'table' or (el.parent.name == 'tbody' and not el.parent.find_previous_sibling())))):
+            overline += '| ' + ' | '.join([''] * total_columns) + ' |' + '\n'
+            overline += '| ' + \
+                ' | '.join(['---'] * total_columns) + ' |' + '\n'
+
+        return overline + '|' + final_text + '\n' + underline
+
+    def _build_rowspan_cells(self, table):
+        """Calculate which cells need to be added as empty for rowspan"""
+        all_rows = table.find_all('tr')
+
+        # Track which columns are occupied by rowspan from previous rows
+        occupied_columns = {}  # {row_idx: [list of column indices]}
+
+        table._md_rowspan_cells = []
+
+        for row_idx, row in enumerate(all_rows):
+            cells = row.find_all(['td', 'th'])
+            empty_cells_prefix = ''
+            col_pos = 0
+
+            # Count how many columns are occupied by rowspan from previous rows
+            occupied_for_this_row = occupied_columns.get(row_idx, [])
+            occupied_for_this_row.sort()
+
+            # Add empty cells for each occupied column at the beginning
+            for occupied_col in occupied_for_this_row:
+                if occupied_col == col_pos:
+                    empty_cells_prefix += '  |'
+                    col_pos += 1
+
+            table._md_rowspan_cells.append(empty_cells_prefix)
+
+            # Process current row cells to set up future rowspan occupancy
+            for cell in cells:
+                # Skip columns occupied by rowspan
+                while col_pos in occupied_for_this_row:
+                    col_pos += 1
+
+                # Get cell dimensions
+                colspan = 1
+                if 'colspan' in cell.attrs and cell['colspan'].isdigit():
+                    colspan = max(1, min(1000, int(cell['colspan'])))
+
+                rowspan = 1
+                if 'rowspan' in cell.attrs and cell['rowspan'].isdigit():
+                    rowspan = max(1, min(1000, int(cell['rowspan'])))
+
+                # Mark future rows as occupied if this cell has rowspan > 1
+                if rowspan > 1:
+                    for future_row in range(row_idx + 1, min(row_idx + rowspan, len(all_rows))):
+                        for span_col in range(col_pos, col_pos + colspan):
+                            if future_row not in occupied_columns:
+                                occupied_columns[future_row] = []
+                            occupied_columns[future_row].append(span_col)
+
+                # Move column position
+                col_pos += colspan
+
+    def _table_has_rowspan(self, table):
+        """Check if table has any rowspan attributes > 1"""
+        for cell in table.find_all(['td', 'th']):
+            if cell.get('rowspan'):
+                try:
+                    if int(cell.get('rowspan')) > 1:
+                        return True
+                except (ValueError, TypeError):
+                    pass
+        return False
 
 
 def markdownify(html, **options):
