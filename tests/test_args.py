@@ -2,8 +2,24 @@
 Test whitelisting/blacklisting of specific tags.
 
 """
-from markdownify import markdownify, LSTRIP, RSTRIP, STRIP, STRIP_ONE
+import pytest
+
+from markdownify import MarkdownConverter, markdownify, LSTRIP, RSTRIP, STRIP, STRIP_ONE
 from .utils import md
+
+
+@pytest.mark.parametrize("empty_bullets", ['', [], ()])
+def test_empty_bullets_rejected(empty_bullets):
+    # An empty bullets sequence has no bullet character to cycle through. It must
+    # be rejected at construction with a clear ValueError rather than raising an
+    # opaque ZeroDivisionError later, deep in list conversion.
+    with pytest.raises(ValueError, match="bullets must contain at least one"):
+        MarkdownConverter(bullets=empty_bullets)
+
+
+def test_non_empty_bullets_still_accepted():
+    assert md('<ul><li>a</li></ul>', bullets='-') == '\n\n- a\n'
+    assert md('<ul><li>a</li></ul>', bullets=['-']) == '\n\n- a\n'
 
 
 def test_strip():

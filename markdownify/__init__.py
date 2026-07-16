@@ -210,6 +210,11 @@ class MarkdownConverter(object):
         if self.options['strip'] is not None and self.options['convert'] is not None:
             raise ValueError('You may specify either tags to strip or tags to'
                              ' convert, but not both.')
+        if len(self.options['bullets']) == 0:
+            # convert_li cycles through bullets with `bullets[depth % len(bullets)]`,
+            # so an empty bullets sequence raises an opaque ZeroDivisionError deep in
+            # list conversion. Reject it up front with a clear message instead.
+            raise ValueError('bullets must contain at least one bullet character.')
 
         # If a string or list is passed to bs4_options, assume it is a 'features' specification
         if not isinstance(self.options['bs4_options'], dict):
