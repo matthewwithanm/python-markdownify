@@ -41,6 +41,11 @@ re_escape_misc_hashes = re.compile(r'(\s|^)(#{1,6}(?:\s|$))')
 # confused with a list item
 re_escape_misc_list_items = re.compile(r'((?:\s|^)[0-9]{1,9})([.)](?:\s|$))')
 
+# Escape '|' characters in table cells, where they would otherwise be
+# parsed as column delimiters (even inside code spans). The negative
+# lookbehind skips pipes that escape_misc has already escaped.
+re_table_cell_pipe = re.compile(r'(?<!\\)\|')
+
 # Find consecutive backtick sequences in a string
 re_backtick_runs = re.compile(r'`+')
 
@@ -736,13 +741,15 @@ class MarkdownConverter(object):
         colspan = 1
         if 'colspan' in el.attrs and el['colspan'].isdigit():
             colspan = max(1, min(1000, int(el['colspan'])))
-        return ' ' + text.strip().replace("\n", " ") + ' |' * colspan
+        text = re_table_cell_pipe.sub(r'\\|', text.strip().replace("\n", " "))
+        return ' ' + text + ' |' * colspan
 
     def convert_th(self, el, text, parent_tags):
         colspan = 1
         if 'colspan' in el.attrs and el['colspan'].isdigit():
             colspan = max(1, min(1000, int(el['colspan'])))
-        return ' ' + text.strip().replace("\n", " ") + ' |' * colspan
+        text = re_table_cell_pipe.sub(r'\\|', text.strip().replace("\n", " "))
+        return ' ' + text + ' |' * colspan
 
     def convert_tr(self, el, text, parent_tags):
         cells = el.find_all(['td', 'th'])

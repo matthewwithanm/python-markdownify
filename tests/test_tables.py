@@ -1,3 +1,5 @@
+import re
+
 from .utils import md
 
 
@@ -319,3 +321,24 @@ def test_table_infer_header():
     assert md(table_with_colspan, table_infer_header=True) == '\n\n| Name | | Age |\n| --- | --- | --- |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |\n\n'
     assert md(table_with_undefined_colspan, table_infer_header=True) == '\n\n| Name | Age |\n| --- | --- |\n| Jill | Smith |\n\n'
     assert md(table_with_colspan_missing_head, table_infer_header=True) == '\n\n| Name | | Age |\n| --- | --- | --- |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |\n\n'
+
+
+def test_pipes_in_cells():
+    # an unescaped '|' in cell content would be parsed as a column delimiter
+    assert md('<table><tr><th>A</th><th>B</th></tr><tr><td>1|2</td><td>3</td></tr></table>') == '\n\n| A | B |\n| --- | --- |\n| 1\\|2 | 3 |\n\n'
+    assert md('<table><tr><th>A|B</th><th>C</th></tr><tr><td>1</td><td>2</td></tr></table>') == '\n\n| A\\|B | C |\n| --- | --- |\n| 1 | 2 |\n\n'
+    assert md('<table><tr><th>A</th></tr><tr><td>1|2|3</td></tr></table>') == '\n\n| A |\n| --- |\n| 1\\|2\\|3 |\n\n'
+    assert md('<table><tr><th>A</th></tr><tr><td>|</td></tr></table>') == '\n\n| A |\n| --- |\n| \\| |\n\n'
+    assert md('<table><tr><th>A</th></tr><tr><td><b>1|2</b></td></tr></table>') == '\n\n| A |\n| --- |\n| **1\\|2** |\n\n'
+    assert md('<table><tr><th>A</th></tr><tr><td><a href="#">1|2</a></td></tr></table>') == '\n\n| A |\n| --- |\n| [1\\|2](#) |\n\n'
+    # GFM tables require pipes to be escaped even inside code spans
+    assert md('<table><tr><th>A</th></tr><tr><td><code>1|2</code></td></tr></table>') == '\n\n| A |\n| --- |\n| `1\\|2` |\n\n'
+    assert md('<table><tr><th>A</th><th>B</th></tr><tr><td colspan="2">1|2</td></tr></table>') == '\n\n| A | B |\n| --- | --- |\n| 1\\|2 | |\n\n'
+    # escape_misc=True escapes pipes on its own; make sure they are not escaped twice
+    assert md('<table><tr><th>A</th></tr><tr><td>1|2</td></tr></table>', escape_misc=True) == '\n\n| A |\n| --- |\n| 1\\|2 |\n\n'
+    # pipes outside of tables are unaffected
+    assert md('1|2') == '1|2'
+
+    # every row keeps the delimiter count of a two-column table
+    result = md('<table><tr><th>A|B</th><th>C</th></tr><tr><td>1|2</td><td>3|4</td></tr></table>')
+    assert [len(re.findall(r'(?<!\\)\|', line)) for line in result.strip().split('\n')] == [3, 3, 3]
