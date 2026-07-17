@@ -48,6 +48,11 @@ def test_ol():
     assert md('<ol start="-1"><li>a</li><li>b</li></ol>') == '\n\n1. a\n2. b\n'
     assert md('<ol start="foo"><li>a</li><li>b</li></ol>') == '\n\n1. a\n2. b\n'
     assert md('<ol start="1.5"><li>a</li><li>b</li></ol>') == '\n\n1. a\n2. b\n'
+    # Unicode numerics (superscript/fraction/CJK/roman/circled) pass isnumeric() but int() rejects them; start falls back to 1
+    assert md('<ol start="²"><li>a</li><li>b</li></ol>') == '\n\n1. a\n2. b\n'
+    assert md('<ol start="½"><li>a</li><li>b</li></ol>') == '\n\n1. a\n2. b\n'
+    assert md('<ol start="一"><li>a</li><li>b</li></ol>') == '\n\n1. a\n2. b\n'
+    assert md('<ol start="⑤"><li>a</li><li>b</li></ol>') == '\n\n1. a\n2. b\n'
     assert md('<ol start="1234"><li><p>first para</p><p>second para</p></li><li><p>third para</p><p>fourth para</p></li></ol>') == '\n\n1234. first para\n\n      second para\n1235. third para\n\n      fourth para\n'
 
 

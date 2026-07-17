@@ -267,6 +267,18 @@ table_with_undefined_colspan = """<table>
     </tr>
 </table>"""
 
+# superscript ² and circled ② pass str.isdigit() but int() rejects them
+table_with_unicode_colspan = """<table>
+    <tr>
+        <th colspan="²">Name</th>
+        <th>Age</th>
+    </tr>
+    <tr>
+        <td colspan="②">Jill</td>
+        <td>Smith</td>
+    </tr>
+</table>"""
+
 table_with_colspan_missing_head = """<table>
     <tr>
         <td colspan="2">Name</td>
@@ -300,6 +312,7 @@ def test_table():
     assert md(table_with_caption) == 'TEXT\n\nCaption\n\n|  |  |  |\n| --- | --- | --- |\n| Firstname | Lastname | Age |\n\n'
     assert md(table_with_colspan) == '\n\n| Name | | Age |\n| --- | --- | --- |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |\n\n'
     assert md(table_with_undefined_colspan) == '\n\n| Name | Age |\n| --- | --- |\n| Jill | Smith |\n\n'
+    assert md(table_with_unicode_colspan) == '\n\n| Name | Age |\n| --- | --- |\n| Jill | Smith |\n\n'
     assert md(table_with_colspan_missing_head) == '\n\n|  |  |  |\n| --- | --- | --- |\n| Name | | Age |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |\n\n'
 
 

@@ -634,7 +634,8 @@ class MarkdownConverter(object):
         # determine list item bullet character to use
         parent = el.parent
         if parent is not None and parent.name == 'ol':
-            if parent.get("start") and str(parent.get("start")).isnumeric():
+            # isdecimal matches int(); isnumeric/isdigit accept chars int() rejects
+            if parent.get("start") and str(parent.get("start")).isdecimal():
                 start = int(parent.get("start"))
             else:
                 start = 1
@@ -734,13 +735,13 @@ class MarkdownConverter(object):
 
     def convert_td(self, el, text, parent_tags):
         colspan = 1
-        if 'colspan' in el.attrs and el['colspan'].isdigit():
+        if 'colspan' in el.attrs and el['colspan'].isdecimal():
             colspan = max(1, min(1000, int(el['colspan'])))
         return ' ' + text.strip().replace("\n", " ") + ' |' * colspan
 
     def convert_th(self, el, text, parent_tags):
         colspan = 1
-        if 'colspan' in el.attrs and el['colspan'].isdigit():
+        if 'colspan' in el.attrs and el['colspan'].isdecimal():
             colspan = max(1, min(1000, int(el['colspan'])))
         return ' ' + text.strip().replace("\n", " ") + ' |' * colspan
 
@@ -761,7 +762,7 @@ class MarkdownConverter(object):
         underline = ''
         full_colspan = 0
         for cell in cells:
-            if 'colspan' in cell.attrs and cell['colspan'].isdigit():
+            if 'colspan' in cell.attrs and cell['colspan'].isdecimal():
                 full_colspan += max(1, min(1000, int(cell['colspan'])))
             else:
                 full_colspan += 1
