@@ -702,7 +702,13 @@ class MarkdownConverter(object):
         else:
             raise ValueError('Invalid value for strip_pre: %s' % self.options['strip_pre'])
 
-        return '\n\n```%s\n%s\n```\n\n' % (code_language, text)
+        # Use a fence long enough that no backtick run inside the code can close
+        # it early (CommonMark section 4.5: the closing fence must have at least
+        # as many backticks as the opening).
+        max_backticks = max((len(match) for match in re.findall(re_backtick_runs, text)), default=0)
+        fence = '`' * max(3, max_backticks + 1)
+
+        return '\n\n%s%s\n%s\n%s\n\n' % (fence, code_language, text, fence)
 
     def convert_q(self, el, text, parent_tags):
         return '"' + text + '"'
