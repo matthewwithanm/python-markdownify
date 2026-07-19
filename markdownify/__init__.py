@@ -442,6 +442,9 @@ class MarkdownConverter(object):
         if not text:
             return ''
         href = el.get('href')
+        # Escape parentheses in URLs to prevent breaking markdown link syntax
+        if href:
+            href = href.replace('(', '%28').replace(')', '%29')
         title = el.get('title')
         # For the replacement see #29: text nodes underscores are escaped
         if (self.options['autolinks']

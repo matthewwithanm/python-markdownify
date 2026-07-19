@@ -45,6 +45,14 @@ def test_a_in_code():
     assert md('<pre><a href="https://google.com">Google</a></pre>') == '\n\n```\nGoogle\n```\n\n'
 
 
+def test_a_parentheses_in_url():
+    html = ('<a href="http://en.wiktionary.org/wiki/)">close-paren on wiktionary</a>'
+            '<br/><a href="http://en.wiktionary.org/wiki/(">open-paren on wiktionary</a>')
+    expected = ('[close-paren on wiktionary](http://en.wiktionary.org/wiki/%29)  \n'
+                '[open-paren on wiktionary](http://en.wiktionary.org/wiki/%28)')
+    assert md(html) == expected
+
+
 def test_b():
     assert md('<b>Hello</b>') == '**Hello**'
 
