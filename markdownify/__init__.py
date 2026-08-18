@@ -1,7 +1,6 @@
 from bs4 import BeautifulSoup, Comment, Doctype, NavigableString, Tag
 from textwrap import fill
 import re
-import six
 
 
 # General-purpose regex patterns
@@ -249,7 +248,7 @@ class MarkdownConverter(object):
                 # (subclasses of NavigableString, must test first)
                 return True
             elif isinstance(el, NavigableString):
-                if six.text_type(el).strip() != '':
+                if str(el).strip() != '':
                     # Non-whitespace text nodes are always processed.
                     return False
                 elif should_remove_inside and (not el.previous_sibling or not el.next_sibling):
@@ -345,7 +344,7 @@ class MarkdownConverter(object):
         if parent_tags is None:
             parent_tags = set()
 
-        text = six.text_type(el) or ''
+        text = str(el)
 
         # normalize whitespace if we're not inside a preformatted element
         if 'pre' not in parent_tags:
