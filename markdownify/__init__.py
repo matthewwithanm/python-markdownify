@@ -225,16 +225,29 @@ class MarkdownConverter(object):
     def convert_soup(self, soup):
         return self.process_tag(soup, parent_tags=set())
 
-    def process_element(self, node, parent_tags=None):
+    def process_element(self, node, parent_tags=None, _visited=None):
         if isinstance(node, NavigableString):
             return self.process_text(node, parent_tags=parent_tags)
         else:
-            return self.process_tag(node, parent_tags=parent_tags)
+            return self.process_tag(node, parent_tags=parent_tags, _visited=_visited)
 
-    def process_tag(self, node, parent_tags=None):
+    def process_tag(self, node, parent_tags=None, _visited=None):
         # For the top-level element, initialize the parent context with an empty set.
         if parent_tags is None:
             parent_tags = set()
+
+        # Guard against cyclic trees. A well-formed BeautifulSoup tree is acyclic,
+        # but some HTML producers (e.g. certain PDF-to-HTML pipelines) can yield a
+        # graph where a descendant references an ancestor, which would otherwise
+        # send process_tag/process_element into unbounded mutual recursion and a
+        # RecursionError. Track the ids of the tags on the current descent path and
+        # stop if one repeats.
+        if _visited is None:
+            _visited = set()
+        node_id = id(node)
+        if node_id in _visited:
+            return ''
+        _visited = _visited | {node_id}
 
         # Collect child elements to process, ignoring whitespace-only text elements
         # adjacent to the inner/outer boundaries of block elements.
@@ -285,7 +298,7 @@ class MarkdownConverter(object):
 
         # Convert the children elements into a list of result strings.
         child_strings = [
-            self.process_element(el, parent_tags=parent_tags_for_children)
+            self.process_element(el, parent_tags=parent_tags_for_children, _visited=_visited)
             for el in children_to_convert
         ]
 
