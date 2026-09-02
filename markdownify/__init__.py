@@ -675,7 +675,7 @@ class MarkdownConverter(object):
                 new_lines = []
                 for line in lines:
                     line = line.lstrip(' \t\r\n')
-                    line_no_trailing = line.rstrip()
+                    line_no_trailing = line.rstrip(' \t\r\n')
                     trailing = line[len(line_no_trailing):]
                     line = fill(line,
                                 width=self.options['wrap_width'],
