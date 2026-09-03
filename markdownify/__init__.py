@@ -173,6 +173,18 @@ def _next_block_content_sibling(el):
     return None
 
 
+class _TagFrame(object):
+    """Bookkeeping for a tag whose children are still being converted."""
+    __slots__ = ('node', 'parent_tags', 'parent_tags_for_children', 'children', 'child_strings')
+
+    def __init__(self, node, parent_tags, parent_tags_for_children, children):
+        self.node = node
+        self.parent_tags = parent_tags
+        self.parent_tags_for_children = parent_tags_for_children
+        self.children = children
+        self.child_strings = []
+
+
 class MarkdownConverter(object):
     class DefaultOptions:
         autolinks = True
@@ -236,6 +248,42 @@ class MarkdownConverter(object):
         if parent_tags is None:
             parent_tags = set()
 
+        # Subclasses may override process_element/process_tag to customize how each
+        # element is processed; keep calling them for each child in that case.
+        # Otherwise, descend into child tags using an explicit stack instead of
+        # recursion, so the nesting depth is not bound by the recursion limit.
+        descend_inline = (
+            type(self).process_element is MarkdownConverter.process_element
+            and type(self).process_tag is MarkdownConverter.process_tag
+        )
+
+        stack = [self._open_tag(node, parent_tags)]
+        ancestor_ids = {id(node)}
+        while True:
+            frame = stack[-1]
+            child = next(frame.children, None)
+            if child is None:
+                stack.pop()
+                ancestor_ids.discard(id(frame.node))
+                text = self._close_tag(frame)
+                if not stack:
+                    return text
+                stack[-1].child_strings.append(text)
+            elif descend_inline and isinstance(child, Tag):
+                if id(child) in ancestor_ids:
+                    # A cyclic tree (a descendant that references an ancestor)
+                    # would never finish; skip the repeated tag.
+                    continue
+                stack.append(self._open_tag(child, frame.parent_tags_for_children))
+                ancestor_ids.add(id(child))
+            else:
+                frame.child_strings.append(
+                    self.process_element(child, parent_tags=frame.parent_tags_for_children)
+                )
+
+    def _open_tag(self, node, parent_tags):
+        """Start converting a tag: select the children to convert and build the parent
+        context to propagate down into them."""
         # Collect child elements to process, ignoring whitespace-only text elements
         # adjacent to the inner/outer boundaries of block elements.
         should_remove_inside = should_remove_whitespace_inside(node)
@@ -283,14 +331,15 @@ class MarkdownConverter(object):
         if node.name in {'pre', 'code', 'kbd', 'samp'}:
             parent_tags_for_children.add('_noformat')
 
-        # Convert the children elements into a list of result strings.
-        child_strings = [
-            self.process_element(el, parent_tags=parent_tags_for_children)
-            for el in children_to_convert
-        ]
+        return _TagFrame(node, parent_tags, parent_tags_for_children, iter(children_to_convert))
+
+    def _close_tag(self, frame):
+        """Finish converting a tag: join the converted children and apply the tag's
+        conversion function."""
+        node = frame.node
 
         # Remove empty string values.
-        child_strings = [s for s in child_strings if s]
+        child_strings = [s for s in frame.child_strings if s]
 
         # Collapse newlines at child element boundaries, if needed.
         if node.name == 'pre' or node.find_parent('pre'):
@@ -321,7 +370,7 @@ class MarkdownConverter(object):
         # apply this tag's final conversion function
         convert_fn = self.get_conv_fn_cached(node.name)
         if convert_fn is not None:
-            text = convert_fn(node, text, parent_tags=parent_tags)
+            text = convert_fn(node, text, parent_tags=frame.parent_tags)
 
         return text
 

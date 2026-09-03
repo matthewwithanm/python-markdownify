@@ -42,3 +42,22 @@ def test_soup():
     html = '<b>test</b>'
     soup = BeautifulSoup(html, 'html.parser')
     assert MarkdownConverter().convert_soup(soup) == '**test**'
+
+
+class TrackingConverter(MarkdownConverter):
+    """
+    Create a custom MarkdownConverter that records every tag it processes
+    """
+    def __init__(self, **options):
+        super().__init__(**options)
+        self.tag_names = []
+
+    def process_tag(self, node, parent_tags=None):
+        self.tag_names.append(node.name)
+        return super().process_tag(node, parent_tags=parent_tags)
+
+
+def test_process_tag_override():
+    converter = TrackingConverter()
+    assert converter.convert('<div><p><b>text</b></p></div>') == '**text**'
+    assert converter.tag_names == ['[document]', 'div', 'p', 'b']
