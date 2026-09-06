@@ -154,7 +154,8 @@ strip_document
   Controls whether leading and/or trailing separation newlines are removed from
   the final converted document. Supported values are ``LSTRIP`` (leading),
   ``RSTRIP`` (trailing), ``STRIP`` (both), and ``None`` (neither). Newlines
-  within the document are unaffected.
+  within the document are unaffected. This also applies when ``convert_soup()``
+  receives an individual BeautifulSoup ``Tag`` rather than a complete soup.
   Defaults to ``STRIP``.
 
 strip_pre

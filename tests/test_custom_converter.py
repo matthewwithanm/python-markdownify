@@ -42,3 +42,49 @@ def test_soup():
     html = '<b>test</b>'
     soup = BeautifulSoup(html, 'html.parser')
     assert MarkdownConverter().convert_soup(soup) == '**test**'
+
+
+def test_tag_document_stripping():
+    from markdownify import LSTRIP, RSTRIP, STRIP
+
+    html = '<html><body><div><p>hello</p><p>world</p></div></body></html>'
+    for mode, expected in [(LSTRIP, 'hello\n\nworld\n\n'),
+                           (RSTRIP, '\n\nhello\n\nworld'),
+                           (STRIP, 'hello\n\nworld'),
+                           (None, '\n\nhello\n\nworld\n\n')]:
+        for name in ['html', 'body', 'div']:
+            soup = BeautifulSoup(html, 'html.parser')
+            tag = soup.find(name)
+            before = str(soup)
+            assert MarkdownConverter(strip_document=mode).convert_soup(tag) == expected
+            assert str(soup) == before
+            assert tag.parent is not None
+
+
+def test_tag_document_invalid_strip_mode():
+    import pytest
+
+    soup = BeautifulSoup('<p>hello</p>', 'html.parser')
+    with pytest.raises(ValueError, match='Invalid value for strip_document'):
+        MarkdownConverter(strip_document='invalid').convert_soup(soup.p)
+
+
+def test_document_converter_called_once():
+    class CountingConverter(MarkdownConverter):
+        calls = 0
+
+        def convert__document_(self, el, text, parent_tags):
+            self.calls += 1
+            return super().convert__document_(el, text, parent_tags)
+
+    soup = BeautifulSoup('<div><p>hello</p></div>', 'html.parser')
+    for root in [soup, soup.div, soup.p]:
+        converter = CountingConverter()
+        assert converter.convert_soup(root) == 'hello'
+        assert converter.calls == 1
+
+
+def test_tag_document_converter_exclusion():
+    soup = BeautifulSoup('<p>hello</p>', 'html.parser')
+    for root in [soup, soup.p]:
+        assert MarkdownConverter(strip=['[document]']).convert_soup(root) == '\n\nhello\n\n'

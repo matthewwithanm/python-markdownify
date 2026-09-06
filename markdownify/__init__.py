@@ -223,7 +223,14 @@ class MarkdownConverter(object):
         return self.convert_soup(soup)
 
     def convert_soup(self, soup):
-        return self.process_tag(soup, parent_tags=set())
+        text = self.process_tag(soup, parent_tags=set())
+        # A supplied Tag is also a complete conversion input. BeautifulSoup's
+        # document node already runs this finalizer during process_tag().
+        if soup.name != '[document]':
+            convert_fn = self.get_conv_fn_cached('[document]')
+            if convert_fn is not None:
+                text = convert_fn(soup, text, parent_tags={'[document]'})
+        return text
 
     def process_element(self, node, parent_tags=None):
         if isinstance(node, NavigableString):
