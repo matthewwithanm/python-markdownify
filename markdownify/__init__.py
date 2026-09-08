@@ -108,10 +108,16 @@ def abstract_inline_conversion(markup_fn):
             markup_suffix = markup_prefix
         if '_noformat' in parent_tags:
             return text
+        # Keep boundary line breaks outside the emphasis delimiters. chomp()
+        # strips newlines and would also leave a backslash break inside them.
+        leading, text, trailing = re.match(
+            r'^((?:[ \t]*\\?\n)*)(.*?)((?:[ \t]*\\?\n[ \t]*)*)$',
+            text, re.DOTALL,
+        ).groups()
         prefix, suffix, text = chomp(text)
         if not text:
-            return ''
-        return '%s%s%s%s%s' % (prefix, markup_prefix, text, markup_suffix, suffix)
+            return leading + trailing
+        return '%s%s%s%s%s%s%s' % (leading, prefix, markup_prefix, text, markup_suffix, suffix, trailing)
     return implementation
 
 
