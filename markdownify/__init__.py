@@ -272,6 +272,10 @@ class MarkdownConverter(object):
         parent_tags_for_children = set(parent_tags)
         parent_tags_for_children.add(node.name)
 
+        if (node.name in {'h1', 'h2'} and '_inline' not in parent_tags
+                and self.options['heading_style'].lower() == UNDERLINED):
+            parent_tags_for_children.add('_setext')
+
         # if this tag is a heading or table cell, add an '_inline' parent pseudo-tag
         if (
             re_html_heading.match(node.name) is not None  # headings
@@ -433,7 +437,8 @@ class MarkdownConverter(object):
 
     def underline(self, text, pad_char):
         text = (text or '').rstrip()
-        return '\n\n%s\n%s\n\n' % (text, pad_char * len(text)) if text else ''
+        width = max((len(line) for line in text.splitlines()), default=0)
+        return '\n\n%s\n%s\n\n' % (text, pad_char * width) if text else ''
 
     def convert_a(self, el, text, parent_tags):
         if '_noformat' in parent_tags:
@@ -474,6 +479,8 @@ class MarkdownConverter(object):
         return '\n' + text + '\n\n'
 
     def convert_br(self, el, text, parent_tags):
+        if '_setext' in parent_tags:
+            return '\n' + text
         if '_inline' in parent_tags:
             return text + ' ' if text else ' '
 
