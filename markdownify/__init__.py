@@ -240,7 +240,7 @@ class MarkdownConverter(object):
         # adjacent to the inner/outer boundaries of block elements.
         should_remove_inside = should_remove_whitespace_inside(node)
 
-        def _can_ignore(el):
+        def _can_ignore(el, previous_content, next_content):
             if isinstance(el, Tag):
                 # Tags are always processed.
                 return False
@@ -252,10 +252,10 @@ class MarkdownConverter(object):
                 if six.text_type(el).strip() != '':
                     # Non-whitespace text nodes are always processed.
                     return False
-                elif should_remove_inside and (not el.previous_sibling or not el.next_sibling):
+                elif should_remove_inside and (previous_content is None or next_content is None):
                     # Inside block elements (excluding <pre>), ignore adjacent whitespace elements.
                     return True
-                elif should_remove_whitespace_outside(el.previous_sibling) or should_remove_whitespace_outside(el.next_sibling):
+                elif should_remove_whitespace_outside(previous_content) or should_remove_whitespace_outside(next_content):
                     # Outside block elements (including <pre>), ignore adjacent whitespace elements.
                     return True
                 else:
@@ -265,7 +265,18 @@ class MarkdownConverter(object):
             else:
                 raise ValueError('Unexpected element type: %s' % type(el))
 
-        children_to_convert = [el for el in node.children if not _can_ignore(el)]
+        # Ignore comments and whitespace when locating block boundaries. Advance
+        # through content siblings once, rather than rescanning long comment runs.
+        content_siblings = (el for el in node.children if _is_block_content_element(el))
+        previous_content = None
+        next_content = next(content_siblings, None)
+        children_to_convert = []
+        for el in node.children:
+            if el is next_content:
+                previous_content = el
+                next_content = next(content_siblings, None)
+            if not _can_ignore(el, previous_content, next_content):
+                children_to_convert.append(el)
 
         # Create a copy of this tag's parent context, then update it to include this tag
         # to propagate down into the children.
