@@ -436,12 +436,12 @@ class MarkdownConverter(object):
         return '\n\n%s\n%s\n\n' % (text, pad_char * len(text)) if text else ''
 
     def convert_a(self, el, text, parent_tags):
-        if '_noformat' in parent_tags:
+        href = el.get('href')
+        if '_noformat' in parent_tags or not href:
             return text
         prefix, suffix, text = chomp(text)
         if not text:
             return ''
-        href = el.get('href')
         title = el.get('title')
         # For the replacement see #29: text nodes underscores are escaped
         if (self.options['autolinks']
@@ -453,7 +453,7 @@ class MarkdownConverter(object):
         if self.options['default_title'] and not title:
             title = href
         title_part = ' "%s"' % title.replace('"', r'\"') if title else ''
-        return '%s[%s](%s%s)%s' % (prefix, text, href, title_part, suffix) if href else text
+        return '%s[%s](%s%s)%s' % (prefix, text, href, title_part, suffix)
 
     convert_b = abstract_inline_conversion(lambda self: 2 * self.options['strong_em_symbol'])
 
