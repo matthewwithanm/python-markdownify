@@ -44,6 +44,9 @@ re_escape_misc_list_items = re.compile(r'((?:\s|^)[0-9]{1,9})([.)](?:\s|$))')
 # Find consecutive backtick sequences in a string
 re_backtick_runs = re.compile(r'`+')
 
+# CommonMark URI autolinks require a scheme and exclude spaces/angle brackets.
+re_uri_autolink = re.compile(r'[A-Za-z][A-Za-z0-9+.-]{1,31}:[^<>\x00-\x20\x7f]*\Z')
+
 # Heading styles
 ATX = 'atx'
 ATX_CLOSED = 'atx_closed'
@@ -446,6 +449,7 @@ class MarkdownConverter(object):
         # For the replacement see #29: text nodes underscores are escaped
         if (self.options['autolinks']
                 and text.replace(r'\_', '_') == href
+                and re_uri_autolink.match(href)
                 and not title
                 and not self.options['default_title']):
             # Shortcut syntax
