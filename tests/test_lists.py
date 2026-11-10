@@ -1,4 +1,5 @@
 from .utils import md
+from markdownify import markdownify
 
 
 nested_uls = """
@@ -87,3 +88,27 @@ def test_bullets():
 
 def test_li_text():
     assert md('<ul><li>foo <a href="#">bar</a></li><li>foo bar  </li><li>foo <b>bar</b>   <i>space</i>.</ul>') == '\n\n* foo [bar](#)\n* foo bar\n* foo **bar** *space*.\n'
+
+
+def test_wrap_inline_list_items():
+    text = 'alpha beta gamma delta epsilon'
+    assert markdownify('<ul><li>' + text + '</li></ul>', wrap=True, wrap_width=16) == '* alpha beta gamma\n  delta epsilon'
+    assert markdownify('<ol start="12"><li>' + text + '</li></ol>', wrap=True, wrap_width=16) == '12. alpha beta gamma\n    delta epsilon'
+    assert markdownify('<ul><li>' + text + '</li></ul>', wrap=False, wrap_width=16) == '* ' + text
+    assert markdownify('<ul><li>' + text + '</li></ul>', wrap=True, wrap_width=None) == '* ' + text
+
+
+def test_wrap_inline_list_formatting_and_breaks():
+    assert markdownify('<ul><li>alpha beta gamma<br>delta epsilon zeta</li></ul>', wrap=True, wrap_width=12, newline_style='backslash') == '* alpha beta\n  gamma\\\n  delta\n  epsilon zeta'
+    assert markdownify('<ul><li><strong>alpha</strong> beta gamma delta</li></ul>', wrap=True, wrap_width=16) == '* **alpha** beta\n  gamma delta'
+    assert markdownify('<ul><li>alpha beta gamma<br>delta epsilon zeta</li></ul>', wrap=True, wrap_width=12) == '* alpha beta\n  gamma  \n  delta\n  epsilon zeta'
+
+
+def test_wrap_list_blocks_are_not_reflowed():
+    nested = '<ul><li>parent<ul><li>alpha beta gamma delta</li></ul></li></ul>'
+    assert markdownify(nested, wrap=True, wrap_width=12) == '* parent\n  + alpha beta\n    gamma delta'
+    for block in ['<pre>alpha beta gamma delta</pre>', '<hr>', '<figure><figcaption>alpha beta gamma delta</figcaption></figure>', '<span><pre>alpha beta gamma delta</pre></span>', '<table><tr><td>alpha beta gamma delta</td></tr></table>', '<blockquote>alpha beta gamma delta</blockquote>']:
+        html = '<ul><li>before' + block + 'after</li></ul>'
+        assert markdownify(html, wrap=True, wrap_width=12) == markdownify(html, wrap=False)
+    html = '<ul><li><p>alpha beta gamma delta</p></li></ul>'
+    assert markdownify(html, wrap=True, wrap_width=12) == '* alpha beta\n  gamma delta'
