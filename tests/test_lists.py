@@ -1,3 +1,8 @@
+import subprocess
+import sys
+
+import pytest
+
 from .utils import md
 
 
@@ -87,3 +92,39 @@ def test_bullets():
 
 def test_li_text():
     assert md('<ul><li>foo <a href="#">bar</a></li><li>foo bar  </li><li>foo <b>bar</b>   <i>space</i>.</ul>') == '\n\n* foo [bar](#)\n* foo bar\n* foo **bar** *space*.\n'
+
+
+@pytest.mark.parametrize('html, expected', [
+    ('<ul><li>a<ul><li>b<ul><li>c<ul><li>d</li></ul></li></ul></li></ul></li></ul>',
+     '\n\n*   a\n    +   b\n        -   c\n            *   d\n'),
+    ('<ol><li>a<ol><li>b<ol><li>c<ol><li>d</li></ol></li></ol></li></ol></li></ol>',
+     '\n\n1.  a\n    1.  b\n        1.  c\n            1.  d\n'),
+    ('<ul><li><p>first</p><p>second</p><blockquote>quote</blockquote></li></ul>',
+     '\n\n*   first\n\n    second\n\n    > quote\n'),
+    ('<ul><li>a<ol><li>b</li></ol></li><li>c</li></ul>',
+     '\n\n*   a\n    1.  b\n*   c\n'),
+    ('<ol start="1234"><li><p>first</p><p>second</p></li></ol>',
+     '\n\n1234. first\n\n      second\n'),
+])
+def test_list_indent_width(html, expected):
+    assert md(html, list_indent_width=4) == expected
+
+
+def test_list_indent_width_minimum():
+    html = '<ol start="10"><li>a<ul><li>b</li></ul></li></ol>'
+    assert md(html, list_indent_width=0) == md(html)
+    assert md(html, list_indent_width=1) == md(html)
+
+
+@pytest.mark.parametrize('use_file', [False, True])
+def test_list_indent_width_cli(tmp_path, use_file):
+    html = '<ul><li>a<ul><li>b</li></ul></li></ul>'
+    command = [sys.executable, '-m', 'markdownify.main', '--list-indent-width', '4']
+    if use_file:
+        path = tmp_path / 'nested.html'
+        path.write_text(html, encoding='utf-8')
+        command.append(str(path))
+    result = subprocess.run(command, input='' if use_file else html,
+                            text=True, capture_output=True)
+    assert result.returncode == 0, result.stderr
+    assert result.stdout == '*   a\n    +   b\n'

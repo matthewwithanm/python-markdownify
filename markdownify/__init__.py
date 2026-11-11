@@ -186,6 +186,7 @@ class MarkdownConverter(object):
         escape_misc = False
         heading_style = UNDERLINED
         keep_inline_images_in = []
+        list_indent_width = 0
         newline_style = SPACES
         strip = None
         strip_document = STRIP
@@ -646,7 +647,8 @@ class MarkdownConverter(object):
                 el = el.parent
             bullets = self.options['bullets']
             bullet = bullets[depth % len(bullets)]
-        bullet = bullet + ' '
+        # Pad the marker and continuation lines to the requested minimum width.
+        bullet = (bullet + ' ').ljust(self.options['list_indent_width'])
         bullet_width = len(bullet)
         bullet_indent = ' ' * bullet_width
 

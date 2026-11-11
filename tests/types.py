@@ -22,6 +22,7 @@ MarkdownConverter(
     escape_misc=False,
     heading_style=UNDERLINED,
     keep_inline_images_in=[],
+    list_indent_width=0,
     newline_style=SPACES,
     strip=None,
     strip_document=STRIP,
@@ -47,6 +48,7 @@ MarkdownConverter(
     sup_symbol='^',
     sub_symbol='^',
     keep_inline_images_in=['h3'],
+    list_indent_width=4,
     wrap=True,
     wrap_width=80,
     strong_em_symbol=UNDERSCORE,
@@ -68,3 +70,4 @@ MarkdownConverter(code_language_callback=lambda el: None).convert("")
 
 markdownify('<pre class="python">test\n    foo\nbar</pre>', code_language_callback=callback)
 markdownify('<pre class="python">test\n    foo\nbar</pre>', code_language_callback=lambda el: None)
+markdownify('<ul><li>item</li></ul>', list_indent_width=4)

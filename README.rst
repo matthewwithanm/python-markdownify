@@ -79,6 +79,14 @@ bullets
   lists are nested. Otherwise, the bullet will alternate based on nesting
   level. Defaults to ``'*+-'``.
 
+list_indent_width
+  Minimum width, in spaces, of a list item's marker and following whitespace.
+  Defaults to ``0``, which uses the marker's natural width. Set to ``4`` to
+  preserve nested lists when the output is parsed by Python-Markdown.
+  Extra spaces are added after the marker, and continuation lines use the
+  same indentation. Markers wider than this minimum are never truncated.
+  Available as ``--list-indent-width`` on the command line.
+
 strong_em_symbol
   In markdown, both ``*`` and ``_`` are used to encode **strong** or
   *emphasized* texts. Either of these symbols can be chosen by the options

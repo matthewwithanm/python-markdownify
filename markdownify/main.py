@@ -35,6 +35,9 @@ def main(argv=sys.argv[1:]):
     parser.add_argument('-b', '--bullets', default='*+-',
                         help="A string of bullet styles to use; the bullet will "
                         "alternate based on nesting level.")
+    parser.add_argument('--list-indent-width', type=int, default=0,
+                        help="Minimum list item indentation. Use 4 for compatibility "
+                        "with Python-Markdown; 0 uses the marker width.")
     parser.add_argument('--strong-em-symbol', default=ASTERISK,
                         choices=(ASTERISK, UNDERSCORE),
                         help="Use * or _ to convert strong and italics text"),
