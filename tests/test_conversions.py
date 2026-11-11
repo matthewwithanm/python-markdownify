@@ -181,6 +181,17 @@ def test_hn_chained():
     assert md('X<h1>First</h1>') == 'X\n\nFirst\n=====\n\n'
 
 
+def test_line_breaks_at_emphasis_boundaries():
+    assert md('<strong><u>Title<br><br></u></strong>Text') == '**Title**  \n  \nText'
+    assert md('<b>foo<br/></b>bar') == '**foo**  \nbar'
+    assert md('<b>foo<br/></b>bar', newline_style=BACKSLASH) == '**foo**\\\nbar'
+    assert md('a<em><br/>foo</em>b') == 'a  \n*foo*b'
+    assert md('a<em><br/>foo</em>b', newline_style=BACKSLASH) == 'a\\\n*foo*b'
+    assert md('a<b><br></b>b') == 'a  \nb'
+    assert md('a<b><br></b>b', newline_style=BACKSLASH) == 'a\\\nb'
+    assert md('<b><em>foo<br/></em></b>bar') == '***foo***  \nbar'
+
+
 def test_hn_nested_tag_heading_style():
     assert md('<h1>A <p>P</p> C </h1>', heading_style=ATX_CLOSED) == '\n\n# A P C #\n\n'
     assert md('<h1>A <p>P</p> C </h1>', heading_style=ATX) == '\n\n# A P C\n\n'
