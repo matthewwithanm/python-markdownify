@@ -745,7 +745,7 @@ class MarkdownConverter(object):
 
     def convert_tr(self, el, text, parent_tags):
         cells = el.find_all(['td', 'th'])
-        is_first_row = el.find_previous_sibling() is None
+        is_first_row = el.find_previous_sibling('tr') is None
         is_headrow = (
             all([cell.name == 'th' for cell in cells])
             or (el.parent.name == 'thead'

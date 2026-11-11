@@ -1,3 +1,5 @@
+import pytest
+
 from .utils import md
 
 
@@ -319,3 +321,20 @@ def test_table_infer_header():
     assert md(table_with_colspan, table_infer_header=True) == '\n\n| Name | | Age |\n| --- | --- | --- |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |\n\n'
     assert md(table_with_undefined_colspan, table_infer_header=True) == '\n\n| Name | Age |\n| --- | --- |\n| Jill | Smith |\n\n'
     assert md(table_with_colspan_missing_head, table_infer_header=True) == '\n\n| Name | | Age |\n| --- | --- | --- |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |\n\n'
+
+
+@pytest.mark.parametrize('prefix,caption', [
+    ('<caption>Sales</caption>', 'Sales\n\n'),
+    ('<colgroup><col><col></colgroup>', ''),
+])
+@pytest.mark.parametrize('cell,infer_header,rows', [
+    ('th', False, '| Item | Count |\n| --- | --- |\n'),
+    ('td', True, '| Item | Count |\n| --- | --- |\n'),
+    ('td', False, '|  |  |\n| --- | --- |\n| Item | Count |\n'),
+])
+def test_table_header_after_non_row_elements(prefix, caption, cell, infer_header, rows):
+    html = ('<table>%s<tr><%s>Item</%s><%s>Count</%s></tr>'
+            '<tr><td>A</td><td>2</td></tr></table>') % (prefix, cell, cell, cell, cell)
+    assert md(html, table_infer_header=infer_header) == (
+        '\n\n' + caption + rows + '| A | 2 |\n\n'
+    )
