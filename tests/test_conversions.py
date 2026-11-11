@@ -31,6 +31,14 @@ def test_a_with_title():
     assert md('<a href="https://google.com">https://google.com</a>', default_title=True) == '[https://google.com](https://google.com "https://google.com")'
 
 
+def test_a_without_destination_preserves_whitespace():
+    assert md('left<a> middle </a>right') == 'left middle right'
+    assert md('left<a href=""> middle </a>right') == 'left middle right'
+    assert md('left<a name="section"> </a>right') == 'left right'
+    assert md('left<a><strong> middle </strong></a>right') == 'left **middle** right'
+    assert md('left<a></a>right') == 'leftright'
+
+
 def test_a_shortcut():
     text = md('<a href="http://google.com">http://google.com</a>')
     assert text == '<http://google.com>'
