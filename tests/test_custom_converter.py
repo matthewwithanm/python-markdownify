@@ -1,5 +1,6 @@
 from markdownify import MarkdownConverter
 from bs4 import BeautifulSoup
+import pytest
 
 
 class UnitTestConverter(MarkdownConverter):
@@ -42,3 +43,19 @@ def test_soup():
     html = '<b>test</b>'
     soup = BeautifulSoup(html, 'html.parser')
     assert MarkdownConverter().convert_soup(soup) == '**test**'
+
+
+@pytest.mark.parametrize('tag_name', ['h1-label', 'h2-status', 'h10-widget'])
+def test_heading_prefix_does_not_make_custom_tag_a_heading(tag_name):
+    html = 'Before <{0}>Status</{0}> after'.format(tag_name)
+    assert MarkdownConverter().convert(html) == 'Before Status after'
+
+
+def test_heading_prefix_custom_tag_preserves_block_children():
+    html = '<h2-panel><p>First</p><p>Second</p></h2-panel>'
+    assert MarkdownConverter().convert(html) == 'First\n\nSecond'
+
+
+def test_heading_prefix_custom_tag_preserves_images():
+    html = '<h2-panel><img src="status.png" alt="Ready"></h2-panel>'
+    assert MarkdownConverter().convert(html) == '![Ready](status.png)'
