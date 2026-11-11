@@ -1,3 +1,5 @@
+import pytest
+
 from markdownify import ATX, ATX_CLOSED, BACKSLASH, SPACES, UNDERSCORE
 from .utils import md
 
@@ -34,6 +36,16 @@ def test_a_with_title():
 def test_a_shortcut():
     text = md('<a href="http://google.com">http://google.com</a>')
     assert text == '<http://google.com>'
+
+
+@pytest.mark.parametrize('href', ['section', '#section', '../page.html', '/docs', '//example.com', 'x:foo'])
+def test_a_relative_destination_does_not_use_autolink(href):
+    assert md('<a href="%s">%s</a>' % (href, href)) == '[%s](%s)' % (href, href)
+
+
+@pytest.mark.parametrize('href', ['https://example.com', 'ftp://example.com', 'custom+name:resource'])
+def test_a_uri_destination_still_uses_autolink(href):
+    assert md('<a href="%s">%s</a>' % (href, href)) == '<%s>' % href
 
 
 def test_a_no_autolinks():
