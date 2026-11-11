@@ -630,6 +630,14 @@ class MarkdownConverter(object):
         if not text:
             return "\n"
 
+        # Reflow inline-only items; block descendants already have their own
+        # layout and must not be flattened (including nested lists).
+        if self.options['wrap'] and not any(
+                should_remove_whitespace_outside(child)
+                or child.name in ('hr', 'figure', 'figcaption', 'caption')
+                for child in el.find_all(True)):
+            text = self._wrap_text(text)
+
         # determine list item bullet character to use
         parent = el.parent
         if parent is not None and parent.name == 'ol':
@@ -666,23 +674,27 @@ class MarkdownConverter(object):
             return ' ' + text.strip(' \t\r\n') + ' '
         text = text.strip(' \t\r\n')
         if self.options['wrap']:
-            # Preserve newlines (and preceding whitespace) resulting
-            # from <br> tags.  Newlines in the input have already been
-            # replaced by spaces.
-            if self.options['wrap_width'] is not None:
-                lines = text.split('\n')
-                new_lines = []
-                for line in lines:
-                    line = line.lstrip(' \t\r\n')
-                    line_no_trailing = line.rstrip()
-                    trailing = line[len(line_no_trailing):]
-                    line = fill(line,
-                                width=self.options['wrap_width'],
-                                break_long_words=False,
-                                break_on_hyphens=False)
-                    new_lines.append(line + trailing)
-                text = '\n'.join(new_lines)
+            text = self._wrap_text(text)
         return '\n\n%s\n\n' % text if text else ''
+
+    def _wrap_text(self, text):
+        # Preserve newlines (and preceding whitespace) resulting
+        # from <br> tags.  Newlines in the input have already been
+        # replaced by spaces.
+        if self.options['wrap_width'] is not None:
+            lines = text.split('\n')
+            new_lines = []
+            for line in lines:
+                line = line.lstrip(' \t\r\n')
+                line_no_trailing = line.rstrip()
+                trailing = line[len(line_no_trailing):]
+                line = fill(line,
+                            width=self.options['wrap_width'],
+                            break_long_words=False,
+                            break_on_hyphens=False)
+                new_lines.append(line + trailing)
+            text = '\n'.join(new_lines)
+        return text
 
     def convert_pre(self, el, text, parent_tags):
         if not text:
