@@ -74,7 +74,7 @@ def strip1_pre(text):
 def strip_pre(text):
     """Strip all leading and trailing newlines from a <pre> string."""
     text = re_pre_lstrip.sub('', text)
-    text = re_pre_rstrip.sub('', text)
+    text = text.rstrip(' \n')
     return text
 
 
