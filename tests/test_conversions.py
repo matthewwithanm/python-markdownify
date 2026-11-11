@@ -311,6 +311,15 @@ def test_pre():
     assert md("<p>foo</p>\n<pre>bar</pre>\n</p>baz</p>", sub_symbol="^") == "\n\nfoo\n\n```\nbar\n```\n\nbaz"
 
 
+def test_pre_backticks():
+    # A backtick run inside the code must not close the fence early: the fence
+    # needs at least one more backtick than the longest run in the content.
+    assert md('<pre>foo\n```\nbar</pre>') == '\n\n````\nfoo\n```\nbar\n````\n\n'
+    assert md('<pre><code>```</code></pre>') == '\n\n````\n```\n````\n\n'
+    assert md('<pre>a````b</pre>') == '\n\n`````\na````b\n`````\n\n'
+    assert md('<pre>plain</pre>') == '\n\n```\nplain\n```\n\n'
+
+
 def test_q():
     assert md('foo <q>quote</q> bar') == 'foo "quote" bar'
     assert md('foo <q cite="https://example.com">quote</q> bar') == 'foo "quote" bar'
