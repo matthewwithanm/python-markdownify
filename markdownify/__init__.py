@@ -78,6 +78,21 @@ def strip_pre(text):
     return text
 
 
+def _get_colspan(el):
+    value = el.get('colspan', '1')
+    if not value.isdecimal():
+        return 1
+
+    # Bound the value while reading it, before Python's integer-string limit
+    # can reject a long attribute. Leading zeros must not change its value.
+    colspan = 0
+    for digit in value:
+        colspan = colspan * 10 + int(digit)
+        if colspan >= 1000:
+            return 1000
+    return max(1, colspan)
+
+
 def chomp(text):
     """
     If the text in an inline tag like b, a, or em contains a leading or trailing
@@ -732,15 +747,11 @@ class MarkdownConverter(object):
         return '\n\n' + text.strip() + '\n\n'
 
     def convert_td(self, el, text, parent_tags):
-        colspan = 1
-        if 'colspan' in el.attrs and el['colspan'].isdigit():
-            colspan = max(1, min(1000, int(el['colspan'])))
+        colspan = _get_colspan(el)
         return ' ' + text.strip().replace("\n", " ") + ' |' * colspan
 
     def convert_th(self, el, text, parent_tags):
-        colspan = 1
-        if 'colspan' in el.attrs and el['colspan'].isdigit():
-            colspan = max(1, min(1000, int(el['colspan'])))
+        colspan = _get_colspan(el)
         return ' ' + text.strip().replace("\n", " ") + ' |' * colspan
 
     def convert_tr(self, el, text, parent_tags):
@@ -758,12 +769,7 @@ class MarkdownConverter(object):
         )
         overline = ''
         underline = ''
-        full_colspan = 0
-        for cell in cells:
-            if 'colspan' in cell.attrs and cell['colspan'].isdigit():
-                full_colspan += max(1, min(1000, int(cell['colspan'])))
-            else:
-                full_colspan += 1
+        full_colspan = sum(_get_colspan(cell) for cell in cells)
         if ((is_headrow
              or (is_head_row_missing
                  and self.options['table_infer_header']))
