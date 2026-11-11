@@ -1,3 +1,9 @@
+import sys
+
+from bs4 import BeautifulSoup
+
+from markdownify import MarkdownConverter
+
 from .utils import md
 
 
@@ -37,3 +43,18 @@ def test_code_with_tricky_content():
 def test_special_tags():
     assert md('<!DOCTYPE html>') == ''
     assert md('<![CDATA[foobar]]>') == 'foobar'
+
+
+def test_deeply_nested():
+    # Long chains of nested tags (e.g. quoted replies wrapped in <div>s by mail
+    # clients) must not run into the interpreter's recursion limit.
+    depth = sys.getrecursionlimit()
+    assert md('<div>' * depth + 'hello' + '</div>' * depth) == '\n\nhello\n\n'
+
+
+def test_cyclic_tree():
+    # A descendant that references an ancestor (seen from some PDF-to-HTML
+    # pipelines) must not make the conversion loop forever.
+    soup = BeautifulSoup('<div><p>hello</p></div>', 'html.parser')
+    soup.find('p').contents.append(soup.find('div'))
+    assert MarkdownConverter().convert_soup(soup) == 'hello'
