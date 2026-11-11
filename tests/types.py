@@ -13,6 +13,7 @@ MarkdownConverter(
     autolinks=True,
     bs4_options='html.parser',
     bullets='*+-',
+    code_fence='```',
     code_language='',
     code_language_callback=None,
     convert=None,
@@ -38,6 +39,7 @@ MarkdownConverter(
 MarkdownConverter(
     strip_document=None,
     bullets="-",
+    code_fence="~~~",
     escape_asterisks=True,
     escape_underscores=True,
     escape_misc=True,
@@ -68,3 +70,5 @@ MarkdownConverter(code_language_callback=lambda el: None).convert("")
 
 markdownify('<pre class="python">test\n    foo\nbar</pre>', code_language_callback=callback)
 markdownify('<pre class="python">test\n    foo\nbar</pre>', code_language_callback=lambda el: None)
+
+markdownify("<pre>test</pre>", code_fence="~~~") == "~~~\ntest\n~~~"

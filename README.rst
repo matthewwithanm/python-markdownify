@@ -100,6 +100,12 @@ newline_style
   newline). While the latter convention is non-standard, it is commonly
   preferred and supported by a lot of interpreters.
 
+code_fence
+  Defines the opening and closing fence for ``<pre>`` sections. Use a string
+  of at least three backticks (the default) or at least three tildes.
+  For example, ``code_fence="~~~"`` produces tilde-fenced code blocks.
+  The same option is available as ``--code-fence`` on the command line.
+
 code_language
   Defines the language that should be assumed for all ``<pre>`` sections.
   Useful, if all code on a page is in the same programming language and

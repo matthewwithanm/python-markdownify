@@ -177,6 +177,7 @@ class MarkdownConverter(object):
         autolinks = True
         bs4_options = 'html.parser'
         bullets = '*+-'  # An iterable of bullet types.
+        code_fence = '```'
         code_language = ''
         code_language_callback = None
         convert = None
@@ -209,6 +210,10 @@ class MarkdownConverter(object):
         if self.options['strip'] is not None and self.options['convert'] is not None:
             raise ValueError('You may specify either tags to strip or tags to'
                              ' convert, but not both.')
+
+        code_fence = self.options['code_fence']
+        if not isinstance(code_fence, six.string_types) or not re.match(r'(?:`{3,}|~{3,})\Z', code_fence):
+            raise ValueError('Invalid value for code_fence: %s' % code_fence)
 
         # If a string or list is passed to bs4_options, assume it is a 'features' specification
         if not isinstance(self.options['bs4_options'], dict):
@@ -701,7 +706,8 @@ class MarkdownConverter(object):
         else:
             raise ValueError('Invalid value for strip_pre: %s' % self.options['strip_pre'])
 
-        return '\n\n```%s\n%s\n```\n\n' % (code_language, text)
+        code_fence = self.options['code_fence']
+        return '\n\n%s%s\n%s\n%s\n\n' % (code_fence, code_language, text, code_fence)
 
     def convert_q(self, el, text, parent_tags):
         return '"' + text + '"'
