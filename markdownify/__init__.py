@@ -633,7 +633,7 @@ class MarkdownConverter(object):
         # determine list item bullet character to use
         parent = el.parent
         if parent is not None and parent.name == 'ol':
-            if parent.get("start") and str(parent.get("start")).isnumeric():
+            if parent.get("start") and str(parent.get("start")).isdecimal():
                 start = int(parent.get("start"))
             else:
                 start = 1
