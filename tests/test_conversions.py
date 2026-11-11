@@ -181,6 +181,17 @@ def test_hn_chained():
     assert md('X<h1>First</h1>') == 'X\n\nFirst\n=====\n\n'
 
 
+def test_multiline_heading_underline_width():
+    assert md('<h1>Long first line\nShort</h1>') == '\n\nLong first line\nShort\n===============\n\n'
+    assert md('<h2>Short\nLong second line</h2>') == '\n\nShort\nLong second line\n----------------\n\n'
+    assert md('<h1></h1>') == ''
+    assert md('<h1>First\nSecond</h1>', heading_style=ATX) == '\n\n# First Second\n\n'
+    assert md('<h1>Long first line<br>Short</h1>') == '\n\nLong first line\nShort\n===============\n\n'
+    assert md('<h2>Short<br />Long second line</h2>') == '\n\nShort\nLong second line\n----------------\n\n'
+    assert md('<h1>A<br>B<br />C</h1>') == '\n\nA\nB\nC\n=\n\n'
+    assert md('<td><h1>A<br>B</h1></td>') == ' A B |'
+
+
 def test_hn_nested_tag_heading_style():
     assert md('<h1>A <p>P</p> C </h1>', heading_style=ATX_CLOSED) == '\n\n# A P C #\n\n'
     assert md('<h1>A <p>P</p> C </h1>', heading_style=ATX) == '\n\n# A P C\n\n'
