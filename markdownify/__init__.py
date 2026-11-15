@@ -107,11 +107,24 @@ def abstract_inline_conversion(markup_fn):
             markup_suffix = markup_prefix
         if '_noformat' in parent_tags:
             return text
+        # If an ancestor is already wrapped in the same markup (e.g. <b> inside
+        # <strong>), don't wrap again: '**x**y****' does not render as intended.
+        if markup_prefix and markup_suffix == markup_prefix:
+            for tag in parent_tags:
+                parent_fn = getattr(self.get_conv_fn_cached(tag), 'markup_fn', None)
+                if parent_fn is not None and parent_fn(self) == markup_prefix:
+                    return text
         prefix, suffix, text = chomp(text)
         if not text:
             return ''
         return '%s%s%s%s%s' % (prefix, markup_prefix, text, markup_suffix, suffix)
+    implementation.markup_fn = markup_fn
     return implementation
+
+
+def _is_code_span(el):
+    """Return whether el is a tag that is converted to an inline code span."""
+    return isinstance(el, Tag) and el.name in ('code', 'kbd', 'samp')
 
 
 def _todict(obj):
@@ -498,6 +511,11 @@ class MarkdownConverter(object):
         # to avoid interpretation of inside backticks as literals
         if max_backticks > 0:
             text = " " + text + " "
+
+        # A code span directly following another one would merge with it
+        # ('`foo``bar`'), so separate them with a space.
+        if not prefix and _is_code_span(el.previous_sibling):
+            prefix = ' '
 
         return '%s%s%s%s%s' % (prefix, markup_delimiter, text, markup_delimiter, suffix)
 
