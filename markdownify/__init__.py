@@ -489,6 +489,11 @@ class MarkdownConverter(object):
         if not text:
             return ''
 
+        # A line break would let the next line start a new block (heading,
+        # blockquote, HTML block) before the code span is closed. CommonMark
+        # renders line endings inside code spans as spaces anyway.
+        text = text.replace('\n', ' ')
+
         # Find the maximum number of consecutive backticks in the text, then
         # delimit the code span with one more backtick than that
         max_backticks = max((len(match) for match in re.findall(re_backtick_runs, text)), default=0)
