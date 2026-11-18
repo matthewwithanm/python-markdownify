@@ -80,13 +80,13 @@ def strip_pre(text):
 
 def chomp(text):
     """
-    If the text in an inline tag like b, a, or em contains a leading or trailing
-    space, strip the string and return a space as suffix of prefix, if needed.
+    If the text in an inline tag like b, a, or em contains leading or trailing
+    whitespace, strip the string and return that whitespace as prefix and suffix.
     This function is used to prevent conversions like
         <b> foo</b> => ** foo**
     """
-    prefix = ' ' if text and text[0] == ' ' else ''
-    suffix = ' ' if text and text[-1] == ' ' else ''
+    prefix = text[:len(text) - len(text.lstrip())]
+    suffix = text[len(text.rstrip()):]
     text = text.strip()
     return (prefix, suffix, text)
 

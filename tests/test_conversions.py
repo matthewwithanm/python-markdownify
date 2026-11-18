@@ -1,3 +1,5 @@
+import pytest
+
 from markdownify import ATX, ATX_CLOSED, BACKSLASH, SPACES, UNDERSCORE
 from .utils import md
 
@@ -54,6 +56,24 @@ def test_b_spaces():
     assert md('foo<b> Hello</b> bar') == 'foo **Hello** bar'
     assert md('foo <b>Hello </b>bar') == 'foo **Hello** bar'
     assert md('foo <b></b> bar') == 'foo  bar'
+
+
+@pytest.mark.parametrize('opening,closing,formatted', [
+    ('<b>', '</b>', '**word**'),
+    ('<i>', '</i>', '*word*'),
+    ('<a href="/target">', '</a>', '[word](/target)'),
+    ('<code>', '</code>', '`word`'),
+])
+@pytest.mark.parametrize('space', ['\u00a0', '\u2007', '\u2009', '\u202f', '\u3000'])
+def test_inline_unicode_boundary_spaces(opening, closing, formatted, space):
+    assert md(f'left{opening}word{space}{closing}right') == f'left{formatted}{space}right'
+    assert md(f'left{opening}{space}word{closing}right') == f'left{space}{formatted}right'
+    assert md(f'left{opening}{space}{space}word{space}{space}{closing}right') == f'left{space}{space}{formatted}{space}{space}right'
+
+
+def test_inline_mixed_boundary_spaces():
+    assert md('left<b> \u00a0word\u202f </b>right') == 'left \u00a0**word**\u202f right'
+    assert md('left<b><i>\u00a0word\u202f</i></b>right') == 'left\u00a0***word***\u202fright'
 
 
 def test_blockquote():
