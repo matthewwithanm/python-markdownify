@@ -107,6 +107,9 @@ def test_code():
     assert md('foo<code>`bar`</code>baz') == 'foo`` `bar` ``baz'
     assert md('foo<code>``bar``</code>baz') == 'foo``` ``bar`` ```baz'
     assert md('foo<code> `bar` </code>baz') == 'foo `` `bar` `` baz'
+    assert md('<code>foo\n# bar</code>') == '`foo # bar`'
+    assert md('<kbd>foo\n&lt;script&gt;</kbd>') == '`foo <script>`'
+    assert md('<samp>foo\n&gt; bar</samp>', escape_misc=True) == '`foo > bar`'
 
 
 def test_dl():
