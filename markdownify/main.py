@@ -46,6 +46,9 @@ def main(argv=sys.argv[1:]):
                         choices=(SPACES, BACKSLASH),
                         help="Defines the style of <br> conversions: two spaces "
                         "or backslash at the and of the line thet should break.")
+    parser.add_argument('--code-fence', default='```',
+                        help="Fence for '<pre>' sections: at least three backticks "
+                        "or at least three tildes. Defaults to three backticks.")
     parser.add_argument('--code-language', default='',
                         help="Defines the language that should be assumed for all "
                         "'<pre>' sections.")
