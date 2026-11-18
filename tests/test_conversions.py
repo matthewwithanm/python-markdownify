@@ -29,6 +29,9 @@ def test_a_with_title():
     text = md('<a href="http://google.com" title="The &quot;Goog&quot;">Google</a>')
     assert text == r'[Google](http://google.com "The \"Goog\"")'
     assert md('<a href="https://google.com">https://google.com</a>', default_title=True) == '[https://google.com](https://google.com "https://google.com")'
+    assert md('<a href="http://google.com" title="C:\\">Google</a>') == r'[Google](http://google.com "C:\\")'
+    assert md('<a href="http://google.com" title="x\\&quot;) <b>">Google</a>') == r'[Google](http://google.com "x\\\") <b>")'
+    assert md('<a href="http://google.com" title="a\n\n* b">Google</a>') == '[Google](http://google.com "a * b")'
 
 
 def test_a_shortcut():
@@ -250,6 +253,8 @@ def test_i():
 def test_img():
     assert md('<img src="/path/to/img.jpg" alt="Alt text" title="Optional title" />') == '![Alt text](/path/to/img.jpg "Optional title")'
     assert md('<img src="/path/to/img.jpg" alt="Alt text" />') == '![Alt text](/path/to/img.jpg)'
+    assert md('<img src="/path/to/img.jpg" alt="Alt text" title="x\\&quot;) <b>" />') == r'![Alt text](/path/to/img.jpg "x\\\") <b>")'
+    assert md('<img src="/path/to/img.jpg" alt="Alt text" title="a\r\n# b" />') == '![Alt text](/path/to/img.jpg "a # b")'
 
 
 def test_video():
