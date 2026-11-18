@@ -49,6 +49,13 @@ def test_ol():
     assert md('<ol start="foo"><li>a</li><li>b</li></ol>') == '\n\n1. a\n2. b\n'
     assert md('<ol start="1.5"><li>a</li><li>b</li></ol>') == '\n\n1. a\n2. b\n'
     assert md('<ol start="1234"><li><p>first para</p><p>second para</p></li><li><p>third para</p><p>fourth para</p></li></ol>') == '\n\n1234. first para\n\n      second para\n1235. third para\n\n      fourth para\n'
+    # An explicit `value` sets the item's ordinal; following items continue from it.
+    assert md('<ol><li>a</li><li value="5">b</li><li>c</li></ol>') == '\n\n1. a\n5. b\n6. c\n'
+    assert md('<ol><li value="7">a</li><li>b</li></ol>') == '\n\n7. a\n8. b\n'
+    assert md('<ol start="2"><li>a</li><li value="10">b</li><li value="4">c</li><li>d</li></ol>') == '\n\n2. a\n10. b\n4. c\n5. d\n'
+    # Non-numeric or negative `value` falls back to positional numbering.
+    assert md('<ol><li value="foo">a</li><li>b</li></ol>') == '\n\n1. a\n2. b\n'
+    assert md('<ol><li value="-1">a</li><li>b</li></ol>') == '\n\n1. a\n2. b\n'
 
 
 def test_nested_ols():
