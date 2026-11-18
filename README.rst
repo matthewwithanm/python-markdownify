@@ -170,9 +170,10 @@ bs4_options
   selection. Dictionary values (such as ``{"from_encoding": "iso-8859-8"}``)
   are treated as full kwargs to be used for the BeautifulSoup constructor,
   allowing specification of any parameter. For parameter details, see the
-  Beautiful Soup documentation at:
+  `Beautiful Soup documentation`_.
 
-.. _BeautifulSoup: https://www.crummy.com/software/BeautifulSoup/bs4/doc/
+.. _Beautiful Soup documentation:
+   https://www.crummy.com/software/BeautifulSoup/bs4/doc/
 
 Options may be specified as kwargs to the ``markdownify`` function, or as a
 nested ``Options`` class in ``MarkdownConverter`` subclasses.
