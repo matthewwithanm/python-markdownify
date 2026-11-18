@@ -2,9 +2,12 @@
 pkgs.mkShell {
   name = "python-shell";
   buildInputs = with pkgs; [
-    python38
-    python38Packages.tox
-    python38Packages.setuptools
-    python38Packages.virtualenv
+    python315
+    python314Packages.tox
+    python314Packages.setuptools
+    python314Packages.virtualenv
+    python314Packages.mypy
+    python314Packages.types-beautifulsoup4
+    python314Packages.pytest
   ];
 }

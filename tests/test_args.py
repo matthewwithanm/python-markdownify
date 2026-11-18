@@ -2,6 +2,7 @@
 Test whitelisting/blacklisting of specific tags.
 
 """
+
 from markdownify import markdownify, LSTRIP, RSTRIP, STRIP, STRIP_ONE
 from .utils import md
 

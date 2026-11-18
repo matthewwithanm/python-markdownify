@@ -1,7 +1,6 @@
 from bs4 import BeautifulSoup, Comment, Doctype, NavigableString, Tag
 from textwrap import fill
 import re
-import six
 
 
 # General-purpose regex patterns
@@ -9,7 +8,9 @@ re_convert_heading = re.compile(r'convert_h(\d+)')
 re_line_with_content = re.compile(r'^(.*)', flags=re.MULTILINE)
 re_whitespace = re.compile(r'[\t ]+')
 re_all_whitespace = re.compile(r'[\t \r\n]+')
-re_newline_whitespace = re.compile(r'[\t \r\n]*[\r\n][\t \r\n]*')
+# (the lookbehind only lets a match start at the beginning of a whitespace run;
+# without it, a long run of spaces with no newline is rescanned from every position)
+re_newline_whitespace = re.compile(r'(?<![\t \r\n])[\t \r\n]*[\r\n][\t \r\n]*')
 re_html_heading = re.compile(r'h(\d+)')
 re_pre_lstrip1 = re.compile(r'^ *\n')
 re_pre_rstrip1 = re.compile(r'\n *$')
@@ -75,7 +76,7 @@ def strip1_pre(text):
 def strip_pre(text):
     """Strip all leading and trailing newlines from a <pre> string."""
     text = re_pre_lstrip.sub('', text)
-    text = re_pre_rstrip.sub('', text)
+    text = text.rstrip(' \n')
     return text
 
 
@@ -249,7 +250,7 @@ class MarkdownConverter(object):
                 # (subclasses of NavigableString, must test first)
                 return True
             elif isinstance(el, NavigableString):
-                if six.text_type(el).strip() != '':
+                if str(el).strip() != '':
                     # Non-whitespace text nodes are always processed.
                     return False
                 elif should_remove_inside and (not el.previous_sibling or not el.next_sibling):
@@ -345,7 +346,7 @@ class MarkdownConverter(object):
         if parent_tags is None:
             parent_tags = set()
 
-        text = six.text_type(el) or ''
+        text = str(el)
 
         # normalize whitespace if we're not inside a preformatted element
         if 'pre' not in parent_tags:
