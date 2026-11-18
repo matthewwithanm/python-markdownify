@@ -2,6 +2,10 @@
 Test whitelisting/blacklisting of specific tags.
 
 """
+import time
+
+import pytest
+
 from markdownify import markdownify, LSTRIP, RSTRIP, STRIP, STRIP_ONE
 from .utils import md
 
@@ -45,3 +49,26 @@ def bs4_options():
     assert markdownify("<p>Hello</p>", bs4_options="html.parser") == "Hello"
     assert markdownify("<p>Hello</p>", bs4_options=["html.parser"]) == "Hello"
     assert markdownify("<p>Hello</p>", bs4_options={"features": "html.parser"}) == "Hello"
+
+
+@pytest.mark.parametrize('text, expected', [
+    ('  indented', '  indented'), ('x  ', 'x'), ('x \n ', 'x'),
+    ('', ''), ('  \n  ', ''), ('\tx\t', '\tx\t'),
+    ('x\r', 'x\r'), ('x\v', 'x\v'), ('x\u00a0', 'x\u00a0'),
+    ('  \n  x  \n  ', '  x'),
+])
+def test_strip_pre_whitespace_semantics(text, expected):
+    expected_markdown = '```\n' + expected + '\n```' if text else ''
+    assert markdownify('<pre>' + text + '</pre>') == expected_markdown
+
+
+def test_strip_pre_long_indentation():
+    # A space run followed by text must not restart a trailing-whitespace
+    # search at every position. The linear implementation takes milliseconds;
+    # this generous limit catches the quadratic regression.
+    text = ' ' * 65536 + 'x'
+    start = time.monotonic()
+    result = markdownify('<pre>' + text + '</pre>')
+    elapsed = time.monotonic() - start
+    assert result == '```\n' + text + '\n```'
+    assert elapsed < 5
