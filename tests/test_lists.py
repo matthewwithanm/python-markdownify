@@ -1,3 +1,5 @@
+import pytest
+
 from .utils import md
 
 
@@ -49,6 +51,16 @@ def test_ol():
     assert md('<ol start="foo"><li>a</li><li>b</li></ol>') == '\n\n1. a\n2. b\n'
     assert md('<ol start="1.5"><li>a</li><li>b</li></ol>') == '\n\n1. a\n2. b\n'
     assert md('<ol start="1234"><li><p>first para</p><p>second para</p></li><li><p>third para</p><p>fourth para</p></li></ol>') == '\n\n1234. first para\n\n      second para\n1235. third para\n\n      fourth para\n'
+
+
+@pytest.mark.parametrize('start', ['\u00b2', '\u2163', '\u00bd', '\u56db'])
+def test_ol_non_decimal_numeric_start(start):
+    assert md('<ol start="%s"><li>a</li><li>b</li></ol>' % start) == '\n\n1. a\n2. b\n'
+
+
+@pytest.mark.parametrize('start', ['3', '\u0663', '\uff13'])
+def test_ol_decimal_start(start):
+    assert md('<ol start="%s"><li>a</li><li>b</li></ol>' % start) == '\n\n3. a\n4. b\n'
 
 
 def test_nested_ols():
