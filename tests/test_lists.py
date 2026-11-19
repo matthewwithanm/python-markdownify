@@ -1,3 +1,5 @@
+import time
+
 from .utils import md
 
 
@@ -49,6 +51,17 @@ def test_ol():
     assert md('<ol start="foo"><li>a</li><li>b</li></ol>') == '\n\n1. a\n2. b\n'
     assert md('<ol start="1.5"><li>a</li><li>b</li></ol>') == '\n\n1. a\n2. b\n'
     assert md('<ol start="1234"><li><p>first para</p><p>second para</p></li><li><p>third para</p><p>fourth para</p></li></ol>') == '\n\n1234. first para\n\n      second para\n1235. third para\n\n      fourth para\n'
+
+
+def test_ol_many_items():
+    # Numbering an item must not count all the items before it again. The
+    # linear implementation takes well under a second; this generous limit
+    # catches the quadratic regression.
+    n = 30000
+    start = time.monotonic()
+    result = md('<ol>' + '<li>a</li>' * n + '</ol>')
+    assert time.monotonic() - start < 5
+    assert result == '\n\n' + ''.join('%d. a\n' % i for i in range(1, n + 1))
 
 
 def test_nested_ols():
