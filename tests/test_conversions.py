@@ -260,6 +260,13 @@ def test_video():
     assert md('<video>text</video>') == 'text'
 
 
+def test_video_source_selection():
+    sources = '<source src=""/><source src="movie.mp4"/><source src="other.webm"/>'
+    assert md('<video>' + sources + 'Watch</video>') == '[Watch](movie.mp4)'
+    assert md('<video src="main.mp4">' + sources + 'Watch</video>') == '[Watch](main.mp4)'
+    assert md('<video><audio><source src="audio.ogg"/></audio>Watch</video>') == 'Watch'
+
+
 def test_kbd():
     inline_tests('kbd', '`')
 
