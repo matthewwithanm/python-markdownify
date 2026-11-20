@@ -27,6 +27,16 @@ def test_do_not_convert():
     assert text == 'Some Text'
 
 
+def test_strip_preformatted():
+    # stripped preformatted tags are output as plain text, so their contents are escaped
+    assert md('<code>*foo* &lt;b&gt;</code>', strip=['code'], escape_misc=True) == r'\*foo\* \<b\>'
+    assert md('<kbd>*foo*</kbd>', strip=['kbd']) == r'\*foo\*'
+    assert md('<samp>*foo*</samp>', convert=['b']) == r'\*foo\*'
+    assert md('<pre>&lt;script&gt;</pre>', convert=['p'], escape_misc=True) == r'\<script\>'
+    assert md('<code>foo <b>bar</b></code>', strip=['code']) == 'foo **bar**'
+    assert md('<pre><code>*foo*</code></pre>', strip=['pre']) == '`*foo*`'
+
+
 def test_strip_document():
     assert markdownify("<p>Hello</p>") == "Hello"  # test default of STRIP
     assert markdownify("<p>Hello</p>", strip_document=LSTRIP) == "Hello\n\n"

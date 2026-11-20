@@ -281,7 +281,8 @@ class MarkdownConverter(object):
             parent_tags_for_children.add('_inline')
 
         # if this tag is a preformatted element, add a '_noformat' parent pseudo-tag
-        if node.name in {'pre', 'code', 'kbd', 'samp'}:
+        # (unless the tag is stripped, as its contents are then output as plain text)
+        if node.name in {'pre', 'code', 'kbd', 'samp'} and self.should_convert_tag(node.name):
             parent_tags_for_children.add('_noformat')
 
         # Convert the children elements into a list of result strings.
