@@ -3,7 +3,9 @@ Test whitelisting/blacklisting of specific tags.
 
 """
 
-from markdownify import markdownify, LSTRIP, RSTRIP, STRIP, STRIP_ONE
+import pytest
+from bs4 import BeautifulSoup
+from markdownify import MarkdownConverter, markdownify, LSTRIP, RSTRIP, STRIP, STRIP_ONE
 from .utils import md
 
 
@@ -33,6 +35,36 @@ def test_strip_document():
     assert markdownify("<p>Hello</p>", strip_document=RSTRIP) == "\n\nHello"
     assert markdownify("<p>Hello</p>", strip_document=STRIP) == "Hello"
     assert markdownify("<p>Hello</p>", strip_document=None) == "\n\nHello\n\n"
+
+
+@pytest.mark.parametrize('strip, expected', [
+    (LSTRIP, 'Hello\n\n'),
+    (RSTRIP, '\n\nHello'),
+    (STRIP, 'Hello'),
+    (None, '\n\nHello\n\n'),
+])
+@pytest.mark.parametrize('tag', ['html', 'div', 'p'])
+def test_strip_document_tag_root(strip, expected, tag):
+    soup = BeautifulSoup('<html><div><p>Hello</p></div></html>', 'html.parser')
+    converter = MarkdownConverter(strip_document=strip)
+    assert converter.convert_soup(soup.find(tag)) == expected
+
+
+def test_tag_root_document_converter_runs_once():
+    class DocumentConverter(MarkdownConverter):
+        def convert__document_(self, el, text, parent_tags):
+            return '[' + text.strip() + ']'
+
+    soup = BeautifulSoup('<p>Hello</p>', 'html.parser')
+    converter = DocumentConverter()
+    assert converter.convert_soup(soup) == '[Hello]'
+    assert converter.convert_soup(soup.p) == '[Hello]'
+
+
+def test_tag_root_honors_document_conversion_filter():
+    soup = BeautifulSoup('<p>Hello</p>', 'html.parser')
+    converter = MarkdownConverter(convert=['p'])
+    assert converter.convert_soup(soup.p) == converter.convert_soup(soup)
 
 
 def test_strip_pre():
