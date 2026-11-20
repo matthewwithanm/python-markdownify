@@ -107,6 +107,10 @@ def test_code():
     assert md('foo<code>`bar`</code>baz') == 'foo`` `bar` ``baz'
     assert md('foo<code>``bar``</code>baz') == 'foo``` ``bar`` ```baz'
     assert md('foo<code> `bar` </code>baz') == 'foo `` `bar` `` baz'
+    assert md('<code>foo</code><code>bar</code>') == '`foo` `bar`'
+    assert md('<kbd>Ctrl</kbd><kbd>C</kbd>') == '`Ctrl` `C`'
+    assert md('<code>foo</code><samp> bar</samp>') == '`foo` `bar`'
+    assert md('<code>a`b</code><code>c</code>') == '`` a`b `` `c`'
 
 
 def test_dl():
@@ -334,6 +338,15 @@ def test_samp():
 
 def test_strong():
     assert md('<strong>Hello</strong>') == '**Hello**'
+
+
+def test_nested_same_markup():
+    assert md('<b>foo<b>bar</b></b>') == '**foobar**'
+    assert md('<strong>foo <b>bar</b> baz</strong>') == '**foo bar baz**'
+    assert md('<i>foo<em>bar</em></i>') == '*foobar*'
+    assert md('<del>foo<s>bar</s></del>') == '~~foobar~~'
+    assert md('<b>foo<i>bar<b>baz</b></i></b>') == '**foo*barbaz***'
+    assert md('<sup>foo<sup>bar</sup></sup>', sup_symbol='<sup>') == '<sup>foo<sup>bar</sup></sup>'
 
 
 def test_strong_em_symbol():
