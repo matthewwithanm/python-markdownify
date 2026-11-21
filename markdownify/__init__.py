@@ -746,17 +746,17 @@ class MarkdownConverter(object):
         return ' ' + text.strip().replace("\n", " ") + ' |' * colspan
 
     def convert_tr(self, el, text, parent_tags):
-        cells = el.find_all(['td', 'th'])
+        cells = el.find_all(['td', 'th'], recursive=False)
         is_first_row = el.find_previous_sibling() is None
         is_headrow = (
             all([cell.name == 'th' for cell in cells])
             or (el.parent.name == 'thead'
                 # avoid multiple tr in thead
-                and len(el.parent.find_all('tr')) == 1)
+                and len(el.parent.find_all('tr', recursive=False)) == 1)
         )
         is_head_row_missing = (
             (is_first_row and not el.parent.name == 'tbody')
-            or (is_first_row and el.parent.name == 'tbody' and len(el.parent.parent.find_all(['thead'])) < 1)
+            or (is_first_row and el.parent.name == 'tbody' and len(el.parent.parent.find_all(['thead'], recursive=False)) < 1)
         )
         overline = ''
         underline = ''
