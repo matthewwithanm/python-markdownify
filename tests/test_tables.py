@@ -1,3 +1,5 @@
+import time
+
 from .utils import md
 
 
@@ -319,3 +321,14 @@ def test_table_infer_header():
     assert md(table_with_colspan, table_infer_header=True) == '\n\n| Name | | Age |\n| --- | --- | --- |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |\n\n'
     assert md(table_with_undefined_colspan, table_infer_header=True) == '\n\n| Name | Age |\n| --- | --- |\n| Jill | Smith |\n\n'
     assert md(table_with_colspan_missing_head, table_infer_header=True) == '\n\n| Name | | Age |\n| --- | --- | --- |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |\n\n'
+
+
+def test_table_many_rows():
+    # Checking whether a row is the header row must not search the rest of the
+    # table again for every row. The linear implementation takes well under a
+    # second; this generous limit catches the quadratic regression.
+    n = 8000
+    start = time.monotonic()
+    assert md('<table><thead>' + '<tr><td>a</td></tr>' * n + '</thead></table>') == '\n\n|  |\n| --- |\n' + '| a |\n' * n + '\n'
+    assert md('<table><thead><tr><th>h</th></tr></thead>' + '<tbody><tr><td>a</td></tr></tbody>' * n + '</table>') == '\n\n| h |\n| --- |\n' + '| a |\n' * n + '\n'
+    assert time.monotonic() - start < 5

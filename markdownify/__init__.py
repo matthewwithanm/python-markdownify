@@ -174,6 +174,17 @@ def _next_block_content_sibling(el):
     return None
 
 
+def _count_preceding_li(el):
+    """For each child of el, returns the number of <li> children before it."""
+    counts = {}
+    count = 0
+    for child in el.children:
+        counts[id(child)] = count
+        if isinstance(child, Tag) and child.name == 'li':
+            count += 1
+    return counts
+
+
 class MarkdownConverter(object):
     class DefaultOptions:
         autolinks = True
@@ -218,6 +229,9 @@ class MarkdownConverter(object):
 
         # Initialize the conversion function cache
         self.convert_fn_cache = {}
+
+        # Facts about the children of tags being converted (see _children_info)
+        self._children_info_cache = {}
 
     def convert(self, html):
         soup = BeautifulSoup(html, **self.options['bs4_options'])
@@ -285,10 +299,16 @@ class MarkdownConverter(object):
             parent_tags_for_children.add('_noformat')
 
         # Convert the children elements into a list of result strings.
-        child_strings = [
-            self.process_element(el, parent_tags=parent_tags_for_children)
-            for el in children_to_convert
-        ]
+        # While they are converted, facts about them that a conversion
+        # function needs are computed once for all of them (see _children_info).
+        self._children_info_cache[id(node)] = {}
+        try:
+            child_strings = [
+                self.process_element(el, parent_tags=parent_tags_for_children)
+                for el in children_to_convert
+            ]
+        finally:
+            self._children_info_cache.pop(id(node), None)
 
         # Remove empty string values.
         child_strings = [s for s in child_strings if s]
@@ -373,6 +393,19 @@ class MarkdownConverter(object):
             text = text.rstrip()
 
         return text
+
+    def _children_info(self, node, key, compute):
+        """
+        Returns compute(node). While node's children are being converted, the
+        result is computed only once rather than once per child, which would
+        make the conversion quadratic in the number of children.
+        """
+        info = self._children_info_cache.get(id(node))
+        if info is None:
+            return compute(node)
+        if key not in info:
+            info[key] = compute(node)
+        return info[key]
 
     def get_conv_fn_cached(self, tag_name):
         """Given a tag name, return the conversion function using the cache."""
@@ -639,7 +672,8 @@ class MarkdownConverter(object):
                 start = int(parent.get("start"))
             else:
                 start = 1
-            bullet = '%s.' % (start + len(el.find_previous_siblings('li')))
+            preceding_li = self._children_info(parent, 'preceding_li', _count_preceding_li)
+            bullet = '%s.' % (start + preceding_li[id(el)])
         else:
             depth = -1
             while el:
@@ -751,12 +785,15 @@ class MarkdownConverter(object):
         is_headrow = (
             all([cell.name == 'th' for cell in cells])
             or (el.parent.name == 'thead'
-                # avoid multiple tr in thead
+                # avoid multiple tr in thead (is_headrow is only used for
+                # the first row, so don't count the rows again for each row)
+                and is_first_row
                 and len(el.parent.find_all('tr')) == 1)
         )
         is_head_row_missing = (
             (is_first_row and not el.parent.name == 'tbody')
-            or (is_first_row and el.parent.name == 'tbody' and len(el.parent.parent.find_all(['thead'])) < 1)
+            or (is_first_row and el.parent.name == 'tbody'
+                and self._children_info(el.parent.parent, 'thead', lambda table: table.find('thead')) is None)
         )
         overline = ''
         underline = ''
