@@ -147,6 +147,9 @@ table_infer_header
 wrap, wrap_width
   If ``wrap`` is set to ``True``, all text paragraphs are wrapped at
   ``wrap_width`` characters. Defaults to ``False`` and ``80``.
+  List items containing only inline content are also wrapped; list markers
+  and indentation are added outside this width. Items containing block
+  elements retain their existing layout.
   Use with ``newline_style=BACKSLASH`` to keep line breaks in paragraphs.
   A `wrap_width` value of `None` reflows lines to unlimited line length.
 
