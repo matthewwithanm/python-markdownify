@@ -319,3 +319,37 @@ def test_table_infer_header():
     assert md(table_with_colspan, table_infer_header=True) == '\n\n| Name | | Age |\n| --- | --- | --- |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |\n\n'
     assert md(table_with_undefined_colspan, table_infer_header=True) == '\n\n| Name | Age |\n| --- | --- |\n| Jill | Smith |\n\n'
     assert md(table_with_colspan_missing_head, table_infer_header=True) == '\n\n| Name | | Age |\n| --- | --- | --- |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |\n\n'
+
+
+def test_table_nested_in_first_row():
+    html = """<table>
+        <tr>
+            <th>Col1</th>
+            <th>Col2<table><tr><td>sub1</td><td>sub2</td></tr></table></th>
+        </tr>
+        <tr><td>a</td><td>b</td></tr>
+    </table>"""
+    out = md(html)
+    lines = out.strip().splitlines()
+    assert lines[0].startswith('| Col1 | Col2')
+    assert lines[1] == '| --- | --- |'
+    assert lines[2] == '| a | b |'
+
+
+def test_table_nested_in_thead_and_tbody():
+    html = """<table>
+        <thead>
+            <tr>
+                <td>H1</td>
+                <td>H2<table><tr><td>x</td></tr></table></td>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>a</td><td>b</td></tr>
+        </tbody>
+    </table>"""
+    out = md(html)
+    lines = out.strip().splitlines()
+    assert lines[0].startswith('| H1 | H2')
+    assert lines[1] == '| --- | --- |'
+    assert lines[2] == '| a | b |'
