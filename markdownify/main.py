@@ -70,6 +70,8 @@ def main(argv=sys.argv[1:]):
     parser.add_argument('-w', '--wrap', action='store_true',
                         help="Wrap all text paragraphs at --wrap-width characters.")
     parser.add_argument('--wrap-width', type=int, default=80)
+    parser.add_argument('--task-lists', action='store_true',
+                        help="Preserve checkbox states in list items using GFM task markers.")
     parser.add_argument('--bs4-options',
                         default='html.parser',
                         help="Specifies the parser that BeautifulSoup should use to parse "

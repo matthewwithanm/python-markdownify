@@ -196,6 +196,7 @@ class MarkdownConverter(object):
         sub_symbol = ''
         sup_symbol = ''
         table_infer_header = False
+        task_lists = False
         wrap = False
         wrap_width = 80
 
@@ -590,6 +591,22 @@ class MarkdownConverter(object):
             return alt
 
         return '![%s](%s%s)' % (alt, src, title_part)
+
+    def convert_input(self, el, text, parent_tags):
+        if (not self.options['task_lists']
+                or (el.get('type') or '').lower() != 'checkbox'
+                or 'li' not in parent_tags
+                or '_noformat' in parent_tags):
+            return text
+
+        marker = '[x]' if el.has_attr('checked') else '[ ]'
+        # Reuse existing whitespace, including after a wrapping label.
+        following = el
+        while following.next_sibling is None and following.parent.name != 'li':
+            following = following.parent
+        following = following.next_sibling
+        separator = '' if isinstance(following, NavigableString) and str(following)[:1].isspace() else ' '
+        return marker + separator
 
     def convert_video(self, el, text, parent_tags):
         if ('_inline' in parent_tags
