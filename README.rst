@@ -144,6 +144,14 @@ table_infer_header
   or ``<th>``). When set to ``True``, the first body row is used as the header row.
   Defaults to ``False``, which leaves the header row empty.
 
+task_lists
+  Preserve checkbox inputs inside list items as GFM task markers, ``[x]`` for
+  checked and ``[ ]`` for unchecked. Defaults to ``False``. Enable with
+  ``markdownify(html, task_lists=True)`` or ``markdownify --task-lists``.
+  As in HTML, any present ``checked`` attribute means checked, including
+  ``checked="false"``. Other input types and checkboxes outside list items
+  are unaffected. GFM renderers recognize task markers at the start of an item.
+
 wrap, wrap_width
   If ``wrap`` is set to ``True``, all text paragraphs are wrapped at
   ``wrap_width`` characters. Defaults to ``False`` and ``80``.
