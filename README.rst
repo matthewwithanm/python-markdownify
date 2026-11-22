@@ -60,6 +60,16 @@ convert
   A list of tags to convert. This option can't be used with the
   ``strip`` option.
 
+decompose
+  A list of tags to remove together with their contents. Their descendants
+  are not converted. Defaults to ``None``. For example,
+  ``markdownify(html, decompose=['aside', 'noscript'])`` removes those entire
+  subtrees. This takes precedence over ``strip`` and ``convert`` and does not
+  modify a supplied BeautifulSoup object. Unlike ``decompose``, ``strip``
+  disables tag conversion while keeping the converted child content.
+  ``script`` and ``style`` contents are already removed by default; putting
+  those tags in ``strip`` disables that default conversion.
+
 autolinks
   A boolean indicating whether the "automatic link" style should be used when
   a ``a`` tag's contents match its href. Defaults to ``True``.
