@@ -475,6 +475,9 @@ class MarkdownConverter(object):
         return '\n' + text + '\n\n'
 
     def convert_br(self, el, text, parent_tags):
+        if 'pre' in parent_tags and self.should_convert_tag('pre'):
+            return '\n' + text
+
         if '_inline' in parent_tags:
             return text + ' ' if text else ' '
 
