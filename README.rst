@@ -233,6 +233,36 @@ function names:
         return IgnoreParagraphsConverter(**options).convert(html)
 
 
+Preserving reversed ordered lists
+------------------------------------
+
+CommonMark ordered lists count upwards: writing descending Markdown markers
+does not preserve descending numbers in the rendered result. For a renderer
+that allows raw HTML, keep reversed lists as HTML with a custom converter:
+
+.. code:: python
+
+    from markdownify import MarkdownConverter
+
+    class ReversedListConverter(MarkdownConverter):
+        def convert_ol(self, el, text, parent_tags):
+            if el.has_attr('reversed'):
+                return '\n\n' + str(el) + '\n\n'
+            return super().convert_ol(el, text, parent_tags)
+
+    html = '<ol reversed start="5"><li>Five</li><li value="2">Two</li></ol>'
+    result = ReversedListConverter().convert(html)
+    assert result == '<ol reversed="" start="5"><li>Five</li><li value="2">Two</li></ol>'
+    assert ReversedListConverter().convert('<ol><li>One</li></ol>') == '1. One'
+
+This preserves the entire reversed list, including its attributes and nested
+HTML. The converted child text is discarded, so conversion options for
+descendants do not affect the preserved HTML. Use this recipe with trusted or
+separately sanitized HTML and a renderer that preserves these list attributes.
+Renderers that escape or remove raw HTML cannot use this recipe. The default
+converter's behavior is unchanged.
+
+
 Command Line Interface
 ======================
 
