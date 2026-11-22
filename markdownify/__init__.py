@@ -182,6 +182,7 @@ class MarkdownConverter(object):
         code_language = ''
         code_language_callback = None
         convert = None
+        decompose = None
         default_title = False
         escape_asterisks = True
         escape_underscores = True
@@ -233,6 +234,10 @@ class MarkdownConverter(object):
             return self.process_tag(node, parent_tags=parent_tags)
 
     def process_tag(self, node, parent_tags=None):
+        # Skip the entire subtree without mutating the supplied soup.
+        if node.name in (self.options['decompose'] or []):
+            return ''
+
         # For the top-level element, initialize the parent context with an empty set.
         if parent_tags is None:
             parent_tags = set()

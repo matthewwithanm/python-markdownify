@@ -26,6 +26,8 @@ def main(argv=sys.argv[1:]):
     parser.add_argument('-a', '--autolinks', action='store_true',
                         help="A boolean indicating whether the 'automatic link' style "
                         "should be used when a 'a' tag's contents match its href.")
+    parser.add_argument('--decompose', nargs='*',
+                        help="A list of tags to remove together with their contents.")
     parser.add_argument('--default-title', action='store_false',
                         help="A boolean to enable setting the title of a link to its "
                         "href, if no title is given.")
