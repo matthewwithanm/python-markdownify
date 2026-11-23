@@ -1,4 +1,6 @@
 from bs4 import BeautifulSoup, Comment, Doctype, NavigableString, Tag
+from copy import copy
+from itertools import groupby
 from textwrap import fill
 import re
 
@@ -174,6 +176,51 @@ def _next_block_content_sibling(el):
     return None
 
 
+def _table_span(cell, attribute, maximum, minimum=1):
+    try:
+        value = int(cell.get(attribute, 1))
+    except (TypeError, ValueError):
+        return 1
+    return min(maximum, value) if value >= minimum else 1
+
+
+def _expand_table_rowspans(table):
+    """Pad occupied slots on a copy, leaving caller-owned soup untouched."""
+    if not any(cell.has_attr('rowspan') and cell.find_parent('table') is table
+               for cell in table.find_all(['td', 'th'])):
+        return table
+    table = copy(table)
+    rows = [row for row in table.find_all('tr') if row.find_parent('table') is table]
+    # A rowspan cannot cross a thead/tbody/tfoot boundary. Direct tr children
+    # constitute an implicit group, including when the parser inserts no tbody.
+    for _, group in groupby(rows, key=lambda row: id(row.parent)):
+        group = list(group)
+        occupied = {}
+        for index, row in enumerate(group):
+            following = {column: (remaining - 1, tag)
+                         for column, (remaining, tag) in occupied.items()
+                         if remaining > 1}
+            column = 0
+            for cell in row.find_all(['td', 'th'], recursive=False):
+                while column in occupied:
+                    cell.insert_before(Tag(name=occupied[column][1]))
+                    column += 1
+                colspan = _table_span(cell, 'colspan', 1000)
+                rowspan = _table_span(cell, 'rowspan', len(group) - index, minimum=0)
+                if rowspan == 0:
+                    rowspan = len(group) - index
+                if rowspan > 1:
+                    for offset in range(colspan):
+                        following[column + offset] = (rowspan - 1, cell.name)
+                column += colspan
+            # A carried cell may be at the end, or the row may have no cells.
+            if occupied:
+                for column in range(column, max(occupied) + 1):
+                    row.append(Tag(name=occupied.get(column, (0, 'td'))[1]))
+            occupied = following
+    return table
+
+
 class MarkdownConverter(object):
     class DefaultOptions:
         autolinks = True
@@ -236,6 +283,9 @@ class MarkdownConverter(object):
         # For the top-level element, initialize the parent context with an empty set.
         if parent_tags is None:
             parent_tags = set()
+
+        if node.name == 'table':
+            node = _expand_table_rowspans(node)
 
         # Collect child elements to process, ignoring whitespace-only text elements
         # adjacent to the inner/outer boundaries of block elements.
@@ -746,7 +796,7 @@ class MarkdownConverter(object):
         return ' ' + text.strip().replace("\n", " ") + ' |' * colspan
 
     def convert_tr(self, el, text, parent_tags):
-        cells = el.find_all(['td', 'th'])
+        cells = el.find_all(['td', 'th'], recursive=False)
         is_first_row = el.find_previous_sibling() is None
         is_headrow = (
             all([cell.name == 'th' for cell in cells])
