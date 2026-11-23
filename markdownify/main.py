@@ -23,6 +23,9 @@ def main(argv=sys.argv[1:]):
     parser.add_argument('-c', '--convert', nargs='*',
                         help="A list of tags to convert. This option can't be used with "
                         "the --strip option.")
+    parser.add_argument('--passthrough', nargs='*',
+                        help="Tag names to preserve as HTML, including their children. "
+                        "Takes precedence over --strip and --convert.")
     parser.add_argument('-a', '--autolinks', action='store_true',
                         help="A boolean indicating whether the 'automatic link' style "
                         "should be used when a 'a' tag's contents match its href.")
