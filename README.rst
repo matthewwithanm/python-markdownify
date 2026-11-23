@@ -144,6 +144,11 @@ table_infer_header
   or ``<th>``). When set to ``True``, the first body row is used as the header row.
   Defaults to ``False``, which leaves the header row empty.
 
+  Table cells spanning multiple rows or columns are followed by empty cells
+  in the covered positions, preserving column alignment. A ``rowspan="0"``
+  extends to the end of its row group; spans do not cross between ``<thead>``,
+  ``<tbody>`` and ``<tfoot>`` sections. Cell content is emitted only once.
+
 wrap, wrap_width
   If ``wrap`` is set to ``True``, all text paragraphs are wrapped at
   ``wrap_width`` characters. Defaults to ``False`` and ``80``.
