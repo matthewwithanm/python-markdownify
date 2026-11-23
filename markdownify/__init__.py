@@ -174,6 +174,10 @@ def _next_block_content_sibling(el):
     return None
 
 
+class _RawHtml(str):
+    """Keep preservation context through ancestors without converter state."""
+
+
 class MarkdownConverter(object):
     class DefaultOptions:
         autolinks = True
@@ -189,6 +193,7 @@ class MarkdownConverter(object):
         heading_style = UNDERLINED
         keep_inline_images_in = []
         newline_style = SPACES
+        passthrough = None
         strip = None
         strip_document = STRIP
         strip_pre = STRIP
@@ -212,6 +217,18 @@ class MarkdownConverter(object):
             raise ValueError('You may specify either tags to strip or tags to'
                              ' convert, but not both.')
 
+        passthrough = self.options['passthrough']
+        if passthrough is not None and not callable(passthrough):
+            if isinstance(passthrough, str):
+                passthrough = (passthrough,)
+            try:
+                passthrough = tuple(passthrough)
+            except TypeError:
+                raise TypeError('passthrough must contain tag names or be a callable')
+            if not all(isinstance(tag, str) for tag in passthrough):
+                raise TypeError('passthrough must contain tag names or be a callable')
+            self.options['passthrough'] = frozenset(tag.lower() for tag in passthrough)
+
         # If a string or list is passed to bs4_options, assume it is a 'features' specification
         if not isinstance(self.options['bs4_options'], dict):
             self.options['bs4_options'] = {'features': self.options['bs4_options']}
@@ -224,7 +241,16 @@ class MarkdownConverter(object):
         return self.convert_soup(soup)
 
     def convert_soup(self, soup):
-        return self.process_tag(soup, parent_tags=set())
+        text = self.process_tag(soup, parent_tags=set())
+        return str(text) if isinstance(text, _RawHtml) else text
+
+    def should_passthrough_tag(self, node):
+        if node.name == '[document]':
+            return False
+        passthrough = self.options['passthrough']
+        if callable(passthrough):
+            return bool(passthrough(node))
+        return passthrough is not None and node.name.lower() in passthrough
 
     def process_element(self, node, parent_tags=None):
         if isinstance(node, NavigableString):
@@ -239,6 +265,13 @@ class MarkdownConverter(object):
 
         # Collect child elements to process, ignoring whitespace-only text elements
         # adjacent to the inner/outer boundaries of block elements.
+        if self.should_passthrough_tag(node):
+            text = str(node)
+            if (should_remove_whitespace_outside(node)
+                    and '_inline' not in parent_tags and '_noformat' not in parent_tags):
+                text = '\n\n' + text + '\n\n'
+            return _RawHtml(text)
+
         should_remove_inside = should_remove_whitespace_inside(node)
 
         def _can_ignore(el):
@@ -292,6 +325,7 @@ class MarkdownConverter(object):
 
         # Remove empty string values.
         child_strings = [s for s in child_strings if s]
+        contains_raw_html = any(isinstance(s, _RawHtml) for s in child_strings)
 
         # Collapse newlines at child element boundaries, if needed.
         if node.name == 'pre' or node.find_parent('pre'):
@@ -322,9 +356,11 @@ class MarkdownConverter(object):
         # apply this tag's final conversion function
         convert_fn = self.get_conv_fn_cached(node.name)
         if convert_fn is not None:
+            if contains_raw_html:
+                parent_tags = parent_tags | {'_passthrough'}
             text = convert_fn(node, text, parent_tags=parent_tags)
 
-        return text
+        return _RawHtml(text) if contains_raw_html and text else text
 
     def convert__document_(self, el, text, parent_tags):
         """Final document-level formatting for BeautifulSoup object (node.name == "[document]")"""
@@ -545,7 +581,8 @@ class MarkdownConverter(object):
     def convert_dt(self, el, text, parent_tags):
         # remove newlines from term text
         text = (text or '').strip()
-        text = re_all_whitespace.sub(' ', text)
+        if '_passthrough' not in parent_tags:
+            text = re_all_whitespace.sub(' ', text)
         if '_inline' in parent_tags:
             return ' ' + text + ' '
         if not text:
@@ -569,7 +606,8 @@ class MarkdownConverter(object):
         if style == UNDERLINED and n <= 2:
             line = '=' if n == 1 else '-'
             return self.underline(text, line)
-        text = re_all_whitespace.sub(' ', text)
+        if '_passthrough' not in parent_tags:
+            text = re_all_whitespace.sub(' ', text)
         hashes = '#' * n
         if style == ATX_CLOSED:
             return '\n\n%s %s %s\n\n' % (hashes, text, hashes)
@@ -667,7 +705,7 @@ class MarkdownConverter(object):
         if '_inline' in parent_tags:
             return ' ' + text.strip(' \t\r\n') + ' '
         text = text.strip(' \t\r\n')
-        if self.options['wrap']:
+        if self.options['wrap'] and '_passthrough' not in parent_tags:
             # Preserve newlines (and preceding whitespace) resulting
             # from <br> tags.  Newlines in the input have already been
             # replaced by spaces.
@@ -737,13 +775,19 @@ class MarkdownConverter(object):
         colspan = 1
         if 'colspan' in el.attrs and el['colspan'].isdigit():
             colspan = max(1, min(1000, int(el['colspan'])))
-        return ' ' + text.strip().replace("\n", " ") + ' |' * colspan
+        text = text.strip()
+        if '_passthrough' not in parent_tags:
+            text = text.replace("\n", " ")
+        return ' ' + text + ' |' * colspan
 
     def convert_th(self, el, text, parent_tags):
         colspan = 1
         if 'colspan' in el.attrs and el['colspan'].isdigit():
             colspan = max(1, min(1000, int(el['colspan'])))
-        return ' ' + text.strip().replace("\n", " ") + ' |' * colspan
+        text = text.strip()
+        if '_passthrough' not in parent_tags:
+            text = text.replace("\n", " ")
+        return ' ' + text + ' |' * colspan
 
     def convert_tr(self, el, text, parent_tags):
         cells = el.find_all(['td', 'th'])

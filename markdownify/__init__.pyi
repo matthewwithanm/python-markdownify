@@ -1,5 +1,5 @@
 from _typeshed import Incomplete
-from typing import Callable, Union
+from typing import Callable, Iterable, Union
 
 ATX: str
 ATX_CLOSED: str
@@ -30,6 +30,7 @@ def markdownify(
     heading_style: str = ...,
     keep_inline_images_in: list[str] = ...,
     newline_style: str = ...,
+    passthrough: Union[str, Iterable[str], Callable[[Incomplete], bool], None] = ...,
     strip: Union[list[str], None] = ...,
     strip_document: Union[str, None] = ...,
     strip_pre: Union[str, None] = ...,
@@ -58,6 +59,7 @@ class MarkdownConverter:
         heading_style: str = ...,
         keep_inline_images_in: list[str] = ...,
         newline_style: str = ...,
+        passthrough: Union[str, Iterable[str], Callable[[Incomplete], bool], None] = ...,
         strip: Union[list[str], None] = ...,
         strip_document: Union[str, None] = ...,
         strip_pre: Union[str, None] = ...,

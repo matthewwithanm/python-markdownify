@@ -60,6 +60,30 @@ convert
   A list of tags to convert. This option can't be used with the
   ``strip`` option.
 
+passthrough
+  Preserve selected elements and their complete subtrees as HTML. Accepts a tag
+  name, an iterable of tag names (case-insensitive), or a callable receiving a
+  BeautifulSoup Tag and returning whether to preserve it. Defaults to ``None``.
+  Selection takes precedence over ``strip``, ``convert`` and custom converters;
+  descendants of a selected element are not converted or passed to the callable.
+  Other elements continue to be converted normally. For example::
+
+    md('<ul><li><foo>bar</foo></li></ul>', passthrough=['foo'])
+    # '* <foo>bar</foo>'
+
+    md(html, passthrough=lambda el: el.name == 'iframe' and el.get('id') == 'video')
+    md(html, passthrough=lambda el: el.name == 'span' and el.has_attr('custom-style'))
+
+  Regular expressions and other attribute criteria can be used inside the
+  callable. The command-line option ``--passthrough iframe foo`` accepts tag
+  names. HTML is serialized by BeautifulSoup, so quote style, attribute order,
+  entity spellings and parser whitespace normalization may differ from the
+  input; this is not a byte-for-byte copy. Comments and parsed whitespace
+  inside preserved subtrees are retained.
+  Paragraphs containing preserved HTML are not rewrapped, and enclosing
+  Markdown lists/blockquotes still apply their normal indentation. Preserve
+  the whole table when multiline raw HTML needs an HTML table container.
+
 autolinks
   A boolean indicating whether the "automatic link" style should be used when
   a ``a`` tag's contents match its href. Defaults to ``True``.
