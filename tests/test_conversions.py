@@ -1,4 +1,6 @@
-from markdownify import ATX, ATX_CLOSED, BACKSLASH, SPACES, UNDERSCORE
+from bs4 import BeautifulSoup
+
+from markdownify import ATX, ATX_CLOSED, BACKSLASH, MarkdownConverter, SPACES, UNDERSCORE
 from .utils import md
 
 
@@ -16,6 +18,33 @@ def test_a():
     assert md('<a href="https://google.com">https://google.com</a>') == '<https://google.com>'
     assert md('<a href="https://community.kde.org/Get_Involved">https://community.kde.org/Get_Involved</a>') == '<https://community.kde.org/Get_Involved>'
     assert md('<a href="https://community.kde.org/Get_Involved">https://community.kde.org/Get_Involved</a>', autolinks=False) == '[https://community.kde.org/Get\\_Involved](https://community.kde.org/Get_Involved)'
+
+
+def test_a_wrapping_a_heading():
+    html = '<a href="/search"><h4>Search</h4></a>'
+    assert md(html, heading_style=ATX) == '\n\n#### [Search](/search)\n\n'
+
+
+def test_a_wrapping_a_heading_respects_heading_style_and_title():
+    html = '<a href="/docs" title="Reference"> \n<h2><em>Docs</em></h2> \n</a>'
+    expected = '<h2><a href="/docs" title="Reference"><em>Docs</em></a></h2>'
+    assert md(html) == md(expected)
+    assert md(html, heading_style=ATX_CLOSED) == md(expected, heading_style=ATX_CLOSED)
+
+
+def test_a_wrapping_a_heading_preserves_input_and_tag_options():
+    html = '<a href="/search"><h4>Search</h4></a>'
+    soup = BeautifulSoup(html, 'html.parser')
+    converter = MarkdownConverter(heading_style=ATX)
+    assert converter.convert_soup(soup) == '#### [Search](/search)'
+    assert str(soup) == html
+    assert md(html, strip=['h4']) == '[Search](/search)'
+    assert md(html, strip=['a']) == '\n\n#### Search\n\n'
+
+
+def test_a_wrapping_a_heading_in_a_table_cell_stays_inline():
+    html = '<td><a href="/search"><h4>Search</h4></a></td>'
+    assert md(html, heading_style=ATX) == ' [Search](/search) |'
 
 
 def test_a_spaces():

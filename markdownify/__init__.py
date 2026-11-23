@@ -1,4 +1,5 @@
 from bs4 import BeautifulSoup, Comment, Doctype, NavigableString, Tag
+from copy import copy
 from textwrap import fill
 import re
 
@@ -267,6 +268,22 @@ class MarkdownConverter(object):
                 raise ValueError('Unexpected element type: %s' % type(el))
 
         children_to_convert = [el for el in node.children if not _can_ignore(el)]
+
+        # Markdown headings can contain links, but not the other way round.
+        if (node.name == 'a' and node.get('href')
+                and not parent_tags.intersection({'_inline', '_noformat'})
+                and len(children_to_convert) == 1):
+            child = children_to_convert[0]
+            if (isinstance(child, Tag) and re.fullmatch(r'h[1-6]', child.name)
+                    and self.should_convert_tag('a')
+                    and self.should_convert_tag(child.name)):
+                # Adjust a detached copy so callers can reuse their soup.
+                link = copy(node)
+                heading = link.find(child.name, recursive=False).extract()
+                link.clear()
+                link.extend(list(heading.contents))
+                heading.append(link)
+                return self.process_tag(heading, parent_tags=parent_tags)
 
         # Create a copy of this tag's parent context, then update it to include this tag
         # to propagate down into the children.
