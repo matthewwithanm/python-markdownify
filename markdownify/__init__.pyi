@@ -39,6 +39,7 @@ def markdownify(
     table_infer_header: bool = ...,
     wrap: bool = ...,
     wrap_width: Union[int, None] = ...,
+    code_fence: str = ...,
 ) -> str: ...
 
 
@@ -67,6 +68,7 @@ class MarkdownConverter:
         table_infer_header: bool = ...,
         wrap: bool = ...,
         wrap_width: Union[int, None] = ...,
+        code_fence: str = ...,
     ) -> None:
         ...
   
