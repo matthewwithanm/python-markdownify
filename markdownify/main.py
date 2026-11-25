@@ -26,7 +26,7 @@ def main(argv=sys.argv[1:]):
     parser.add_argument('-a', '--autolinks', action='store_true',
                         help="A boolean indicating whether the 'automatic link' style "
                         "should be used when a 'a' tag's contents match its href.")
-    parser.add_argument('--default-title', action='store_false',
+    parser.add_argument('--default-title', action='store_true',
                         help="A boolean to enable setting the title of a link to its "
                         "href, if no title is given.")
     parser.add_argument('--heading-style', default=UNDERLINED,
