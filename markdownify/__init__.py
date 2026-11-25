@@ -16,6 +16,7 @@ re_pre_lstrip1 = re.compile(r'^ *\n')
 re_pre_rstrip1 = re.compile(r'\n *$')
 re_pre_lstrip = re.compile(r'^[ \n]*\n')
 re_pre_rstrip = re.compile(r'[ \n]*$')
+re_line_breaks = re.compile(r'[\r\n]+')
 
 # Pattern for creating convert_<tag> function names from tag names
 re_make_convert_fn_name = re.compile(r'[\[\]:-]')
@@ -91,6 +92,17 @@ def chomp(text):
     suffix = ' ' if text and text[-1] == ' ' else ''
     text = text.strip()
     return (prefix, suffix, text)
+
+
+def escape_link_title(title):
+    """
+    Escape a string for use as a double-quoted Markdown link or image title.
+    The title ends at the first unescaped '"', so backslashes need escaping
+    along with quotes. Line breaks become spaces, since the next line could
+    start a new block (list item, heading, HTML block) and cut the title off.
+    """
+    title = re_line_breaks.sub(' ', title)
+    return title.replace('\\', r'\\').replace('"', r'\"')
 
 
 def abstract_inline_conversion(markup_fn):
@@ -453,7 +465,7 @@ class MarkdownConverter(object):
             return '<%s>' % href
         if self.options['default_title'] and not title:
             title = href
-        title_part = ' "%s"' % title.replace('"', r'\"') if title else ''
+        title_part = ' "%s"' % escape_link_title(title) if title else ''
         return '%s[%s](%s%s)%s' % (prefix, text, href, title_part, suffix) if href else text
 
     convert_b = abstract_inline_conversion(lambda self: 2 * self.options['strong_em_symbol'])
@@ -584,7 +596,7 @@ class MarkdownConverter(object):
         alt = el.attrs.get('alt', None) or ''
         src = el.attrs.get('src', None) or ''
         title = el.attrs.get('title', None) or ''
-        title_part = ' "%s"' % title.replace('"', r'\"') if title else ''
+        title_part = ' "%s"' % escape_link_title(title) if title else ''
         if ('_inline' in parent_tags
                 and el.parent.name not in self.options['keep_inline_images_in']):
             return alt
