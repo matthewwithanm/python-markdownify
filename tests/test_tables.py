@@ -319,3 +319,26 @@ def test_table_infer_header():
     assert md(table_with_colspan, table_infer_header=True) == '\n\n| Name | | Age |\n| --- | --- | --- |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |\n\n'
     assert md(table_with_undefined_colspan, table_infer_header=True) == '\n\n| Name | Age |\n| --- | --- |\n| Jill | Smith |\n\n'
     assert md(table_with_colspan_missing_head, table_infer_header=True) == '\n\n| Name | | Age |\n| --- | --- | --- |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |\n\n'
+
+
+table_with_pipes = """<table>
+    <tr><th>Expression</th></tr>
+    <tr><td>a|b</td></tr>
+    <tr><td><code>a|b</code></td></tr>
+</table>"""
+
+
+def test_table_pipes_are_escaped():
+    assert md(table_with_pipes) == (
+        '\n\n| Expression |\n| --- |\n'
+        '| a\\|b |\n'
+        '| `a\\|b` |\n\n'
+    )
+
+
+def test_table_pipes_not_double_escaped():
+    assert md(table_with_pipes, escape_misc=True) == (
+        '\n\n| Expression |\n| --- |\n'
+        '| a\\|b |\n'
+        '| `a\\|b` |\n\n'
+    )

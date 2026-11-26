@@ -45,6 +45,10 @@ re_escape_misc_list_items = re.compile(r'((?:\s|^)[0-9]{1,9})([.)](?:\s|$))')
 # Find consecutive backtick sequences in a string
 re_backtick_runs = re.compile(r'`+')
 
+# Find pipes that are not already escaped, so they can be escaped inside
+# table cells without touching escapes that escape_misc already added
+re_escape_table_pipe = re.compile(r'(?<!\\)\|')
+
 # Heading styles
 ATX = 'atx'
 ATX_CLOSED = 'atx_closed'
@@ -737,13 +741,15 @@ class MarkdownConverter(object):
         colspan = 1
         if 'colspan' in el.attrs and el['colspan'].isdigit():
             colspan = max(1, min(1000, int(el['colspan'])))
-        return ' ' + text.strip().replace("\n", " ") + ' |' * colspan
+        text = text.strip().replace("\n", " ")
+        return ' ' + re_escape_table_pipe.sub(r'\\|', text) + ' |' * colspan
 
     def convert_th(self, el, text, parent_tags):
         colspan = 1
         if 'colspan' in el.attrs and el['colspan'].isdigit():
             colspan = max(1, min(1000, int(el['colspan'])))
-        return ' ' + text.strip().replace("\n", " ") + ' |' * colspan
+        text = text.strip().replace("\n", " ")
+        return ' ' + re_escape_table_pipe.sub(r'\\|', text) + ' |' * colspan
 
     def convert_tr(self, el, text, parent_tags):
         cells = el.find_all(['td', 'th'])
