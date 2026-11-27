@@ -319,3 +319,24 @@ def test_table_infer_header():
     assert md(table_with_colspan, table_infer_header=True) == '\n\n| Name | | Age |\n| --- | --- | --- |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |\n\n'
     assert md(table_with_undefined_colspan, table_infer_header=True) == '\n\n| Name | Age |\n| --- | --- |\n| Jill | Smith |\n\n'
     assert md(table_with_colspan_missing_head, table_infer_header=True) == '\n\n| Name | | Age |\n| --- | --- | --- |\n| Jill | Smith | 50 |\n| Eve | Jackson | 94 |\n\n'
+
+
+def test_multiple_table_bodies_share_a_header():
+    html = ('<table><tbody></tbody>'
+            '<tbody><tr><td>A</td></tr></tbody>'
+            '<tbody><tr><td>B</td></tr></tbody></table>')
+    assert md(html) == '\n\n|  |\n| --- |\n| A |\n| B |\n\n'
+    assert md(html, table_infer_header=True) == '\n\n| A |\n| --- |\n| B |\n\n'
+
+
+def test_header_cells_in_later_body_do_not_repeat_separator():
+    html = ('<table><thead><tr><th>Heading</th></tr></thead>'
+            '<tbody><tr><th>A</th></tr></tbody>'
+            '<tbody><tr><th>B</th></tr></tbody></table>')
+    assert md(html) == '\n\n| Heading |\n| --- |\n| A |\n| B |\n\n'
+
+
+def test_footer_after_direct_rows_does_not_repeat_header():
+    html = ('<table><tr><th>Heading</th></tr>'
+            '<tfoot><tr><td>Total</td></tr></tfoot></table>')
+    assert md(html) == '\n\n| Heading |\n| --- |\n| Total |\n\n'
