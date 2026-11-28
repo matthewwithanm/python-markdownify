@@ -223,6 +223,13 @@ def test_hn_atx_headings():
     assert md('<h2>Hello</h2>', heading_style=ATX) == '\n\n## Hello\n\n'
 
 
+def test_hn_literal_trailing_hashes():
+    assert md('<h1>Issue #</h1>', heading_style=ATX) == '\n\n# Issue \\#\n\n'
+    assert md('<h3>###</h3>') == '\n\n### \\###\n\n'
+    assert md('<h3>C#</h3>') == '\n\n### C#\n\n'
+    assert md('<h2>Issue #</h2>', heading_style=ATX_CLOSED) == '\n\n## Issue # ##\n\n'
+
+
 def test_hn_atx_closed_headings():
     assert md('<h1>Hello</h1>', heading_style=ATX_CLOSED) == '\n\n# Hello #\n\n'
     assert md('<h2>Hello</h2>', heading_style=ATX_CLOSED) == '\n\n## Hello ##\n\n'
