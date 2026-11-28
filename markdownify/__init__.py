@@ -573,6 +573,8 @@ class MarkdownConverter(object):
         hashes = '#' * n
         if style == ATX_CLOSED:
             return '\n\n%s %s %s\n\n' % (hashes, text, hashes)
+        # A final run of hashes after a space (or alone) would close the heading.
+        text = re.sub(r'(^| )(#+)$', r'\1\\\2', text)
         return '\n\n%s %s\n\n' % (hashes, text)
 
     def convert_hr(self, el, text, parent_tags):
